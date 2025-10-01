@@ -1,0 +1,516 @@
+import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { CheckCircle, ChevronRight, FileText, Printer, AlertTriangle, Thermometer, Ruler, Building2, Settings2 } from "lucide-react";
+
+// --- UI helpers (minimal, shadcn-like shells so file runs standalone) ---
+const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = "", ...props }) => (
+  <div className={`bg-white rounded-2xl shadow p-6 ${className}`} {...props} />
+);
+const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = "", ...props }) => (
+  <button className={`px-4 py-2 rounded-2xl shadow text-sm font-medium bg-black text-white hover:opacity-90 disabled:opacity-50 ${className}`} {...props} />
+);
+const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = "", ...props }) => (
+  <input className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 ${className}`} {...props} />
+);
+const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className = "", children, ...props }) => (
+  <select className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 ${className}`} {...props}>
+    {children}
+  </select>
+);
+const Checkbox: React.FC<{checked:boolean; onChange:(v:boolean)=>void; label:string}> = ({checked, onChange, label}) => (
+  <label className="flex items-start gap-3 cursor-pointer select-none">
+    <input type="checkbox" className="mt-1" checked={checked} onChange={(e)=>onChange(e.target.checked)} />
+    <span className="text-sm">{label}</span>
+  </label>
+);
+
+// --- Domain data ---
+// Minimal département map from code (first two digits of CP) to name. Includes Corse edge case.
+const DEPARTEMENTS: Record<string, string> = {
+  "01": "Ain", "02": "Aisne", "03": "Allier", "04": "Alpes-de-Haute-Provence", "05": "Hautes-Alpes",
+  "06": "Alpes-Maritimes", "07": "Ardèche", "08": "Ardennes", "09": "Ariège", "10": "Aube",
+  "11": "Aude", "12": "Aveyron", "13": "Bouches-du-Rhône", "14": "Calvados", "15": "Cantal",
+  "16": "Charente", "17": "Charente-Maritime", "18": "Cher", "19": "Corrèze", "2A": "Corse-du-Sud", "2B": "Haute-Corse",
+  "21": "Côte-d'Or", "22": "Côtes-d'Armor", "23": "Creuse", "24": "Dordogne", "25": "Doubs",
+  "26": "Drôme", "27": "Eure", "28": "Eure-et-Loir", "29": "Finistère", "30": "Gard",
+  "31": "Haute-Garonne", "32": "Gers", "33": "Gironde", "34": "Hérault", "35": "Ille-et-Vilaine",
+  "36": "Indre", "37": "Indre-et-Loire", "38": "Isère", "39": "Jura", "40": "Landes",
+  "41": "Loir-et-Cher", "42": "Loire", "43": "Haute-Loire", "44": "Loire-Atlantique", "45": "Loiret",
+  "46": "Lot", "47": "Lot-et-Garonne", "48": "Lozère", "49": "Maine-et-Loire", "50": "Manche",
+  "51": "Marne", "52": "Haute-Marne", "53": "Mayenne", "54": "Meurthe-et-Moselle", "55": "Meuse",
+  "56": "Morbihan", "57": "Moselle", "58": "Nièvre", "59": "Nord", "60": "Oise",
+  "61": "Orne", "62": "Pas-de-Calais", "63": "Puy-de-Dôme", "64": "Pyrénées-Atlantiques", "65": "Hautes-Pyrénées",
+  "66": "Pyrénées-Orientales", "67": "Bas-Rhin", "68": "Haut-Rhin", "69": "Rhône", "70": "Haute-Saône",
+  "71": "Saône-et-Loire", "72": "Sarthe", "73": "Savoie", "74": "Haute-Savoie", "75": "Paris",
+  "76": "Seine-Maritime", "77": "Seine-et-Marne", "78": "Yvelines", "79": "Deux-Sèvres", "80": "Somme",
+  "81": "Tarn", "82": "Tarn-et-Garonne", "83": "Var", "84": "Vaucluse", "85": "Vendée",
+  "86": "Vienne", "87": "Haute-Vienne", "88": "Vosges", "89": "Yonne", "90": "Territoire de Belfort",
+  "91": "Essonne", "92": "Hauts-de-Seine", "93": "Seine-Saint-Denis", "94": "Val-de-Marne", "95": "Val-d'Oise",
+  "971": "Guadeloupe", "972": "Martinique", "973": "Guyane", "974": "La Réunion", "976": "Mayotte"
+};
+
+// Machine catalog with capacity (kW) vs. base outdoor temperature (°C)
+// Values as provided; keys are strings like "-2", "-4", ..., "-20".
+const MACHINES: Record<string, { name: string; cutoff: number; map: Record<string, number>; }> = {
+  F2050_6: {
+    name: "NIBE F2050-6",
+    cutoff: -20,
+    map: { "-2": 7.1, "-4": 6.9, "-5": 6.8, "-7": 6.6, "-8": 6.4, "-9": 6.3, "-10": 6.2, "-11": 6.0, "-12": 5.9, "-13": 5.7, "-14": 5.5, "-15": 5.4, "-16": 5.2, "-17": 5.1, "-18": 4.9, "-19": 4.8, "-20": 4.6 }
+  },
+  F2050_10: {
+    name: "NIBE F2050-10",
+    cutoff: -20,
+    map: { "-2": 10.2, "-4": 10.0, "-5": 9.8, "-7": 9.8, "-8": 9.7, "-9": 9.7, "-10": 9.5, "-11": 9.4, "-12": 9.2, "-13": 8.9, "-14": 8.7, "-15": 8.5, "-16": 8.1, "-17": 7.9, "-18": 7.5, "-19": 7.2, "-20": 6.9 }
+  }
+};
+
+// --- Helpers ---
+function cpToDepartement(cp: string): string | undefined {
+  const clean = cp.replace(/\s/g, "");
+  if (clean.length < 2) return undefined;
+  // Outre-mer 3-digit codes
+  if (/^(97[1-6]|98[4-9])/.test(clean)) {
+    const code = clean.slice(0, 3);
+    return DEPARTEMENTS[code];
+  }
+  // Corse special-case: postal codes 20000-20999 map to 2A/2B (we pick unknown until city helps)
+  if (/^20/.test(clean)) {
+    return "Corse (2A/2B)";
+  }
+  const code = clean.slice(0, 2);
+  return DEPARTEMENTS[code];
+}
+
+// Placeholder: real implementation should query an authoritative referential (NF EN 12831 / Th-BCE, etc.)
+function inferBaseTempFromAddress(city: string, cp: string, departementName?: string): number {
+  // Until a dataset is integrated, provide a conservative default and let installer override.
+  // Heuristic: colder in NE, milder on coasts; we can't geocode here, so return -7°C.
+  return -7;
+}
+
+function classFromEmitterTemp(t: number): "Basse température" | "Moyenne température" | "Haute température" {
+  if (t <= 35) return "Basse température";
+  if (t >= 65) return "Haute température";
+  return "Moyenne température"; // 45 ou 55
+}
+
+function formatKW(v?: number) { return (v ?? 0).toFixed(1) + " kW"; }
+
+// --- Main component ---
+export default function DimensionnementWizard() {
+  const [step, setStep] = useState<number>(0);
+
+  // Step 0: Cadre réglementaire + type de note
+  const [fiche, setFiche] = useState<"BAR-TH171" | "BAR-TH172" | "">("");
+
+  // Step 1: infos installateur & chantier
+  const [inst, setInst] = useState({ installateur:"", societe:"", siret:"", adresse:"", cp:"", ville:"", departement:"" });
+  const [benef, setBenef] = useState({ prenom:"", nom:"", adresse:"", cp:"", ville:"", departement:"" });
+  const [anneeConstruction, setAnneeConstruction] = useState<string>("");
+
+  // Step 2: Tbase
+  const [tBase, setTBase] = useState<number | "">("");
+  const [tBaseConfirmed, setTBaseConfirmed] = useState<boolean | null>(null);
+
+  // Step 3: dimensions & consigne intérieure
+  const [surface, setSurface] = useState<string>("");
+  const [hsp, setHsp] = useState<string>("2.5");
+  const volume = useMemo(()=>{
+    const s = parseFloat(surface);
+    const h = parseFloat(hsp);
+    if (isNaN(s) || isNaN(h)) return "";
+    return (s*h).toFixed(1);
+  }, [surface, hsp]);
+  const [volumeOverride, setVolumeOverride] = useState<string>("");
+  const [tInt, setTInt] = useState<string>("20");
+
+  // Step 4: Sélection machine
+  const [machineKey, setMachineKey] = useState<keyof typeof MACHINES | "">("");
+
+  // Step 5: Émetteurs & engagements
+  const [emetteur, setEmetteur] = useState<"Plancher chauffant"|"Radiateurs"|"Ventilo-convecteurs"|"Mixte (plancher + radiateurs)"|"">("");
+  const [tEau, setTEau] = useState<string>("35");
+  const [engAllRooms, setEngAllRooms] = useState<boolean>(true);
+  const [engNoOtherGen, setEngNoOtherGen] = useState<boolean>(true);
+
+  // Step 5b (conditionnel mixte): zones
+  const [zonePC, setZonePC] = useState<string>("");
+  const [zoneRad, setZoneRad] = useState<string>("");
+
+  // Rendements saisonniers (à fournir par vous ; placeholders)
+  const [eta35, setEta35] = useState<string>("");
+  const [eta55, setEta55] = useState<string>("");
+
+  // Derived machine values
+  const machine = machineKey ? MACHINES[machineKey] : undefined;
+  const baseKey = typeof tBase === "number" ? String(tBase) : "";
+  const machineCapacityAtBase = useMemo(()=>{
+    if (!machine || !tBase) return undefined;
+    // Find nearest available key <= selected Tbase
+    const keys = Object.keys(machine.map).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
+    const target = Number(tBase);
+    let bestKey = keys[0];
+    for (const k of keys) { if (k <= target) bestKey = k; }
+    return machine.map[String(bestKey)];
+  }, [machine, tBase]);
+
+  const pacMaxAtBase = machineCapacityAtBase ? +(machineCapacityAtBase * 0.70).toFixed(1) : undefined;
+  const elecPointRecommended = machineCapacityAtBase ? +(machineCapacityAtBase * 0.30).toFixed(1) : undefined;
+  const cap60 = machineCapacityAtBase ? +(machineCapacityAtBase * 0.60).toFixed(1) : undefined;
+  const cap130 = machineCapacityAtBase ? +(machineCapacityAtBase * 1.30).toFixed(1) : undefined;
+
+  const emitterClass = classFromEmitterTemp(parseFloat(tEau || "35"));
+
+  // Validation helpers
+  const canContinueAfterTbase = tBase !== "" && tBaseConfirmed === true;
+  const mustStopAfterTbase = tBaseConfirmed === false;
+  const canConfirmProject = engAllRooms && engNoOtherGen;
+
+  // Report printing
+  const printReport = () => window.print();
+
+  // Auto-fill département on CP changes
+  const updateDepartement = (cp: string) => {
+    const d = cpToDepartement(cp) || "";
+    setInst(p=>({...p, departement: d || p.departement}));
+  };
+  const updateDepartementBenef = (cp: string) => {
+    const d = cpToDepartement(cp) || "";
+    setBenef(p=>({...p, departement: d || p.departement}));
+  };
+
+  const steps = [
+    { title: "Choix de la fiche", icon: <Settings2 className="w-5 h-5"/> },
+    { title: "Coordonnées", icon: <Building2 className="w-5 h-5"/> },
+    { title: "Température extérieure de base", icon: <Thermometer className="w-5 h-5"/> },
+    { title: "Dimensions & consignes", icon: <Ruler className="w-5 h-5"/> },
+    { title: "Sélection machine", icon: <Settings2 className="w-5 h-5"/> },
+    { title: "Émetteurs & engagements", icon: <CheckCircle className="w-5 h-5"/> },
+    { title: "Zones (si mixte)", icon: <Ruler className="w-5 h-5"/> },
+    { title: "Rapport", icon: <FileText className="w-5 h-5"/> },
+  ];
+
+  return (
+    <div className="min-h-screen bg-neutral-50 print:bg-white">
+      <div className="max-w-5xl mx-auto p-4 md:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 print:hidden">
+          <div className="flex items-center gap-3">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Heat_pump_icon.svg" className="w-8 h-8" alt="PAC"/>
+            <h1 className="text-2xl font-semibold">Assistant note de dimensionnement – BAR-TH171 / BAR-TH172</h1>
+          </div>
+          <Button onClick={printReport}><Printer className="w-4 h-4 inline mr-2"/> Imprimer</Button>
+        </div>
+
+        {/* Stepper */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-6 print:hidden">
+          {steps.map((s, i) => (
+            <div key={i} className={`flex items-center gap-2 rounded-xl px-3 py-2 ${i===step?"bg-black text-white":"bg-white"}`}>
+              {s.icon}
+              <span className="text-xs font-medium">{s.title}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Cards */}
+        {step===0 && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">1) Cadre réglementaire</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Type de note</label>
+                <Select value={fiche} onChange={(e)=>setFiche(e.target.value as any)}>
+                  <option value="">— Sélectionner —</option>
+                  <option value="BAR-TH172">Sol/Eau & Eau/Eau – Fiche BAR-TH172</option>
+                  <option value="BAR-TH171">Air/Eau – Fiche BAR-TH171</option>
+                </Select>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button disabled={!fiche} onClick={()=>setStep(1)}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
+            </div>
+          </Card>
+        )}
+
+        {step===1 && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">2) Coordonnées</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-medium mb-2">Installateur 🔧</h3>
+                <div className="grid gap-3">
+                  <Input placeholder="Nom de l'installateur" value={inst.installateur} onChange={e=>setInst({...inst, installateur:e.target.value})}/>
+                  <Input placeholder="Société" value={inst.societe} onChange={e=>setInst({...inst, societe:e.target.value})}/>
+                  <Input placeholder="N° SIRET" value={inst.siret} onChange={e=>setInst({...inst, siret:e.target.value})}/>
+                  <Input placeholder="Adresse" value={inst.adresse} onChange={e=>setInst({...inst, adresse:e.target.value})}/>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input placeholder="Code postal" value={inst.cp} onChange={e=>{ setInst({...inst, cp:e.target.value}); updateDepartement(e.target.value); }}/>
+                    <Input placeholder="Ville" value={inst.ville} onChange={e=>setInst({...inst, ville:e.target.value})}/>
+                    <Input placeholder="Département (auto)" value={inst.departement} onChange={e=>setInst({...inst, departement:e.target.value})}/>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-medium mb-2">Bénéficiaire 🏠</h3>
+                <div className="grid gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input placeholder="Prénom" value={benef.prenom} onChange={e=>setBenef({...benef, prenom:e.target.value})}/>
+                    <Input placeholder="Nom" value={benef.nom} onChange={e=>setBenef({...benef, nom:e.target.value})}/>
+                  </div>
+                  <Input placeholder="Adresse du chantier" value={benef.adresse} onChange={e=>setBenef({...benef, adresse:e.target.value})}/>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input placeholder="Code postal" value={benef.cp} onChange={e=>{ setBenef({...benef, cp:e.target.value}); updateDepartementBenef(e.target.value); }}/>
+                    <Input placeholder="Ville" value={benef.ville} onChange={e=>setBenef({...benef, ville:e.target.value})}/>
+                    <Input placeholder="Département (auto)" value={benef.departement} onChange={e=>setBenef({...benef, departement:e.target.value})}/>
+                  </div>
+                  <Input placeholder="Année de construction du bâtiment" value={anneeConstruction} onChange={e=>setAnneeConstruction(e.target.value)} />
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-between items-center">
+              <p className="text-sm text-neutral-500">Le département est déduit du code postal. Pour la température de base, un référentiel officiel sera utilisé (à intégrer).</p>
+              <Button onClick={()=>{
+                const dep = benef.departement || cpToDepartement(benef.cp) || "";
+                const base = inferBaseTempFromAddress(benef.ville, benef.cp, typeof dep === "string" ? dep : undefined);
+                setTBase(base);
+                setStep(2);
+              }}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
+            </div>
+          </Card>
+        )}
+
+        {step===2 && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">3) Température extérieure de base</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="text-sm">Température proposée (modifiable) pour {benef.ville || "la commune"} ({benef.cp || "CP"})</div>
+                <Input type="number" step="1" value={tBase} onChange={e=>setTBase(parseFloat(e.target.value))} />
+                <div className="text-xs text-neutral-500">Référentiel à intégrer (NF EN 12831 / Th-BCE). L'installateur peut corriger si nécessaire.</div>
+              </div>
+              <div className="space-y-3">
+                <div className="text-sm font-medium">Confirmez-vous cette température de base ?</div>
+                <div className="flex gap-3">
+                  <Button onClick={()=>{ setTBaseConfirmed(true); setStep(3); }}>Oui, continuer</Button>
+                  <Button className="bg-red-600" onClick={()=>setTBaseConfirmed(false)}>Non, arrêter</Button>
+                </div>
+                {mustStopAfterTbase && (
+                  <div className="flex items-start gap-2 text-red-700 bg-red-50 p-3 rounded-xl">
+                    <AlertTriangle className="w-4 h-4 mt-0.5"/> <span className="text-sm">Projet interrompu car la température de base n'est pas validée.</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {step===3 && canContinueAfterTbase && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">4) Dimensions & consignes</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">Surface habitable (m²)</label>
+                <Input type="number" value={surface} onChange={e=>setSurface(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Hauteur sous plafond moyenne (m)</label>
+                <Input type="number" step="0.1" value={hsp} onChange={e=>setHsp(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Volume calculé (m³) – modifiable</label>
+                <Input type="number" value={volumeOverride || volume as string} onChange={e=>setVolumeOverride(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Température intérieure souhaitée (°C)</label>
+                <Input type="number" value={tInt} onChange={e=>setTInt(e.target.value)} />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={()=>setStep(4)}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
+            </div>
+          </Card>
+        )}
+
+        {step===4 && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">5) Sélection de la machine</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-medium">Modèle</label>
+                <Select value={machineKey} onChange={e=>setMachineKey(e.target.value as any)}>
+                  <option value="">— Choisir —</option>
+                  <option value="F2050_6">NIBE F2050-6</option>
+                  <option value="F2050_10">NIBE F2050-10</option>
+                </Select>
+                {!!machine && tBase!=="" && (
+                  <div className="mt-4 text-sm">
+                    <div>Température d'arrêt PAC : <strong>{machine.cutoff}°C</strong></div>
+                    <div>Capacité de référence à Tbase ~ <strong>{formatKW(machineCapacityAtBase)}</strong> (selon courbe fournie)</div>
+                  </div>
+                )}
+              </div>
+              <div className="grid gap-3">
+                <div className="text-sm">Rendement saisonnier (SCOP) à 35°C</div>
+                <Input placeholder="ex: 4.2" value={eta35} onChange={e=>setEta35(e.target.value)} />
+                <div className="text-sm">Rendement saisonnier (SCOP) à 55°C</div>
+                <Input placeholder="ex: 3.2" value={eta55} onChange={e=>setEta55(e.target.value)} />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button disabled={!machineKey} onClick={()=>setStep(5)}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
+            </div>
+          </Card>
+        )}
+
+        {step===5 && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">6) Émetteurs & engagements</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid gap-3">
+                <label className="text-sm font-medium">Type d'émetteur</label>
+                <Select value={emetteur} onChange={e=>setEmetteur(e.target.value as any)}>
+                  <option value="">— Sélectionner —</option>
+                  <option>Plancher chauffant</option>
+                  <option>Radiateurs</option>
+                  <option>Ventilo-convecteurs</option>
+                  <option>Mixte (plancher + radiateurs)</option>
+                </Select>
+                <label className="text-sm font-medium">Température d'eau moyenne (°C)</label>
+                <Select value={tEau} onChange={e=>setTEau(e.target.value)}>
+                  <option value="35">35</option>
+                  <option value="45">45</option>
+                  <option value="55">55</option>
+                  <option value="65">65</option>
+                </Select>
+                <div className="text-sm">Classe de température: <strong>{emitterClass}</strong></div>
+              </div>
+              <div className="grid gap-3">
+                <Checkbox checked={engAllRooms} onChange={setEngAllRooms} label={"Je confirme que les déperditions calculées couvrent toutes les pièces desservies par le réseau de chauffage."} />
+                <Checkbox checked={engNoOtherGen} onChange={setEngNoOtherGen} label={"Je confirme que les déperditions sont calculées sans considérer d'autres générateurs présents."} />
+                {!canConfirmProject && (
+                  <div className="text-sm text-red-700 bg-red-50 p-3 rounded-xl flex items-start gap-2"><AlertTriangle className="w-4 h-4 mt-0.5"/>Ces engagements doivent être cochés pour confirmer le projet.</div>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 flex justify-between">
+              <div/>
+              <Button onClick={()=> setStep(emetteur.includes("Mixte") ? 6 : 7)} disabled={!canConfirmProject || !emetteur}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
+            </div>
+          </Card>
+        )}
+
+        {step===6 && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">7) Zones (mixte plancher + radiateurs)</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Surface zone plancher chauffant (m²)</label>
+                <Input type="number" value={zonePC} onChange={e=>setZonePC(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Surface zone radiateurs (m²)</label>
+                <Input type="number" value={zoneRad} onChange={e=>setZoneRad(e.target.value)} />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={()=>setStep(7)}>Voir le rapport <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
+            </div>
+          </Card>
+        )}
+
+        {step===7 && (
+          <Card>
+            <div className="print:shadow-none">
+              <h2 className="text-xl font-semibold mb-1">Rapport de note de dimensionnement</h2>
+              <p className="text-sm text-neutral-500 mb-4">Fiche {fiche || "—"} • Généré le {(new Date()).toLocaleDateString()} • Imprimable</p>
+
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="font-medium mb-2">Installateur</h3>
+                  <div className="text-sm leading-6">
+                    <div>{inst.installateur} – {inst.societe}</div>
+                    <div>SIRET : {inst.siret}</div>
+                    <div>{inst.adresse}</div>
+                    <div>{inst.cp} {inst.ville} ({inst.departement})</div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-2">Bénéficiaire / Chantier</h3>
+                  <div className="text-sm leading-6">
+                    <div>{benef.prenom} {benef.nom}</div>
+                    <div>{benef.adresse}</div>
+                    <div>{benef.cp} {benef.ville} ({benef.departement})</div>
+                    <div>Année construction : {anneeConstruction}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-6">
+                <div className="bg-neutral-50 rounded-xl p-4">
+                  <div className="text-xs text-neutral-500">Température extérieure de base</div>
+                  <div className="text-2xl font-semibold">{tBase}°C</div>
+                </div>
+                <div className="bg-neutral-50 rounded-xl p-4">
+                  <div className="text-xs text-neutral-500">Volume logement</div>
+                  <div className="text-2xl font-semibold">{(volumeOverride || volume || "0")} m³</div>
+                </div>
+                <div className="bg-neutral-50 rounded-xl p-4">
+                  <div className="text-xs text-neutral-500">T° intérieure visée</div>
+                  <div className="text-2xl font-semibold">{tInt}°C</div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div className="border rounded-xl p-4">
+                  <h3 className="font-medium mb-2">Émetteurs</h3>
+                  <div className="text-sm">Type : <strong>{emetteur}</strong></div>
+                  <div className="text-sm">T° eau moyenne : <strong>{tEau}°C</strong> – <em>{emitterClass}</em></div>
+                  {emetteur.includes("Mixte") && (
+                    <div className="text-sm mt-2">Surfaces : PC {zonePC || "-"} m² • Radiateurs {zoneRad || "-"} m²</div>
+                  )}
+                  <div className="text-sm mt-2">Classe du régulateur : <strong>6</strong> • Fabricant : <strong>NIBE</strong></div>
+                </div>
+                <div className="border rounded-xl p-4">
+                  <h3 className="font-medium mb-2">Machine</h3>
+                  <div className="text-sm">Modèle : <strong>{machine?.name || "—"}</strong></div>
+                  <div className="text-sm">Température d'arrêt PAC : <strong>{machine?.cutoff ?? "—"}°C</strong></div>
+                  <div className="text-sm">Capacité de référence à Tbase : <strong>{formatKW(machineCapacityAtBase)}</strong></div>
+                  <div className="text-sm">Puissance max PAC à Tbase (70%) : <strong>{formatKW(pacMaxAtBase)}</strong></div>
+                  <div className="text-sm">Puissance à appoint électrique recommandée (~30%) : <strong>{formatKW(elecPointRecommended)}</strong></div>
+                  <div className="text-sm">Puissance à 60% : <strong>{formatKW(cap60)}</strong></div>
+                  <div className="text-sm">Puissance à 130% : <strong>{formatKW(cap130)}</strong></div>
+                  <div className="text-sm mt-2">SCOP 35°C : <strong>{eta35 || "—"}</strong> • SCOP 55°C : <strong>{eta55 || "—"}</strong></div>
+                </div>
+              </div>
+
+              <div className="border rounded-xl p-4 mb-6">
+                <h3 className="font-medium mb-2">Engagements</h3>
+                <div className="text-sm">Toutes les pièces desservies par le réseau sont prises en compte : <strong>{engAllRooms?"Oui":"Non"}</strong></div>
+                <div className="text-sm">Déperditions calculées sans autres générateurs : <strong>{engNoOtherGen?"Oui":"Non"}</strong></div>
+                {!canConfirmProject && (
+                  <div className="text-sm text-red-700 bg-red-50 p-3 rounded-xl mt-2 flex items-start gap-2"><AlertTriangle className="w-4 h-4 mt-0.5"/>Projet non confirmable tant que les deux consentements ne sont pas cochés.</div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between print:hidden">
+                <div className="text-xs text-neutral-500">Ce rapport est conçu pour impression directe (A4). Utilisez le bouton ci-dessous.</div>
+                <Button onClick={printReport}><Printer className="w-4 h-4 inline mr-2"/> Imprimer le rapport</Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <div className="mt-10 text-center text-xs text-neutral-500 print:hidden">Prototype – données de température de base et SCOP à intégrer depuis un référentiel officiel. © NIBE régulateur classe 6.</div>
+      </div>
+
+      {/* Print styles */}
+      <style>{`
+        @media print {
+          .print\\:hidden { display: none !important; }
+          .print\\:bg-white { background: white !important; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      `}</style>
+    </div>
+  );
+}
