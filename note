@@ -1,1413 +1,1700 @@
-import React, { useEffect, useMemo, useState } from "react";
-
-const StepButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = "", ...props }) => (
-  <button
-    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors bg-black text-white hover:bg-black/90 disabled:bg-black/30 ${className}`}
-    {...props}
-  />
-);
-
-const SecondaryButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = "", ...props }) => (
-  <button
-    className={`px-4 py-2 rounded-xl text-sm font-medium border border-black/20 text-black hover:bg-black/5 disabled:text-black/40 disabled:border-black/10 ${className}`}
-    {...props}
-  />
-);
-
-const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = "", ...props }) => (
-  <div className={`bg-white border border-black/10 shadow-sm rounded-2xl p-6 ${className}`} {...props} />
-);
-
-const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = "", ...props }) => (
-  <input
-    className={`w-full border border-black/15 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/30 ${className}`}
-    {...props}
-  />
-);
-
-const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className = "", children, ...props }) => (
-  <select
-    className={`w-full border border-black/15 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/30 ${className}`}
-    {...props}
-  >
-    {children}
-  </select>
-);
-
-const Checkbox: React.FC<{ checked: boolean; onChange: (value: boolean) => void; label: string }> = ({ checked, onChange, label }) => (
-  <label className="flex items-center gap-3 cursor-pointer text-sm select-none">
-    <input type="checkbox" className="w-4 h-4" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-    <span>{label}</span>
-  </label>
-);
-
-const DEPARTMENT_BASE_TEMPS: Record<string, number> = {
-  "01": -10, "02": -7, "03": -8, "04": -8, "05": -10, "06": -2, "07": -7, "08": -10, "09": -5, "10": -10,
-  "11": -5, "12": -8, "13": -5, "14": -7, "15": -8, "16": -5, "17": -5, "18": -7, "19": -8, "21": -10,
-  "22": -4, "23": -8, "24": -5, "25": -12, "26": -7, "27": -7, "28": -7, "29": -4, "30": -5, "31": -5,
-  "32": -5, "33": -5, "34": -5, "35": -5, "36": -7, "37": -7, "38": -10, "39": -10, "40": -5, "41": -7,
-  "42": -10, "43": -8, "44": -5, "45": -7, "46": -7, "47": -5, "48": -8, "49": -7, "50": -4, "51": -10,
-  "52": -12, "53": -7, "54": -15, "55": -12, "56": -4, "57": -15, "58": -10, "59": -9, "60": -7, "61": -7,
-  "62": -9, "63": -8, "64": -5, "65": -5, "66": -5, "67": -15, "68": -15, "69": -10, "70": -12, "71": -10,
-  "72": -7, "73": -10, "74": -10, "75": -7, "76": -7, "77": -7, "78": -7, "79": -7, "80": -9, "81": -5,
-  "82": -5, "83": -2, "84": -7, "85": -5, "86": -7, "87": -8, "88": -15, "89": -10, "90": -15, "91": -7,
-  "92": -7, "93": -7, "94": -7, "95": -7,
-};
-
-const ALTITUDE_OPTIONS: { key: string; label: string }[] = [
-  { key: "0-200", label: "0 à 200 m" },
-  { key: "201-400", label: "201 à 400 m" },
-  { key: "401-600", label: "401 à 600 m" },
-  { key: "601-800", label: "601 à 800 m" },
-  { key: "801-1000", label: "801 à 1000 m" },
-  { key: "1001-1200", label: "1001 à 1200 m" },
-  { key: "1201-1400", label: "1201 à 1400 m" },
-  { key: "1401-1600", label: "1401 à 1600 m" },
-  { key: "1601-1800", label: "1601 à 1800 m" },
-  { key: "1801-2000", label: "1801 à 2000 m" },
-  { key: "2001-2200", label: "2001 à 2200 m" },
-];
-
-const ALTITUDE_TABLE: Record<number, Partial<Record<string, number>>> = {
-  [-2]: {
-    "0-200": -2,
-    "201-400": -4,
-    "401-600": -6,
-    "601-800": -8,
-    "801-1000": -10,
-    "1001-1200": -12,
-    "1201-1400": -14,
-    "1401-1600": -16,
-    "1601-1800": -18,
-    "1801-2000": -20,
-  },
-  [-4]: {
-    "0-200": -4,
-    "201-400": -5,
-    "401-600": -6,
-    "601-800": -7,
-    "801-1000": -8,
-    "1001-1200": -9,
-    "1201-1400": -10,
-  },
-  [-5]: {
-    "0-200": -5,
-    "201-400": -6,
-    "401-600": -7,
-    "601-800": -8,
-    "801-1000": -9,
-    "1001-1200": -10,
-    "1201-1400": -11,
-    "1401-1600": -12,
-    "1601-1800": -13,
-    "1801-2000": -14,
-    "2001-2200": -15,
-  },
-  [-7]: {
-    "0-200": -7,
-    "201-400": -8,
-    "401-600": -9,
-    "601-800": -11,
-    "801-1000": -13,
-    "1001-1200": -14,
-    "1201-1400": -15,
-  },
-  [-8]: {
-    "0-200": -8,
-    "201-400": -9,
-    "401-600": -11,
-    "601-800": -13,
-    "801-1000": -15,
-    "1001-1200": -17,
-    "1201-1400": -19,
-    "1401-1600": -21,
-    "1601-1800": -23,
-    "1801-2000": -25,
-    "2001-2200": -27,
-  },
-  [-9]: {
-    "0-200": -9,
-    "201-400": -10,
-    "401-600": -11,
-    "601-800": -12,
-    "801-1000": -13,
-  },
-  [-10]: {
-    "0-200": -10,
-    "201-400": -11,
-    "401-600": -13,
-    "601-800": -14,
-    "801-1000": -17,
-    "1001-1200": -19,
-    "1201-1400": -21,
-    "1401-1600": -23,
-    "1601-1800": -24,
-    "1801-2000": -25,
-    "2001-2200": -29,
-  },
-  [-12]: {
-    "0-200": -12,
-    "201-400": -13,
-    "401-600": -15,
-    "601-800": -17,
-    "801-1000": -19,
-    "1001-1200": -21,
-    "1201-1400": -23,
-    "1401-1600": -24,
-  },
-  [-15]: {
-    "0-200": -15,
-    "201-400": -15,
-    "401-600": -19,
-    "601-800": -21,
-    "801-1000": -23,
-    "1001-1200": -24,
-    "1201-1400": -25,
-  },
-};
-
-const G_COEFFICIENTS: { label: string; value: number | null }[] = [
-  { label: "véranda récente", value: 2.0 },
-  { label: "pas isolé, pas d’inertie", value: 1.6 },
-  { label: "pas isolé, ancien, mur 60cm", value: 1.4 },
-  { label: "isolé, bâtiment années 1960", value: 1.3 },
-  { label: "entre 1974-1982", value: 1.2 },
-  { label: "maison années 1980", value: 1.1 },
-  { label: "entre 1990-2000", value: 1.0 },
-  { label: "maison RT2000", value: 0.9 },
-  { label: "entre 2001-2005", value: 0.8 },
-  { label: "isolation norme RT2000", value: 0.8 },
-  { label: "maison RT2005", value: 0.75 },
-  { label: "isolation norme RT2012", value: 0.6 },
-  { label: "isolation norme RT2012 Bbio +", value: 0.5 },
-  { label: "isolation norme RE2020", value: 0.4 },
-  { label: "saisie manuelle", value: null },
-];
-
-const TEMPERATURE_OPTIONS = ["35", "45", "55", "65"] as const;
-
-interface Zone {
-  name: string;
-  surface: string;
-  height: string;
-  insulation: string;
-  ambient: string;
-  temperature: typeof TEMPERATURE_OPTIONS[number];
-  manualLoss: string;
-}
-
-const defaultZone = (index: number): Zone => ({
-  name: `Zone ${index + 1}`,
-  surface: "",
-  height: "2.5",
-  insulation: G_COEFFICIENTS[0].label,
-  ambient: "20",
-  temperature: "35",
-  manualLoss: "",
-});
-
-
-type GeoSource = "geo0" | "geo5" | "aqua10";
-
-type WaterTempKey = "35" | "45" | "55";
-
-interface GeoPowerMap {
-  [source in GeoSource]?: Partial<Record<WaterTempKey, number>>;
-}
-
-const GEO_MODELS: Record<string, { label: string; powers: GeoPowerMap }> = {
-  "F1153-4": {
-    label: "F1153-4",
-    powers: {
-      geo0: { "35": 4.5, "45": 4.5, "55": 4.1 },
-      geo5: { "35": 4.8, "45": 4.8, "55": 4.4 },
-      aqua10: { "35": 5.0, "45": 5.0, "55": 4.6 },
-    },
-  },
-  "F1253-4": {
-    label: "F1253-4",
-    powers: {
-      geo0: { "35": 4.5, "45": 4.5, "55": 4.1 },
-      geo5: { "35": 4.8, "45": 4.8, "55": 4.4 },
-      aqua10: { "35": 5.0, "45": 5.0, "55": 4.6 },
-    },
-  },
-  "F1153-6": {
-    label: "F1153-6",
-    powers: {
-      geo0: { "35": 7.6, "45": 7.7, "55": 7.0 },
-      geo5: { "35": 8.0, "45": 8.0, "55": 7.3 },
-      aqua10: { "35": 8.2, "45": 8.2, "55": 7.5 },
-    },
-  },
-  "F1253-6": {
-    label: "F1253-6",
-    powers: {
-      geo0: { "35": 7.6, "45": 7.7, "55": 7.0 },
-      geo5: { "35": 8.0, "45": 8.0, "55": 7.3 },
-      aqua10: { "35": 8.2, "45": 8.2, "55": 7.5 },
-    },
-  },
-  "S1156-8": {
-    label: "S1156-8",
-    powers: {
-      geo0: { "35": 8.5, "45": 8.5, "55": 7.8 },
-      geo5: { "35": 9.8, "45": 9.8, "55": 9.1 },
-      aqua10: { "35": 11.0, "45": 11.0, "55": 10.5 },
-    },
-  },
-  "S1256-8": {
-    label: "S1256-8",
-    powers: {
-      geo0: { "35": 8.5, "45": 8.5, "55": 7.8 },
-      geo5: { "35": 9.8, "45": 9.8, "55": 9.1 },
-      aqua10: { "35": 11.0, "45": 11.0, "55": 10.5 },
-    },
-  },
-  "S1156-13": {
-    label: "S1156-13",
-    powers: {
-      geo0: { "35": 13.5, "45": 13.5, "55": 12.5 },
-      geo5: { "35": 15.5, "45": 15.5, "55": 14.2 },
-      aqua10: { "35": 17.5, "45": 17.5, "55": 16.0 },
-    },
-  },
-  "S1256-13": {
-    label: "S1256-13",
-    powers: {
-      geo0: { "35": 13.5, "45": 13.5, "55": 12.5 },
-      geo5: { "35": 15.5, "45": 15.5, "55": 14.2 },
-      aqua10: { "35": 17.5, "45": 17.5, "55": 16.0 },
-    },
-  },
-  "S1156-18": {
-    label: "S1156-18",
-    powers: {
-      geo0: { "35": 18.9, "45": 18.9, "55": 17.8 },
-      geo5: { "35": 22.0, "45": 22.0, "55": 20.2 },
-      aqua10: { "35": 24.8, "45": 24.8, "55": 22.8 },
-    },
-  },
-  "S1256-18": {
-    label: "S1256-18",
-    powers: {
-      geo0: { "35": 18.9, "45": 18.9, "55": 17.8 },
-      geo5: { "35": 22.0, "45": 22.0, "55": 20.2 },
-      aqua10: { "35": 24.8, "45": 24.8, "55": 22.8 },
-    },
-  },
-  "S1155-25": {
-    label: "S1155-25",
-    powers: {
-      geo0: { "35": 25.0, "45": 25.0, "55": 24.0 },
-      geo5: { "35": 29.0, "45": 29.0, "55": 27.0 },
-      aqua10: { "35": 34.0, "45": 34.0, "55": 31.0 },
-    },
-  },
-  "F1345-24": {
-    label: "F1345-24",
-    powers: {
-      geo0: { "35": 23.0, "45": 23.0, "55": 22.0 },
-      aqua10: { "35": 30.0, "45": 30.0, "55": 28.0 },
-    },
-  },
-  "F1345-30": {
-    label: "F1345-30",
-    powers: {
-      geo0: { "35": 31.0, "45": 31.0, "55": 29.0 },
-      aqua10: { "35": 40.0, "45": 40.0, "55": 39.0 },
-    },
-  },
-  "F1345-40": {
-    label: "F1345-40",
-    powers: {
-      geo0: { "35": 40.0, "45": 40.0, "55": 38.0 },
-      aqua10: { "35": 52.0, "45": 52.0, "55": 49.0 },
-    },
-  },
-  "F1345-60": {
-    label: "F1345-60",
-    powers: {
-      geo0: { "35": 59.0, "45": 59.0, "55": 54.0 },
-      aqua10: { "35": 78.0, "45": 78.0, "55": 69.0 },
-    },
-  },
-  "F1355-28": {
-    label: "F1355-28",
-    powers: {
-      geo0: { "35": 28.0, "45": 28.0, "55": 27.0 },
-      aqua10: { "35": 35.0, "45": 35.0, "55": 33.0 },
-    },
-  },
-  "F1355-43": {
-    label: "F1355-43",
-    powers: {
-      geo0: { "35": 45.0, "45": 45.0, "55": 38.0 },
-      aqua10: { "35": 58.0, "45": 58.0, "55": 52.0 },
-    },
-  },
-};
-
-
-const F2050_6_DATA: Record<WaterTempKey, Record<number, number>> = {
-  "35": {
-    2: 6.9, 1: 6.8, 0: 6.6, [-1]: 6.4, [-2]: 6.2, [-3]: 6.1, [-4]: 6.0, [-5]: 5.9, [-6]: 5.6, [-7]: 5.6, [-8]: 5.4,
-    [-9]: 5.2, [-10]: 5.1, [-11]: 5.0, [-12]: 4.9, [-13]: 4.8, [-14]: 4.6, [-15]: 4.5, [-16]: 4.4, [-17]: 4.2,
-    [-18]: 4.0, [-19]: 3.8, [-20]: 3.7,
-  },
-  "45": {
-    2: 6.9, 1: 6.8, 0: 6.4, [-1]: 6.3, [-2]: 6.2, [-3]: 6.0, [-4]: 5.6, [-5]: 5.4, [-6]: 5.2, [-7]: 5.1,
-    [-8]: 5.0, [-9]: 4.9, [-10]: 4.8, [-11]: 4.7, [-12]: 4.6, [-13]: 4.5, [-14]: 4.4, [-15]: 4.3, [-16]: 4.2,
-    [-17]: 4.1, [-18]: 4.0, [-19]: 3.8, [-20]: 3.7,
-  },
-  "55": {
-    2: 6.4, 1: 6.1, 0: 6.0, [-1]: 5.9, [-2]: 5.8, [-3]: 5.4, [-4]: 5.1, [-5]: 5.0, [-6]: 4.9, [-7]: 4.8,
-    [-8]: 4.6, [-9]: 4.4, [-10]: 4.3, [-11]: 4.1, [-12]: 4.0, [-13]: 3.9, [-14]: 3.8, [-15]: 3.8, [-16]: 3.6,
-    [-17]: 3.5, [-18]: 3.4, [-19]: 3.3, [-20]: 3.1,
-  },
-};
-
-const F2050_10_DATA: Record<WaterTempKey, Record<number, number>> = {
-  "35": {
-    2: 10.4, 1: 10.3, 0: 10.2, [-1]: 10.1, [-2]: 10.01, [-3]: 9.8, [-4]: 9.5, [-5]: 9.3, [-6]: 9.0, [-7]: 8.9,
-    [-8]: 8.6, [-9]: 8.3, [-10]: 8.2, [-11]: 7.9, [-12]: 7.7, [-13]: 7.5, [-14]: 7.2, [-15]: 7.1, [-16]: 6.9,
-    [-17]: 6.5, [-18]: 6.4, [-19]: 6.1, [-20]: 5.9,
-  },
-  "45": {
-    2: 10.2, 1: 9.9, 0: 9.8, [-1]: 9.6, [-2]: 9.4, [-3]: 9.1, [-4]: 8.9, [-5]: 8.7, [-6]: 8.5, [-7]: 8.2,
-    [-8]: 8.0, [-9]: 7.8, [-10]: 7.6, [-11]: 7.2, [-12]: 7.0, [-13]: 6.8, [-14]: 6.7, [-15]: 6.6, [-16]: 6.5,
-    [-17]: 6.3, [-18]: 6.1, [-19]: 5.8, [-20]: 5.6,
-  },
-  "55": {
-    2: 9.2, 1: 9.1, 0: 9.0, [-1]: 8.7, [-2]: 8.5, [-3]: 8.0, [-4]: 7.9, [-5]: 7.6, [-6]: 7.4, [-7]: 7.1,
-    [-8]: 7.0, [-9]: 6.7, [-10]: 6.4, [-11]: 6.3, [-12]: 6.2, [-13]: 6.1, [-14]: 5.8, [-15]: 5.5, [-16]: 5.2,
-    [-17]: 5.0, [-18]: 4.8, [-19]: 4.6, [-20]: 4.5,
-  },
-};
-
-const F2050_12_DATA: Record<WaterTempKey, Record<number, number>> = {
-  "35": {
-    9: 12.5, 8: 12.4, 7: 12.1, 6: 11.9, 5: 11.7, 4: 11.5, 3: 11.0, 2: 10.5, 1: 10.1, 0: 9.9,
-    [-1]: 9.8, [-2]: 9.6, [-3]: 9.3, [-4]: 9.0, [-5]: 8.8, [-6]: 8.6, [-7]: 8.4, [-8]: 8.2, [-9]: 7.8,
-    [-10]: 7.5, [-11]: 7.2, [-12]: 7.0, [-13]: 6.8, [-14]: 6.6, [-15]: 6.4, [-16]: 6.2, [-17]: 6.0,
-    [-18]: 5.8, [-19]: 5.6, [-20]: 5.4, [-21]: 5.2, [-22]: 5.0, [-23]: 4.8, [-24]: 4.6, [-25]: 4.4,
-  },
-  "45": {
-    9: 11.5, 8: 11.2, 7: 11.1, 6: 10.9, 5: 10.3, 4: 10.3, 3: 10.0, 2: 9.9, 1: 9.7, 0: 9.6,
-    [-1]: 9.4, [-2]: 9.1, [-3]: 8.9, [-4]: 8.4, [-5]: 8.2, [-6]: 8.0, [-7]: 7.8, [-8]: 7.4, [-9]: 7.2,
-    [-10]: 7.0, [-11]: 6.7, [-12]: 6.5, [-13]: 6.3, [-14]: 6.1, [-15]: 5.9, [-16]: 5.8, [-17]: 5.7,
-    [-18]: 5.5, [-19]: 5.1, [-20]: 4.9, [-21]: 4.8, [-22]: 4.7, [-23]: 4.6, [-24]: 4.4, [-25]: 4.1,
-  },
-  "55": {
-    9: 11.5, 8: 11.2, 7: 11.1, 6: 10.9, 5: 10.1, 4: 9.7, 3: 9.4, 2: 9.0, 1: 8.9, 0: 8.8,
-    [-1]: 8.8, [-2]: 8.7, [-3]: 8.1, [-4]: 7.9, [-5]: 7.5, [-6]: 7.3, [-7]: 7.0, [-8]: 6.8, [-9]: 6.5,
-    [-10]: 6.3, [-11]: 6.2, [-12]: 6.0, [-13]: 5.8, [-14]: 5.7, [-15]: 5.2, [-16]: 5.0, [-17]: 4.9,
-    [-18]: 4.8, [-19]: 4.7, [-20]: 4.6, [-21]: 4.5, [-22]: 4.3, [-23]: 3.9, [-24]: 3.8, [-25]: 3.7,
-  },
-};
-
-const F2050_16_DATA: Record<WaterTempKey, Record<number, number>> = {
-  "35": {
-    9: 17.0, 8: 16.87, 7: 16.09, 6: 15.91, 5: 15.5, 4: 15.04, 3: 14.7, 2: 14.4, 1: 14.0, 0: 13.7,
-    [-1]: 13.4, [-2]: 13.0, [-3]: 12.8, [-4]: 12.4, [-5]: 11.9, [-6]: 11.6, [-7]: 11.3, [-8]: 11.1,
-    [-9]: 10.8, [-10]: 10.4, [-11]: 10.0, [-12]: 9.8, [-13]: 9.4, [-14]: 9.0, [-15]: 8.5, [-16]: 7.9,
-    [-17]: 7.4, [-18]: 7.1, [-19]: 7.0, [-20]: 6.9, [-21]: 6.2, [-22]: 5.8, [-23]: 5.6, [-24]: 5.5,
-    [-25]: 5.3,
-  },
-  "45": {
-    9: 15.4, 8: 14.9, 7: 14.4, 6: 14.1, 5: 13.8, 4: 13.6, 3: 13.0, 2: 12.7, 1: 12.4, 0: 12.0,
-    [-1]: 11.7, [-2]: 11.5, [-3]: 11.0, [-4]: 10.8, [-5]: 10.5, [-6]: 10.0, [-7]: 9.7, [-8]: 9.4,
-    [-9]: 9.0, [-10]: 8.7, [-11]: 8.4, [-12]: 8.0, [-13]: 7.7, [-14]: 7.4, [-15]: 7.2, [-16]: 6.7,
-    [-17]: 6.4, [-18]: 6.1, [-19]: 5.9, [-20]: 5.6, [-21]: 5.1, [-22]: 5.0, [-23]: 4.8, [-24]: 4.6,
-    [-25]: 4.2,
-  },
-  "55": {
-    9: 15.4, 8: 14.9, 7: 14.4, 6: 14.1, 5: 13.8, 4: 13.6, 3: 13.0, 2: 12.7, 1: 12.4, 0: 12.0,
-    [-1]: 11.7, [-2]: 11.5, [-3]: 11.0, [-4]: 10.8, [-5]: 10.5, [-6]: 10.0, [-7]: 9.7, [-8]: 9.4,
-    [-9]: 9.0, [-10]: 8.7, [-11]: 8.4, [-12]: 8.0, [-13]: 7.7, [-14]: 7.4, [-15]: 7.2, [-16]: 6.7,
-    [-17]: 6.4, [-18]: 6.1, [-19]: 5.9, [-20]: 5.6, [-21]: 5.1, [-22]: 5.0, [-23]: 4.8, [-24]: 4.6,
-    [-25]: 4.2,
-  },
-};
-
-
-const AIR_MODELS: Record<string, {
-  label: string;
-  cutoff: number;
-  data: Record<WaterTempKey, Record<number, number>>;
-}> = {
-  "S2125-8": {
-    label: "S2125-8",
-    cutoff: -25,
-    data: {
-      "35": {
-        7: 6.4, 2: 6.4, 1: 6.4, 0: 6.3, [-1]: 6.2, [-2]: 6.1, [-3]: 5.9, [-4]: 5.8, [-5]: 5.7, [-6]: 5.6,
-        [-7]: 5.5, [-8]: 5.3, [-9]: 5.1, [-10]: 5.0, [-11]: 4.8, [-12]: 4.7, [-13]: 4.5, [-14]: 4.4, [-15]: 4.2,
-        [-16]: 4.1, [-17]: 4.0, [-18]: 3.8, [-19]: 3.7, [-20]: 3.6, [-21]: 3.5, [-22]: 3.4, [-23]: 3.3,
-        [-24]: 3.2, [-25]: 3.2,
-      },
-      "45": {
-        7: 6.2, 2: 6.2, 1: 6.1, 0: 6.0, [-1]: 5.9, [-2]: 5.7, [-3]: 5.6, [-4]: 5.5, [-5]: 5.4, [-6]: 5.3,
-        [-7]: 5.1, [-8]: 5.0, [-9]: 4.9, [-10]: 4.7, [-11]: 4.6, [-12]: 4.4, [-13]: 4.3, [-14]: 4.1,
-        [-15]: 4.0, [-16]: 4.0, [-17]: 3.9, [-18]: 3.7, [-19]: 3.6, [-20]: 3.5, [-21]: 3.4, [-22]: 3.3,
-        [-23]: 3.2, [-24]: 3.1, [-25]: 3.1,
-      },
-      "55": {
-        7: 6.0, 2: 6.0, 1: 5.9, 0: 5.9, [-1]: 5.8, [-2]: 5.7, [-3]: 5.6, [-4]: 5.5, [-5]: 5.4, [-6]: 5.3,
-        [-7]: 5.2, [-8]: 5.0, [-9]: 4.9, [-10]: 4.8, [-11]: 4.6, [-12]: 4.5, [-13]: 4.3, [-14]: 4.2,
-        [-15]: 4.0, [-16]: 3.9, [-17]: 3.8, [-18]: 3.6, [-19]: 3.5, [-20]: 3.4, [-21]: 3.3, [-22]: 3.2,
-        [-23]: 3.0, [-24]: 2.9, [-25]: 2.8,
-      },
-    },
-  },
-  "S2125-12": {
-    label: "S2125-12",
-    cutoff: -25,
-    data: {
-      "35": {
-        20: 8.43, 12: 9.41, 10: 9.53, 7: 9.71, 2: 9.5, 1: 9.4, 0: 9.3, [-1]: 9.1, [-2]: 9.0, [-3]: 8.9,
-        [-4]: 8.8, [-5]: 8.7, [-6]: 8.5, [-7]: 8.3, [-8]: 8.0, [-9]: 7.8, [-10]: 7.6, [-11]: 7.4, [-12]: 7.2,
-        [-13]: 6.9, [-14]: 6.7, [-15]: 6.5, [-16]: 6.3, [-17]: 6.1, [-18]: 5.9, [-19]: 5.7, [-20]: 5.5,
-        [-21]: 5.3, [-22]: 5.2, [-23]: 5.0, [-24]: 4.9, [-25]: 4.7,
-      },
-      "45": {
-        20: 10.5, 12: 10.5, 10: 10.5, 7: 9.89, 2: 9.5, 1: 9.4, 0: 9.4, [-1]: 9.2, [-2]: 9.0, [-3]: 8.8,
-        [-4]: 8.7, [-5]: 8.6, [-6]: 8.3, [-7]: 8.4, [-8]: 7.9, [-9]: 7.7, [-10]: 7.5, [-11]: 7.3, [-12]: 7.1,
-        [-13]: 6.9, [-14]: 6.7, [-15]: 6.6, [-16]: 6.3, [-17]: 6.1, [-18]: 5.9, [-19]: 5.7, [-20]: 5.5,
-        [-21]: 5.3, [-22]: 5.2, [-23]: 5.0, [-24]: 4.9, [-25]: 4.7,
-      },
-      "55": {
-        20: 7.65, 12: 9.95, 10: 9.98, 7: 10.03, 2: 9.5, 1: 9.4, 0: 9.4, [-1]: 9.3, [-2]: 9.1, [-3]: 9.0,
-        [-4]: 8.9, [-5]: 8.8, [-6]: 8.5, [-7]: 8.4, [-8]: 8.1, [-9]: 7.9, [-10]: 7.7, [-11]: 7.5, [-12]: 7.3,
-        [-13]: 7.0, [-14]: 6.8, [-15]: 6.6, [-16]: 6.4, [-17]: 6.2, [-18]: 6.1, [-19]: 5.9, [-20]: 5.7,
-        [-21]: 5.5, [-22]: 5.3, [-23]: 5.2, [-24]: 5.0, [-25]: 4.8,
-      },
-    },
-  },
-  "S2125-16": {
-    label: "S2125-16",
-    cutoff: -25,
-    data: {
-      "35": {
-        20: 20.9, 12: 19.2, 10: 17.7, 7: 16.5, 2: 14.9, 1: 14.7, 0: 14.1, [-1]: 13.9, [-2]: 13.8,
-        [-3]: 13.7, [-4]: 13.6, [-5]: 13.4, [-6]: 13.1, [-7]: 12.7, [-8]: 12.3, [-9]: 11.9, [-10]: 11.38,
-        [-11]: 11.21, [-12]: 10.31, [-13]: 9.98, [-14]: 9.67, [-15]: 9.01, [-16]: 8.9, [-17]: 8.8, [-18]: 8.6,
-        [-19]: 8.5, [-20]: 8.3, [-21]: 8.1, [-22]: 8.0, [-23]: 7.8, [-24]: 7.7, [-25]: 7.5,
-      },
-      "45": {
-        20: 19.1, 12: 18.2, 10: 16.7, 7: 15.6, 2: 14.9, 1: 14.7, 0: 14.1, [-1]: 13.9, [-2]: 13.8,
-        [-3]: 13.7, [-4]: 13.6, [-5]: 13.4, [-6]: 13.1, [-7]: 12.7, [-8]: 12.3, [-9]: 11.9, [-10]: 11.38,
-        [-11]: 11.21, [-12]: 10.31, [-13]: 9.98, [-14]: 9.67, [-15]: 9.01, [-16]: 8.9, [-17]: 8.8, [-18]: 8.6,
-        [-19]: 8.5, [-20]: 8.3, [-21]: 8.1, [-22]: 8.0, [-23]: 7.8, [-24]: 7.7, [-25]: 7.5,
-      },
-      "55": {
-        20: 18.01, 12: 17.1, 10: 15.7, 7: 15.6, 2: 14.9, 1: 14.7, 0: 14.1, [-1]: 13.9, [-2]: 13.8,
-        [-3]: 13.7, [-4]: 13.6, [-5]: 13.4, [-6]: 13.1, [-7]: 12.7, [-8]: 12.3, [-9]: 11.9, [-10]: 11.38,
-        [-11]: 11.21, [-12]: 10.31, [-13]: 9.98, [-14]: 9.67, [-15]: 9.01, [-16]: 8.9, [-17]: 8.8, [-18]: 8.6,
-        [-19]: 8.5, [-20]: 8.3, [-21]: 8.1, [-22]: 8.0, [-23]: 7.8, [-24]: 7.7, [-25]: 7.5,
-      },
-    },
-  },
-  "S2125-20": {
-    label: "S2125-20",
-    cutoff: -25,
-    data: {
-      "35": {
-        20: 27.1, 12: 25.4, 10: 22.4, 7: 20.01, 2: 17.81, 1: 17.01, 0: 16.8, [-1]: 16.6, [-2]: 15.96,
-        [-3]: 15.45, [-4]: 14.97, [-5]: 14.91, [-6]: 14.79, [-7]: 14.61, [-8]: 13.96, [-9]: 13.56, [-10]: 12.96,
-        [-11]: 12.81, [-12]: 12.72, [-13]: 12.43, [-14]: 12.04, [-15]: 11.91, [-16]: 11.81, [-17]: 11.05,
-        [-18]: 10.93, [-19]: 10.53, [-20]: 10.01, [-21]: 9.96, [-22]: 9.64, [-23]: 9.45, [-24]: 9.03,
-        [-25]: 8.47,
-      },
-      "45": {
-        20: 26.0, 12: 24.3, 10: 22.4, 7: 20.01, 2: 18.2, 1: 17.9, 0: 16.9, [-1]: 16.6, [-2]: 15.96,
-        [-3]: 15.45, [-4]: 14.97, [-5]: 14.91, [-6]: 14.79, [-7]: 14.61, [-8]: 13.96, [-9]: 13.56, [-10]: 12.96,
-        [-11]: 12.81, [-12]: 12.72, [-13]: 12.43, [-14]: 12.04, [-15]: 11.91, [-16]: 11.81, [-17]: 11.05,
-        [-18]: 10.93, [-19]: 10.53, [-20]: 10.01, [-21]: 9.96, [-22]: 9.64, [-23]: 9.45, [-24]: 9.03,
-        [-25]: 8.47,
-      },
-      "55": {
-        20: 24.1, 12: 23.1, 10: 21.2, 7: 19.42, 2: 18.8, 1: 17.9, 0: 16.9, [-1]: 16.6, [-2]: 15.96,
-        [-3]: 15.45, [-4]: 14.97, [-5]: 14.91, [-6]: 14.79, [-7]: 14.61, [-8]: 13.96, [-9]: 13.56, [-10]: 12.96,
-        [-11]: 12.81, [-12]: 12.72, [-13]: 12.43, [-14]: 12.04, [-15]: 11.91, [-16]: 11.81, [-17]: 11.05,
-        [-18]: 10.93, [-19]: 10.53, [-20]: 10.01, [-21]: 9.96, [-22]: 9.64, [-23]: 9.45, [-24]: 9.03,
-        [-25]: 8.47,
-      },
-    },
-  },
-  "F2050-6": { label: "F2050-6", cutoff: -20, data: F2050_6_DATA },
-  "F2050-10": { label: "F2050-10", cutoff: -20, data: F2050_10_DATA },
-  "F2050-12": { label: "F2050-12", cutoff: -25, data: F2050_12_DATA },
-  "F2050-16": { label: "F2050-16", cutoff: -25, data: F2050_16_DATA },
-  "AMS 20-6": { label: "AMS 20-6", cutoff: -20, data: F2050_6_DATA },
-  "AMS 20-10": { label: "AMS 20-10", cutoff: -20, data: F2050_10_DATA },
-};
-
-
-const AIR_EXTRACT_MODELS: Record<string, {
-  label: string;
-  flows: number[];
-  powers: Record<number, { "35": number; "45": number; "55": number }>;
-}> = {
-  "S735-4": {
-    label: "S735-4",
-    flows: [60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390],
-    powers: {
-      60: { "35": 1.3, "45": 1.4, "55": 1.5 },
-      75: { "35": 1.5, "45": 1.6, "55": 1.75 },
-      90: { "35": 1.8, "45": 2.0, "55": 2.25 },
-      105: { "35": 2.2, "45": 2.4, "55": 2.6 },
-      120: { "35": 2.4, "45": 2.65, "55": 2.9 },
-      135: { "35": 2.65, "45": 3.05, "55": 3.2 },
-      150: { "35": 2.9, "45": 3.25, "55": 3.4 },
-      165: { "35": 3.25, "45": 3.5, "55": 3.6 },
-      180: { "35": 3.45, "45": 3.6, "55": 3.75 },
-      195: { "35": 3.65, "45": 3.8, "55": 3.9 },
-      210: { "35": 3.8, "45": 3.9, "55": 4.0 },
-      225: { "35": 3.9, "45": 4.0, "55": 4.1 },
-      240: { "35": 3.9, "45": 4.0, "55": 4.1 },
-      255: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      270: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      285: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      300: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      315: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      330: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      345: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      360: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      375: { "35": 4.2, "45": 4.2, "55": 4.2 },
-      390: { "35": 4.2, "45": 4.2, "55": 4.2 },
-    },
-  },
-  "S735-7": {
-    label: "S735-7",
-    flows: [90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390],
-    powers: {
-      90: { "35": 2.0, "45": 2.23, "55": 2.6 },
-      105: { "35": 2.4, "45": 2.6, "55": 3.0 },
-      120: { "35": 2.6, "45": 2.9, "55": 3.2 },
-      135: { "35": 3.0, "45": 3.25, "55": 3.65 },
-      150: { "35": 3.25, "45": 3.5, "55": 3.8 },
-      165: { "35": 3.6, "45": 3.9, "55": 4.2 },
-      180: { "35": 4.0, "45": 4.5, "55": 4.6 },
-      195: { "35": 4.2, "45": 4.6, "55": 4.75 },
-      210: { "35": 4.4, "45": 4.7, "55": 5.0 },
-      225: { "35": 4.8, "45": 4.95, "55": 5.15 },
-      240: { "35": 4.8, "45": 4.95, "55": 5.15 },
-      255: { "35": 5.2, "45": 5.4, "55": 5.4 },
-      270: { "35": 5.4, "45": 5.5, "55": 5.5 },
-      285: { "35": 5.4, "45": 5.5, "55": 5.5 },
-      300: { "35": 5.8, "45": 5.9, "55": 6.0 },
-      315: { "35": 5.9, "45": 6.0, "55": 6.1 },
-      330: { "35": 6.2, "45": 6.25, "55": 6.3 },
-      345: { "35": 6.3, "45": 6.3, "55": 6.4 },
-      360: { "35": 6.4, "45": 6.42, "55": 6.52 },
-      375: { "35": 6.4, "45": 6.42, "55": 6.52 },
-      390: { "35": 6.4, "45": 6.42, "55": 6.52 },
-    },
-  },
-  "S735-7C": {
-    label: "S735-7C",
-    flows: [90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390],
-    powers: {
-      90: { "35": 2.0, "45": 2.23, "55": 2.6 },
-      105: { "35": 2.4, "45": 2.6, "55": 3.0 },
-      120: { "35": 2.6, "45": 2.9, "55": 3.2 },
-      135: { "35": 3.0, "45": 3.25, "55": 3.65 },
-      150: { "35": 3.25, "45": 3.5, "55": 3.8 },
-      165: { "35": 3.6, "45": 3.9, "55": 4.2 },
-      180: { "35": 4.0, "45": 4.5, "55": 4.6 },
-      195: { "35": 4.2, "45": 4.6, "55": 4.75 },
-      210: { "35": 4.4, "45": 4.7, "55": 5.0 },
-      225: { "35": 4.8, "45": 4.95, "55": 5.15 },
-      240: { "35": 4.8, "45": 4.95, "55": 5.15 },
-      255: { "35": 5.2, "45": 5.4, "55": 5.4 },
-      270: { "35": 5.4, "45": 5.5, "55": 5.5 },
-      285: { "35": 5.4, "45": 5.5, "55": 5.5 },
-      300: { "35": 5.8, "45": 5.9, "55": 6.0 },
-      315: { "35": 5.9, "45": 6.0, "55": 6.1 },
-      330: { "35": 6.2, "45": 6.25, "55": 6.3 },
-      345: { "35": 6.3, "45": 6.3, "55": 6.4 },
-      360: { "35": 6.4, "45": 6.42, "55": 6.52 },
-      375: { "35": 6.4, "45": 6.42, "55": 6.52 },
-      390: { "35": 6.4, "45": 6.42, "55": 6.52 },
-    },
-  },
-};
-
-
-const ETAS_VALUES: Record<string, { "35": number; "55": number }> = {
-  "S735-4": { "35": 191, "55": 147 },
-  "S735-7": { "35": 181, "55": 148 },
-  "S735-7C": { "35": 193, "55": 154 },
-  "F2050-6": { "35": 204, "55": 143 },
-  "F2050-10": { "35": 185, "55": 136 },
-  "F2050-12": { "35": 196, "55": 141 },
-  "F2050-16": { "35": 184, "55": 138 },
-  "S2125-8": { "35": 200, "55": 150 },
-  "S2125-12": { "35": 199, "55": 154 },
-  "S2125-16": { "35": 214, "55": 164 },
-  "S2125-20": { "35": 213, "55": 164 },
-  "AMS 20-6": { "35": 204, "55": 143 },
-  "AMS 20-10": { "35": 185, "55": 136 },
-  "F1153-4": { "35": 206, "55": 154 },
-  "F1153-6": { "35": 204, "55": 154 },
-  "F1253-4": { "35": 206, "55": 154 },
-  "F1253-6": { "35": 204, "55": 154 },
-  "S1156-8": { "35": 223, "55": 166 },
-  "S1156-13": { "35": 231, "55": 167 },
-  "S1156-18": { "35": 234, "55": 173 },
-  "S1155-25": { "35": 204, "55": 154 },
-  "S1256-8": { "35": 223, "55": 166 },
-  "S1256-13": { "35": 231, "55": 167 },
-  "S1256-18": { "35": 234, "55": 173 },
-  "F1345-24": { "35": 187, "55": 145 },
-  "F1345-30": { "35": 180, "55": 139 },
-  "F1345-40": { "35": 184, "55": 145 },
-  "F1345-60": { "35": 178, "55": 140 },
-  "F1355-28": { "35": 195, "55": 152 },
-  "F1355-43": { "35": 194, "55": 154 },
-  "F1353-4": { "35": 272, "55": 210 },
-  "F1353-6": { "35": 270, "55": 214 },
-  "S1156-8-aqua": { "35": 311, "55": 221 },
-  "S1156-13-aqua": { "35": 346, "55": 236 },
-  "S1156-18-aqua": { "35": 333, "55": 232 },
-  "S1155-25-aqua": { "35": 289, "55": 201 },
-  "S1256-8-aqua": { "35": 311, "55": 221 },
-  "S1256-13-aqua": { "35": 346, "55": 236 },
-  "S1256-18-aqua": { "35": 333, "55": 232 },
-  "F1345-24-aqua": { "35": 229, "55": 178 },
-  "F1345-30-aqua": { "35": 215, "55": 165 },
-  "F1345-40-aqua": { "35": 223, "55": 179 },
-  "F1345-60-aqua": { "35": 212, "55": 166 },
-  "F1355-28-aqua": { "35": 244, "55": 190 },
-  "F1355-43-aqua": { "35": 246, "55": 196 },
-};
-
-
-const SOURCE_LABELS: Record<GeoSource, string> = {
-  geo0: "Géothermie 0 °C",
-  geo5: "Géothermie 5 °C",
-  aqua10: "Aquathermie 10 °C",
-};
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const parseNumber = (value: string): number | undefined => {
-  if (!value) return undefined;
-  const parsed = Number(value.replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
-const getDepartmentCode = (cp: string): string | undefined => {
-  const digits = cp.replace(/\s+/g, "");
-  if (digits.length < 2) return undefined;
-  if (digits.startsWith("97") && digits.length >= 3) return digits.slice(0, 3);
-  if (digits.startsWith("98") && digits.length >= 3) return digits.slice(0, 3);
-  return digits.slice(0, 2);
-};
-
-const computeBaseTemperature = (cp: string, altitudeKey: string, seaside: boolean): number | undefined => {
-  if (seaside) return -2;
-  const deptCode = getDepartmentCode(cp);
-  const base = deptCode ? DEPARTMENT_BASE_TEMPS[deptCode] : undefined;
-  if (base === undefined) return undefined;
-  const altitudeMap = ALTITUDE_TABLE[base];
-  if (altitudeMap && altitudeMap[altitudeKey] !== undefined) {
-    return altitudeMap[altitudeKey];
-  }
-  return base;
-};
-
-const getAvailableAltitudeOptions = (base?: number) => {
-  if (base === undefined) return ALTITUDE_OPTIONS;
-  const map = ALTITUDE_TABLE[base];
-  if (!map) return ALTITUDE_OPTIONS;
-  return ALTITUDE_OPTIONS.filter((option) => map[option.key] !== undefined);
-};
-
-const findGValue = (label: string): number | null => {
-  const entry = G_COEFFICIENTS.find((item) => item.label === label);
-  return entry ? entry.value : null;
-};
-
-const wattsToKW = (watts: number): number => watts / 1000;
-
-const roundValue = (value: number, digits = 1) => Number(value.toFixed(digits));
-
-
-type Technology = "" | "geothermie" | "airEau" | "airExtrait";
-
-const MIN_ZONES = 1;
-const MAX_ZONES = 20;
-
-const highestWaterKey = (zones: Zone[]): WaterTempKey => {
-  const max = zones.reduce((acc, zone) => Math.max(acc, Number(zone.temperature || "0")), 0);
-  if (max >= 65) return "55";
-  if (max >= 55) return "55";
-  if (max >= 45) return "45";
-  return "35";
-};
-
-const highestTemperatureValue = (zones: Zone[]): number => zones.reduce((acc, zone) => Math.max(acc, Number(zone.temperature || "0")), 0);
-
-const highestAmbientValue = (zones: Zone[]): number => {
-  const values = zones
-    .map((zone) => parseNumber(zone.ambient))
-    .filter((value): value is number => value !== undefined);
-  return values.length ? Math.max(...values) : 0;
-};
-
-const computeZoneLoss = (zone: Zone, baseTemperature: number): number => {
-  const manual = parseNumber(zone.manualLoss);
-  if (manual !== undefined) {
-    return manual;
-  }
-  const g = findGValue(zone.insulation);
-  if (g === null) return 0;
-  const surface = parseNumber(zone.surface) ?? 0;
-  const height = parseNumber(zone.height) ?? 0;
-  const ambient = parseNumber(zone.ambient) ?? 0;
-  const delta = ambient - baseTemperature;
-  if (surface <= 0 || height <= 0 || delta <= 0) return 0;
-  return g * surface * height * delta;
-};
-
-const formatAddressLine = (label: string, value: string) => (value ? `${label} : ${value}` : "");
-
-const formatNumber = (value: number, digits = 1, suffix = "") => `${value.toFixed(digits)}${suffix}`;
-
-const shouldUseAquaKey = (model: string, source: GeoSource) => source === "aqua10" ? `${model}-aqua` : model;
-
-export default function DimensionnementNote() {
-  const [step, setStep] = useState(0);
-
-  const [company, setCompany] = useState({ name: "", address: "", siret: "" });
-  const [beneficiary, setBeneficiary] = useState({
-    firstName: "",
-    lastName: "",
-    address: "",
-    postalCode: "",
-    city: "",
-  });
-  const [constructionYear, setConstructionYear] = useState("");
-  const [altitude, setAltitude] = useState<string>(ALTITUDE_OPTIONS[0].key);
-  const [seaside, setSeaside] = useState(false);
-
-  const [zones, setZones] = useState<Zone[]>([defaultZone(0)]);
-
-  const [technology, setTechnology] = useState<Technology>("");
-  const [geoSource, setGeoSource] = useState<GeoSource>("geo0");
-  const [geoModel, setGeoModel] = useState("");
-  const [geoUnits, setGeoUnits] = useState(1);
-
-  const [airModel, setAirModel] = useState("");
-  const [airUnits, setAirUnits] = useState(1);
-
-  const [extractModel, setExtractModel] = useState("");
-  const [extractFlow, setExtractFlow] = useState<number | "">("");
-
-  const baseFromDepartment = useMemo(() => {
-    const deptCode = getDepartmentCode(beneficiary.postalCode);
-    return deptCode ? DEPARTMENT_BASE_TEMPS[deptCode] : undefined;
-  }, [beneficiary.postalCode]);
-
-  const availableAltitudeOptions = useMemo(() => getAvailableAltitudeOptions(baseFromDepartment), [baseFromDepartment]);
-
-  useEffect(() => {
-    if (!availableAltitudeOptions.find((option) => option.key === altitude)) {
-      setAltitude(availableAltitudeOptions[0]?.key ?? ALTITUDE_OPTIONS[0].key);
-    }
-  }, [availableAltitudeOptions, altitude]);
-
-  const effectiveBaseTemperature = useMemo(() => {
-    const computed = computeBaseTemperature(beneficiary.postalCode, altitude, seaside);
-    if (computed !== undefined) return computed;
-    if (baseFromDepartment !== undefined) return baseFromDepartment;
-    return -7;
-  }, [beneficiary.postalCode, altitude, seaside, baseFromDepartment]);
-
-  const highestZoneTemperature = useMemo(() => highestTemperatureValue(zones), [zones]);
-  const highestWaterTemperatureKey = useMemo(() => highestWaterKey(zones), [zones]);
-  const highestAmbientTemperature = useMemo(() => highestAmbientValue(zones), [zones]);
-
-  useEffect(() => {
-    if (highestZoneTemperature >= 65 && technology === "airExtrait") {
-      setTechnology("");
-      setExtractModel("");
-      setExtractFlow("");
-    }
-    if (
-      highestZoneTemperature >= 65 &&
-      technology === "airEau" &&
-      (airModel.startsWith("F2050") || airModel.startsWith("AMS"))
-    ) {
-      setAirModel("");
-    }
-  }, [highestZoneTemperature, technology, airModel]);
-
-  const totalLossWatts = useMemo(() => zones.reduce((sum, zone) => sum + computeZoneLoss(zone, effectiveBaseTemperature), 0), [zones, effectiveBaseTemperature]);
-  const totalLossKwRaw = wattsToKW(totalLossWatts);
-  const totalLossKw = roundValue(totalLossKwRaw, 2);
-
-  const surfacesByTemperature = useMemo(() => {
-    const map = new Map<number, number>();
-    zones.forEach((zone) => {
-      const surface = parseNumber(zone.surface);
-      if (!surface) return;
-      const temp = Number(zone.temperature || "0");
-      map.set(temp, (map.get(temp) ?? 0) + surface);
-    });
-    return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
-  }, [zones]);
-
-  const totalSurface = useMemo(() => surfacesByTemperature.reduce((sum, [, value]) => sum + value, 0), [surfacesByTemperature]);
-
-  const averageCeilingHeight = useMemo(() => {
-    let surfaceSum = 0;
-    let weightedHeight = 0;
-    zones.forEach((zone) => {
-      const surface = parseNumber(zone.surface);
-      const height = parseNumber(zone.height);
-      if (surface && height) {
-        surfaceSum += surface;
-        weightedHeight += surface * height;
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Note de dimensionnement</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f5f5;
+        color: #0f172a;
       }
-    });
-    if (!surfaceSum) return 0;
-    return weightedHeight / surfaceSum;
-  }, [zones]);
 
-  const geoPower = useMemo(() => {
-    if (technology !== "geothermie" || !geoModel) return undefined;
-    const model = GEO_MODELS[geoModel];
-    const powers = model.powers[geoSource];
-    if (!powers) return undefined;
-    const waterKey = highestWaterTemperatureKey;
-    const selectedPower = powers[waterKey] ?? powers["55"];
-    if (selectedPower === undefined) return undefined;
-    return selectedPower * geoUnits;
-  }, [technology, geoModel, geoSource, highestWaterTemperatureKey, geoUnits]);
-
-  const airPower = useMemo(() => {
-    if (technology !== "airEau" || !airModel) return undefined;
-    const model = AIR_MODELS[airModel];
-    const data = model.data[highestWaterTemperatureKey];
-    const outdoorTemperatures = Object.keys(data).map(Number).sort((a, b) => a - b);
-    if (!outdoorTemperatures.length) return undefined;
-    const base = Math.round(effectiveBaseTemperature);
-    let chosen = outdoorTemperatures[0];
-    outdoorTemperatures.forEach((value) => {
-      if (value <= base) {
-        chosen = value;
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
       }
-    });
-    if (base < outdoorTemperatures[0]) {
-      chosen = outdoorTemperatures[0];
-    }
-    const capacity = data[chosen];
-    if (capacity === undefined) return undefined;
-    return capacity * airUnits;
-  }, [technology, airModel, highestWaterTemperatureKey, effectiveBaseTemperature, airUnits]);
 
-  const extractPower = useMemo(() => {
-    if (technology !== "airExtrait" || !extractModel || typeof extractFlow !== "number") return undefined;
-    const model = AIR_EXTRACT_MODELS[extractModel];
-    const flowPower = model.powers[extractFlow];
-    if (!flowPower) return undefined;
-    const capacity = flowPower[highestWaterTemperatureKey];
-    return capacity;
-  }, [technology, extractModel, extractFlow, highestWaterTemperatureKey]);
-
-  const pacPowerKw = geoPower ?? airPower ?? extractPower;
-
-  const ratioPercent = totalLossKwRaw > 0 && pacPowerKw !== undefined ? roundValue((pacPowerKw / totalLossKwRaw) * 100, 1) : undefined;
-  const backupPowerKw = pacPowerKw !== undefined ? Math.max(totalLossKwRaw - pacPowerKw, 0) : undefined;
-  const sixtyPercent = roundValue(totalLossKwRaw * 0.6, 2);
-  const oneThirtyPercent = roundValue(totalLossKwRaw * 1.3, 2);
-
-  const etasKey = useMemo(() => {
-    if (technology === "geothermie" && geoModel) {
-      return shouldUseAquaKey(geoModel, geoSource);
-    }
-    if (technology === "airEau" && airModel) return airModel;
-    if (technology === "airExtrait" && extractModel) return extractModel;
-    return undefined;
-  }, [technology, geoModel, geoSource, airModel, extractModel]);
-
-  const etasValues = etasKey ? ETAS_VALUES[etasKey] : undefined;
-
-  const pacLabel = useMemo(() => {
-    if (technology === "geothermie" && geoModel) {
-      const label = GEO_MODELS[geoModel].label;
-      const units = geoUnits > 1 ? ` (${geoUnits} unités)` : "";
-      return `${label}${units} – ${SOURCE_LABELS[geoSource]}`;
-    }
-    if (technology === "airEau" && airModel) {
-      const label = AIR_MODELS[airModel].label;
-      const units = airUnits > 1 ? ` (${airUnits} unités)` : "";
-      return `${label}${units}`;
-    }
-    if (technology === "airExtrait" && extractModel) {
-      const label = AIR_EXTRACT_MODELS[extractModel].label;
-      return `${label} – ${extractFlow ? `${extractFlow} m³/h` : "débit à définir"}`;
-    }
-    return "";
-  }, [technology, geoModel, geoUnits, geoSource, airModel, airUnits, extractModel, extractFlow]);
-
-  const stopTemperature = useMemo(() => {
-    if (technology === "airEau") {
-      if (["F2050-6", "F2050-10", "AMS 20-6", "AMS 20-10"].includes(airModel)) {
-        return -20;
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 600;
+        color: #0f172a;
       }
-    }
-    return -25;
-  }, [technology, airModel]);
 
-  const steps = [
-    "Installateur",
-    "Bénéficiaire",
-    "Projet",
-    "Technologie",
-    "Note finale",
-  ];
+      p {
+        margin: 0 0 0.75rem;
+      }
 
-  const goNext = () => setStep((current) => Math.min(current + 1, steps.length - 1));
-  const goPrevious = () => setStep((current) => Math.max(current - 1, 0));
+      button {
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+      }
 
-  const addZone = () => {
-    if (zones.length >= MAX_ZONES) return;
-    setZones((previous) => [...previous, defaultZone(previous.length)]);
-  };
+      input,
+      select,
+      textarea {
+        font-family: inherit;
+        border-radius: 0.75rem;
+        border: 1px solid #cbd5f5;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.95rem;
+        width: 100%;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        background: white;
+      }
 
-  const removeZone = (index: number) => {
-    if (zones.length <= MIN_ZONES) return;
-    setZones((previous) => previous.filter((_, zoneIndex) => zoneIndex !== index));
-  };
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+      }
 
-  const updateZone = (index: number, patch: Partial<Zone>) => {
-    setZones((previous) => {
-      const next = [...previous];
-      const updated: Zone = { ...next[index], ...patch };
-      if ("manualLoss" in patch) {
-        if (patch.manualLoss && patch.manualLoss.trim().length > 0) {
-          updated.insulation = "saisie manuelle";
+      label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+      }
+
+      .app-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2.5rem 1.25rem 4rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 24px 60px -30px rgba(30, 64, 175, 0.35);
+        border: 1px solid rgba(99, 102, 241, 0.08);
+      }
+
+      .stepper {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+      }
+
+      .stepper div {
+        flex: 1;
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.65rem 0.5rem;
+        border-radius: 999px;
+        background: rgba(129, 140, 248, 0.15);
+        color: #4338ca;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+      }
+
+      .stepper div.active {
+        background: #4338ca;
+        color: white;
+        box-shadow: 0 14px 28px -16px rgba(67, 56, 202, 0.5);
+      }
+
+      .grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+
+      .zone-card {
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.92);
+        position: relative;
+        box-shadow: 0 16px 40px -36px rgba(15, 23, 42, 0.4);
+      }
+
+      .zone-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .zone-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .remove-zone {
+        background: rgba(239, 68, 68, 0.1);
+        color: #b91c1c;
+        border-radius: 999px;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.85rem;
+      }
+
+      .remove-zone:hover {
+        background: rgba(239, 68, 68, 0.18);
+      }
+
+      .totals-box {
+        background: rgba(79, 70, 229, 0.08);
+        border: 1px solid rgba(79, 70, 229, 0.35);
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .nav-buttons {
+        margin-top: 2.5rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        border-radius: 0.95rem;
+        padding: 0.75rem 1.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #4f46e5, #4338ca);
+        color: white;
+        box-shadow: 0 16px 30px -15px rgba(79, 70, 229, 0.7);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .btn-secondary {
+        background: white;
+        color: #4338ca;
+        border: 1px solid rgba(67, 56, 202, 0.35);
+      }
+
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .tech-card {
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .tech-card.active {
+        border-color: #4338ca;
+        box-shadow: 0 18px 40px -28px rgba(79, 70, 229, 0.7);
+      }
+
+      .tech-card input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.75rem;
+        background: rgba(99, 102, 241, 0.12);
+        color: #3730a3;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+      }
+
+      .section-title {
+        margin-bottom: 1.5rem;
+        font-size: 1.35rem;
+      }
+
+      .info-line {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.35rem;
+        gap: 1rem;
+      }
+
+      .info-line span:first-child {
+        font-weight: 500;
+        color: #1e293b;
+      }
+
+      .print-area {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        padding: 2rem;
+        box-shadow: 0 22px 45px -30px rgba(15, 23, 42, 0.35);
+      }
+
+      .report-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .report-header img {
+        width: 140px;
+        height: auto;
+        object-fit: contain;
+      }
+
+      .report-title {
+        text-align: center;
+        flex: 1;
+        font-size: 1.5rem;
+        letter-spacing: 0.12em;
+      }
+
+      .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.25rem;
+      }
+
+      .report-table th,
+      .report-table td {
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        padding: 0.65rem 0.8rem;
+        font-size: 0.95rem;
+        text-align: left;
+      }
+
+      .report-table th {
+        background: rgba(79, 70, 229, 0.08);
+        color: #312e81;
+        font-weight: 600;
+      }
+
+      .report-highlight {
+        background: rgba(226, 232, 240, 0.45);
+        border-radius: 1rem;
+        padding: 0.85rem 1.25rem;
+        margin-bottom: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .report-footer {
+        margin-top: 1.75rem;
+        font-size: 0.85rem;
+        color: #475569;
+        text-align: center;
+      }
+
+      .etas-line {
+        font-weight: 700;
+        color: #14532d;
+      }
+
+      @media print {
+        body {
+          background: white;
+        }
+
+        .app-shell,
+        .card,
+        .print-area {
+          max-width: 100%;
+          padding: 0;
+          box-shadow: none;
+          border: none;
+          background: white;
+        }
+
+        .stepper,
+        .nav-buttons,
+        #app-content > .card:not(.print-area),
+        #app-content > h1,
+        #print-button {
+          display: none !important;
+        }
+
+        .print-area {
+          border: none;
+          margin: 0;
+        }
+
+        .report-header {
+          border: none;
         }
       }
-      next[index] = updated;
-      return next;
-    });
-  };
-
-  const disableAirExtrait = highestZoneTemperature >= 65;
-  const restrictedAirModels = new Set(["F2050-6", "F2050-10", "F2050-12", "F2050-16", "AMS 20-6", "AMS 20-10"]);
-  const airModelOptions = Object.keys(AIR_MODELS).filter((modelKey) =>
-    highestZoneTemperature >= 65 ? !restrictedAirModels.has(modelKey) : true
-  );
-
-  const printableSurfaceLines = surfacesByTemperature.map(([temp, surface]) => `${surface.toFixed(1)} m² à ${temp.toFixed(0)} °C`);
-
-  return (
-    <div className="min-h-screen bg-white text-neutral-900">
-      <style>{`
-        @media print {
-          body { margin: 0; }
-          .no-print { display: none !important; }
-          .print-page { width: 210mm; min-height: 297mm; padding: 20mm; }
-        }
-      `}</style>
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        <div className="no-print">
-          <div className="flex flex-col gap-3 mb-6">
-            <h1 className="text-2xl font-semibold">Note de dimensionnement</h1>
-            <div className="flex items-center gap-2 text-sm text-neutral-500">
-              {steps.map((title, index) => (
-                <React.Fragment key={title}>
-                  <div className={`px-3 py-1 rounded-full border ${index === step ? "bg-black text-white border-black" : "border-black/20"}`}>
-                    {title}
-                  </div>
-                  {index < steps.length - 1 && <span>›</span>}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {step === 0 && (
-          <Card>
-            <h2 className="text-xl font-semibold mb-4">Installateur</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Nom de l’entreprise</label>
-                <Input value={company.name} onChange={(event) => setCompany({ ...company, name: event.target.value })} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Numéro de SIRET</label>
-                <Input value={company.siret} onChange={(event) => setCompany({ ...company, siret: event.target.value })} />
-              </div>
-            </div>
-            <div className="mt-4">
-              <label className="text-sm font-medium">Adresse</label>
-              <Input value={company.address} onChange={(event) => setCompany({ ...company, address: event.target.value })} />
-            </div>
-          </Card>
-        )}
-
-        {step === 1 && (
-          <Card>
-            <h2 className="text-xl font-semibold mb-4">Bénéficiaire</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Prénom</label>
-                <Input value={beneficiary.firstName} onChange={(event) => setBeneficiary({ ...beneficiary, firstName: event.target.value })} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Nom</label>
-                <Input value={beneficiary.lastName} onChange={(event) => setBeneficiary({ ...beneficiary, lastName: event.target.value })} />
-              </div>
-            </div>
-            <div className="mt-4">
-              <label className="text-sm font-medium">Adresse</label>
-              <Input value={beneficiary.address} onChange={(event) => setBeneficiary({ ...beneficiary, address: event.target.value })} />
-            </div>
-            <div className="grid md:grid-cols-3 gap-4 mt-4">
-              <div>
-                <label className="text-sm font-medium">Code postal</label>
-                <Input value={beneficiary.postalCode} onChange={(event) => setBeneficiary({ ...beneficiary, postalCode: event.target.value })} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Ville</label>
-                <Input value={beneficiary.city} onChange={(event) => setBeneficiary({ ...beneficiary, city: event.target.value })} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Année de construction</label>
-                <Input value={constructionYear} onChange={(event) => setConstructionYear(event.target.value)} />
-              </div>
-            </div>
-            <div className="grid md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="text-sm font-medium">Altitude</label>
-                <Select value={altitude} onChange={(event) => setAltitude(event.target.value)}>
-                  {availableAltitudeOptions.map((option) => (
-                    <option key={option.key} value={option.key}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Checkbox checked={seaside} onChange={setSeaside} label="Bord de mer (température fixée à -2 °C)" />
-              </div>
-            </div>
-            <div className="mt-4 text-sm font-medium">Température extérieure de base : {formatNumber(effectiveBaseTemperature, 0, " °C")}</div>
-          </Card>
-        )}
-
-        {step === 2 && (
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Projet</h2>
-              <SecondaryButton onClick={addZone} disabled={zones.length >= MAX_ZONES}>
-                Ajouter une zone
-              </SecondaryButton>
-            </div>
-            <div className="space-y-6">
-              {zones.map((zone, index) => (
-                <div key={index} className="border border-black/10 rounded-2xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-sm">{zone.name}</h3>
-                    {zones.length > MIN_ZONES && (
-                      <button className="text-xs text-red-500" onClick={() => removeZone(index)}>
-                        Supprimer
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs font-medium">Surface (m²)</label>
-                      <Input value={zone.surface} onChange={(event) => updateZone(index, { surface: event.target.value })} />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">Hauteur sous plafond (m)</label>
-                      <Input value={zone.height} onChange={(event) => updateZone(index, { height: event.target.value })} />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">Température de fonctionnement (°C)</label>
-                      <Select value={zone.temperature} onChange={(event) => updateZone(index, { temperature: event.target.value as Zone["temperature"] })}>
-                        {TEMPERATURE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-3 mt-3">
-                    <div>
-                      <label className="text-xs font-medium">Température ambiante (°C)</label>
-                      <Input value={zone.ambient} onChange={(event) => updateZone(index, { ambient: event.target.value })} />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">Type d’isolation</label>
-                      <Select value={zone.insulation} onChange={(event) => updateZone(index, { insulation: event.target.value })}>
-                        {G_COEFFICIENTS.map((entry) => (
-                          <option key={entry.label} value={entry.label}>
-                            {entry.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">Déperditions saisies (W)</label>
-                      <Input value={zone.manualLoss} onChange={(event) => updateZone(index, { manualLoss: event.target.value })} placeholder="Optionnel" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 text-sm font-semibold">Déperditions totales : {formatNumber(totalLossWatts, 0, " W")}</div>
-          </Card>
-        )}
-
-        {step === 3 && (
-          <Card>
-            <h2 className="text-xl font-semibold mb-4">Technologie</h2>
-            <div className="grid md:grid-cols-3 gap-3 mb-6">
-              <button
-                className={`rounded-xl border px-3 py-2 text-sm ${technology === "geothermie" ? "bg-black text-white" : "border-black/20"}`}
-                onClick={() => setTechnology("geothermie")}
-              >
-                Géothermie / Aquathermie
-              </button>
-              <button
-                className={`rounded-xl border px-3 py-2 text-sm ${technology === "airEau" ? "bg-black text-white" : "border-black/20"}`}
-                onClick={() => setTechnology("airEau")}
-              >
-                Pompe à chaleur Air/Eau
-              </button>
-              <button
-                className={`rounded-xl border px-3 py-2 text-sm ${technology === "airExtrait" ? "bg-black text-white" : "border-black/20"}`}
-                onClick={() => !disableAirExtrait && setTechnology("airExtrait")}
-                disabled={disableAirExtrait}
-              >
-                Pompe à chaleur sur air extrait
-              </button>
-            </div>
-            {technology === "geothermie" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Source</label>
-                  <Select value={geoSource} onChange={(event) => setGeoSource(event.target.value as GeoSource)}>
-                    <option value="geo0">Géothermie 0 °C</option>
-                    <option value="geo5">Géothermie 5 °C</option>
-                    <option value="aqua10">Aquathermie 10 °C</option>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Modèle</label>
-                  <Select value={geoModel} onChange={(event) => setGeoModel(event.target.value)}>
-                    <option value="">Sélectionner</option>
-                    {Object.keys(GEO_MODELS).map((key) => (
-                      <option key={key} value={key}>
-                        {GEO_MODELS[key].label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Nombre d’unités</label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={9}
-                    value={geoUnits}
-                    onChange={(event) => setGeoUnits(clamp(Number(event.target.value), 1, 9))}
-                  />
-                </div>
-                <div className="text-sm text-neutral-600">Température de fonctionnement retenue : {highestWaterTemperatureKey} °C</div>
-              </div>
-            )}
-            {technology === "airEau" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Modèle</label>
-                  <Select value={airModel} onChange={(event) => setAirModel(event.target.value)}>
-                    <option value="">Sélectionner</option>
-                    {airModelOptions.map((key) => (
-                      <option key={key} value={key}>
-                        {AIR_MODELS[key].label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Nombre d’unités</label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={8}
-                    value={airUnits}
-                    onChange={(event) => setAirUnits(clamp(Number(event.target.value), 1, 8))}
-                  />
-                </div>
-                <div className="grid md:grid-cols-2 gap-3 text-sm text-neutral-600">
-                  <div>Température extérieure de base : {formatNumber(effectiveBaseTemperature, 0, " °C")}</div>
-                  <div>Température de fonctionnement retenue : {highestWaterTemperatureKey} °C</div>
-                </div>
-              </div>
-            )}
-            {technology === "airExtrait" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Modèle</label>
-                  <Select value={extractModel} onChange={(event) => setExtractModel(event.target.value)}>
-                    <option value="">Sélectionner</option>
-                    {Object.keys(AIR_EXTRACT_MODELS).map((key) => (
-                      <option key={key} value={key}>
-                        {AIR_EXTRACT_MODELS[key].label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                {extractModel && (
-                  <div>
-                    <label className="text-sm font-medium">Débit de ventilation (m³/h)</label>
-                    <Select
-                      value={extractFlow === "" ? "" : extractFlow}
-                      onChange={(event) => setExtractFlow(event.target.value ? Number(event.target.value) : "")}
-                    >
-                      <option value="">Sélectionner</option>
-                      {AIR_EXTRACT_MODELS[extractModel].flows.map((flow) => (
-                        <option key={flow} value={flow}>
-                          {flow}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                )}
-                <div className="text-sm text-neutral-600">Température de fonctionnement retenue : {highestWaterTemperatureKey} °C</div>
-              </div>
-            )}
-          </Card>
-        )}
-
-        {step === 4 && (
-          <div className="print-page bg-white rounded-2xl border border-black/10 shadow-sm">
-            <div className="flex items-start justify-between">
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s" alt="Logo" className="w-32" />
-              <div className="flex-1 text-center">
-                <h2 className="text-xl font-semibold tracking-wide">NOTE DE DIMENSIONNEMENT</h2>
-              </div>
-            </div>
-            <div className="mt-6 text-sm space-y-2">
-              <div className="font-semibold">Installateur</div>
-              <div>{company.name}</div>
-              {company.address && <div>{company.address}</div>}
-              {company.siret && <div>SIRET : {company.siret}</div>}
-            </div>
-            <div className="mt-4 text-sm space-y-2">
-              <div className="font-semibold">Bénéficiaire</div>
-              <div>{[beneficiary.firstName, beneficiary.lastName].filter(Boolean).join(" ")}</div>
-              {beneficiary.address && <div>{beneficiary.address}</div>}
-              {[beneficiary.postalCode, beneficiary.city].filter(Boolean).join(" ") && (
-                <div>{[beneficiary.postalCode, beneficiary.city].filter(Boolean).join(" ")}</div>
-              )}
-              {constructionYear && <div>Année de construction : {constructionYear}</div>}
-            </div>
-            <div className="mt-4 text-sm">
-              <div>Température extérieure de base : {formatNumber(effectiveBaseTemperature, 0, " °C")}</div>
-            </div>
-            <div className="mt-4">
-              <table className="w-full text-sm border-collapse">
-                <tbody>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Surface chauffée</td>
-                    <td className="border border-black/10 px-3 py-2">{totalSurface.toFixed(1)} m²</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Répartition par température</td>
-                    <td className="border border-black/10 px-3 py-2 whitespace-pre-line">{printableSurfaceLines.join("\n") || "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Hauteur sous plafond moyenne</td>
-                    <td className="border border-black/10 px-3 py-2">{averageCeilingHeight ? `${averageCeilingHeight.toFixed(2)} m` : "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Température ambiante</td>
-                    <td className="border border-black/10 px-3 py-2">{highestAmbientTemperature ? `${highestAmbientTemperature.toFixed(0)} °C` : "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Température maximale de fonctionnement</td>
-                    <td className="border border-black/10 px-3 py-2">
-                      {highestZoneTemperature ? `${highestZoneTemperature.toFixed(0)} °C${highestZoneTemperature >= 65 ? " – Haute température" : ""}` : "-"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Déperditions calculées</td>
-                    <td className="border border-black/10 px-3 py-2">{totalLossKw.toFixed(2)} kW</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Modèle retenu</td>
-                    <td className="border border-black/10 px-3 py-2">{pacLabel || "-"}</td>
-                  </tr>
-                  {technology === "geothermie" && (
-                    <tr>
-                      <td className="border border-black/10 px-3 py-2 font-semibold">Température source</td>
-                      <td className="border border-black/10 px-3 py-2">{SOURCE_LABELS[geoSource]}</td>
-                    </tr>
-                  )}
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Température d’arrêt de la PAC NIBE</td>
-                    <td className="border border-black/10 px-3 py-2">{stopTemperature} °C</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Puissance PAC à température de base</td>
-                    <td className="border border-black/10 px-3 py-2">{pacPowerKw !== undefined ? `${pacPowerKw.toFixed(2)} kW` : "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Rapport puissance PAC / déperditions</td>
-                    <td className="border border-black/10 px-3 py-2">{ratioPercent !== undefined ? `${ratioPercent.toFixed(1)} %` : "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">Puissance d’appoint recommandée</td>
-                    <td className="border border-black/10 px-3 py-2">{backupPowerKw !== undefined ? `${Math.max(backupPowerKw, 0).toFixed(2)} kW` : "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold text-emerald-700">ETAS 35 °C</td>
-                    <td className="border border-black/10 px-3 py-2 text-emerald-700 font-semibold">{etasValues ? `${etasValues["35"]} %` : "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold text-emerald-700">ETAS 55 °C</td>
-                    <td className="border border-black/10 px-3 py-2 text-emerald-700 font-semibold">{etasValues ? `${etasValues["55"]} %` : "-"}</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">60 % des déperditions</td>
-                    <td className="border border-black/10 px-3 py-2">{sixtyPercent.toFixed(2)} kW</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black/10 px-3 py-2 font-semibold">130 % des déperditions</td>
-                    <td className="border border-black/10 px-3 py-2">{oneThirtyPercent.toFixed(2)} kW</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 text-sm">
-              Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.
-            </div>
-            <div className="mt-2 text-sm text-neutral-700">
-              Température de fonctionnement retenue : {highestWaterTemperatureKey} °C
-            </div>
-            <div className="mt-6 text-xs text-neutral-500">
-              Informations données à titre informatif, vérifier les notices, réglementations en vigueur et régimes de fonctionnement.
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center pt-4 border-t border-black/10 no-print">
-          {step > 0 ? <SecondaryButton onClick={goPrevious}>Précédent</SecondaryButton> : <span />}
-          {step < steps.length - 1 && <StepButton onClick={goNext}>Suivant</StepButton>}
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <h1 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; letter-spacing: 0.05em; color: #312e81;">
+        Parcours de dimensionnement NIBE
+      </h1>
+      <div id="app-content" class="card">
+        <div class="stepper" id="stepper"></div>
+        <div id="step-content"></div>
+        <div class="nav-buttons">
+          <button id="prev-button" class="btn-secondary" type="button">Précédent</button>
+          <button id="next-button" class="btn-primary" type="button">Suivant</button>
         </div>
       </div>
     </div>
-  );
-}
 
+    <script>
+      const stepLabels = [
+        "Installateur",
+        "Bénéficiaire",
+        "Projet",
+        "Technologie",
+        "Note finale"
+      ];
+
+      const defaultState = {
+        step: 0,
+        installer: {
+          company: "",
+          address: "",
+          siret: ""
+        },
+        beneficiary: {
+          firstName: "",
+          lastName: "",
+          address: "",
+          postalCode: "",
+          city: "",
+          constructionYear: "",
+          seaside: false,
+          altitudeBand: "0-200",
+          baseTemperature: null
+        },
+        project: {
+          zones: []
+        },
+        technology: {
+          type: null,
+          model: null,
+          sourceTemperature: "0",
+          units: 1,
+          airflow: null
+        }
+      };
+
+      const state = JSON.parse(JSON.stringify(defaultState));
+
+      const deptBaseTemperatures = {
+        "01": -10,
+        "02": -7,
+        "03": -8,
+        "04": -8,
+        "05": -10,
+        "06": -2,
+        "07": -7,
+        "08": -10,
+        "09": -5,
+        "10": -10,
+        "11": -5,
+        "12": -8,
+        "13": -5,
+        "14": -7,
+        "15": -8,
+        "16": -5,
+        "17": -5,
+        "18": -7,
+        "19": -8,
+        "21": -10,
+        "22": -4,
+        "23": -8,
+        "24": -5,
+        "25": -12,
+        "26": -7,
+        "27": -7,
+        "28": -7,
+        "29": -4,
+        "30": -5,
+        "31": -5,
+        "32": -5,
+        "33": -5,
+        "34": -5,
+        "35": -5,
+        "36": -7,
+        "37": -7,
+        "38": -10,
+        "39": -10,
+        "40": -5,
+        "41": -7,
+        "42": -10,
+        "43": -8,
+        "44": -5,
+        "45": -7,
+        "46": -7,
+        "47": -5,
+        "48": -8,
+        "49": -7,
+        "50": -4,
+        "51": -10,
+        "52": -12,
+        "53": -7,
+        "54": -15,
+        "55": -12,
+        "56": -4,
+        "57": -15,
+        "58": -10,
+        "59": -9,
+        "60": -7,
+        "61": -7,
+        "62": -9,
+        "63": -8,
+        "64": -5,
+        "65": -5,
+        "66": -5,
+        "67": -15,
+        "68": -15,
+        "69": -10,
+        "70": -12,
+        "71": -10,
+        "72": -7,
+        "73": -10,
+        "74": -10,
+        "75": -7,
+        "76": -7,
+        "77": -7,
+        "78": -7,
+        "79": -7,
+        "80": -9,
+        "81": -5,
+        "82": -5,
+        "83": -2,
+        "84": -7,
+        "85": -5,
+        "86": -7,
+        "87": -8,
+        "88": -15,
+        "89": -10,
+        "90": -15,
+        "91": -7,
+        "92": -7,
+        "93": -7,
+        "94": -7,
+        "95": -7
+      };
+
+      const altitudeBands = [
+        { value: "0-200", label: "0 à 200 m" },
+        { value: "201-400", label: "201 à 400 m" },
+        { value: "401-600", label: "401 à 600 m" },
+        { value: "601-800", label: "601 à 800 m" },
+        { value: "801-1000", label: "801 à 1000 m" },
+        { value: "1001-1200", label: "1001 à 1200 m" },
+        { value: "1201-1400", label: "1201 à 1400 m" },
+        { value: "1401-1600", label: "1401 à 1600 m" },
+        { value: "1601-1800", label: "1601 à 1800 m" },
+        { value: "1801-2000", label: "1801 à 2000 m" },
+        { value: "2001-2200", label: "2001 à 2200 m" }
+      ];
+
+      const altitudeAdjustments = {
+        "-2": [-2, -4, -6, -8, -10, -12, -14, -16, -18, -20],
+        "-4": [-4, -5, -6, -7, -8, -9, -10],
+        "-5": [-5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15],
+        "-7": [-7, -8, -9, -11, -13, -14, -15],
+        "-8": [-8, -9, -11, -13, -15, -17, -19, -21, -23, -25, -27],
+        "-9": [-9, -10, -11, -12, -13],
+        "-10": [-10, -11, -13, -14, -17, -19, -21, -23, -24, -25, -29],
+        "-12": [-12, -13, -15, -17, -19, -21, -23, -24],
+        "-15": [-15, -15, -19, -21, -23, -24, -25]
+      };
+
+      const isolationOptions = [
+        { label: "Véranda récente", value: 2.0 },
+        { label: "Pas isolé, pas d’inertie", value: 1.6 },
+        { label: "Pas isolé, ancien, mur 60 cm", value: 1.4 },
+        { label: "Isolé, bâtiment années 1960", value: 1.3 },
+        { label: "Entre 1974-1982", value: 1.2 },
+        { label: "Maison années 1980", value: 1.1 },
+        { label: "Entre 1990-2000", value: 1.0 },
+        { label: "Maison RT2000", value: 0.9 },
+        { label: "Entre 2001-2005", value: 0.8 },
+        { label: "Isolation norme RT2000", value: 0.8 },
+        { label: "Maison RT2005", value: 0.75 },
+        { label: "Isolation norme RT2012", value: 0.6 },
+        { label: "Isolation norme RT2012 Bbio +", value: 0.5 },
+        { label: "Isolation norme RE2020", value: 0.4 },
+        { label: "Saisie manuelle", value: null }
+      ];
+      const geothermyModels = {
+        "F1253-4": {
+          geo: {
+            0: { 35: 4.5, 45: 4.5, 55: 4.1 },
+            5: { 35: 4.8, 45: 4.8, 55: 4.4 }
+          },
+          aqua: {
+            10: { 35: 5.0, 45: 5.0, 55: 4.6 }
+          }
+        },
+        "F1153-4": {
+          geo: {
+            0: { 35: 4.5, 45: 4.5, 55: 4.1 },
+            5: { 35: 4.8, 45: 4.8, 55: 4.4 }
+          },
+          aqua: {
+            10: { 35: 5.0, 45: 5.0, 55: 4.6 }
+          }
+        },
+        "F1253-6": {
+          geo: {
+            0: { 35: 7.6, 45: 7.7, 55: 7.0 },
+            5: { 35: 8.0, 45: 8.0, 55: 7.3 }
+          },
+          aqua: {
+            10: { 35: 8.2, 45: 8.2, 55: 7.5 }
+          }
+        },
+        "F1153-6": {
+          geo: {
+            0: { 35: 7.6, 45: 7.7, 55: 7.0 },
+            5: { 35: 8.0, 45: 8.0, 55: 7.3 }
+          },
+          aqua: {
+            10: { 35: 8.2, 45: 8.2, 55: 7.5 }
+          }
+        },
+        "S1156-8": {
+          geo: {
+            0: { 35: 8.5, 45: 8.5, 55: 7.8 },
+            5: { 35: 9.8, 45: 9.8, 55: 9.1 }
+          },
+          aqua: {
+            10: { 35: 11.0, 45: 11.0, 55: 10.5 }
+          }
+        },
+        "S1256-8": {
+          geo: {
+            0: { 35: 8.5, 45: 8.5, 55: 7.8 },
+            5: { 35: 9.8, 45: 9.8, 55: 9.1 }
+          },
+          aqua: {
+            10: { 35: 11.0, 45: 11.0, 55: 10.5 }
+          }
+        },
+        "S1156-13": {
+          geo: {
+            0: { 35: 13.5, 45: 13.5, 55: 12.5 },
+            5: { 35: 15.5, 45: 15.5, 55: 14.2 }
+          },
+          aqua: {
+            10: { 35: 17.5, 45: 17.5, 55: 16.0 }
+          }
+        },
+        "S1256-13": {
+          geo: {
+            0: { 35: 13.5, 45: 13.5, 55: 12.5 },
+            5: { 35: 15.5, 45: 15.5, 55: 14.2 }
+          },
+          aqua: {
+            10: { 35: 17.5, 45: 17.5, 55: 16.0 }
+          }
+        },
+        "S1156-18": {
+          geo: {
+            0: { 35: 18.9, 45: 18.9, 55: 17.8 },
+            5: { 35: 22.0, 45: 22.0, 55: 20.2 }
+          },
+          aqua: {
+            10: { 35: 24.8, 45: 24.8, 55: 22.8 }
+          }
+        },
+        "S1256-18": {
+          geo: {
+            0: { 35: 18.9, 45: 18.9, 55: 17.8 },
+            5: { 35: 22.0, 45: 22.0, 55: 20.2 }
+          },
+          aqua: {
+            10: { 35: 24.8, 45: 24.8, 55: 22.8 }
+          }
+        },
+        "S1155-25": {
+          geo: {
+            0: { 35: 25.0, 45: 25.0, 55: 24.0 },
+            5: { 35: 29.0, 45: 29.0, 55: 27.0 }
+          },
+          aqua: {
+            10: { 35: 34.0, 45: 34.0, 55: 31.0 }
+          }
+        },
+        "F1355-28": {
+          geo: {
+            0: { 35: 28.0, 45: 28.0, 55: 27.0 }
+          },
+          aqua: {
+            10: { 35: 35.0, 45: 35.0, 55: 33.0 }
+          }
+        },
+        "F1355-43": {
+          geo: {
+            0: { 35: 45.0, 45: 45.0, 55: 38.0 }
+          },
+          aqua: {
+            10: { 35: 58.0, 45: 58.0, 55: 52.0 }
+          }
+        },
+        "F1345-24": {
+          geo: {
+            0: { 35: 23.0, 45: 23.0, 55: 22.0 }
+          },
+          aqua: {
+            10: { 35: 30.0, 45: 30.0, 55: 28.0 }
+          }
+        },
+        "F1345-30": {
+          geo: {
+            0: { 35: 31.0, 45: 31.0, 55: 29.0 }
+          },
+          aqua: {
+            10: { 35: 40.0, 45: 40.0, 55: 39.0 }
+          }
+        },
+        "F1345-40": {
+          geo: {
+            0: { 35: 40.0, 45: 40.0, 55: 38.0 }
+          },
+          aqua: {
+            10: { 35: 52.0, 45: 52.0, 55: 49.0 }
+          }
+        },
+        "F1345-60": {
+          geo: {
+            0: { 35: 59.0, 45: 59.0, 55: 54.0 }
+          },
+          aqua: {
+            10: { 35: 78.0, 45: 78.0, 55: 69.0 }
+          }
+        }
+      };
+      const airWaterModels = {
+        "S2125-8": {
+          35: { 7: 6.4, 2: 6.4, 1: 6.4, 0: 6.3, -1: 6.2, -2: 6.1, -3: 5.9, -4: 5.8, -5: 5.7, -6: 5.6, -7: 5.5, -8: 5.3, -9: 5.1, -10: 5.0, -11: 4.8, -12: 4.7, -13: 4.5, -14: 4.4, -15: 4.2, -16: 4.1, -17: 4.0, -18: 3.8, -19: 3.7, -20: 3.6, -21: 3.5, -22: 3.4, -23: 3.3, -24: 3.2, -25: 3.2 },
+          45: { 7: 6.2, 2: 6.2, 1: 6.1, 0: 6.0, -1: 5.9, -2: 5.7, -3: 5.6, -4: 5.5, -5: 5.4, -6: 5.3, -7: 5.1, -8: 5.0, -9: 4.9, -10: 4.7, -11: 4.6, -12: 4.4, -13: 4.3, -14: 4.1, -15: 4.0, -16: 4.0, -17: 3.9, -18: 3.7, -19: 3.6, -20: 3.5, -21: 3.4, -22: 3.3, -23: 3.2, -24: 3.1, -25: 3.1 },
+          55: { 7: 6.0, 2: 6.0, 1: 5.9, 0: 5.9, -1: 5.8, -2: 5.7, -3: 5.6, -4: 5.5, -5: 5.4, -6: 5.3, -7: 5.2, -8: 5.0, -9: 4.9, -10: 4.8, -11: 4.6, -12: 4.5, -13: 4.3, -14: 4.2, -15: 4.0, -16: 3.9, -17: 3.8, -18: 3.6, -19: 3.5, -20: 3.4, -21: 3.3, -22: 3.2, -23: 3.0, -24: 2.9, -25: 2.8 }
+        },
+        "S2125-12": {
+          35: { 20: 8.43, 12: 9.41, 10: 9.53, 7: 9.71, 2: 9.5, 1: 9.4, 0: 9.3, -1: 9.1, -2: 9.0, -3: 8.9, -4: 8.8, -5: 8.7, -6: 8.5, -7: 8.3, -8: 8.0, -9: 7.8, -10: 7.6, -11: 7.4, -12: 7.2, -13: 6.9, -14: 6.7, -15: 6.5, -16: 6.3, -17: 6.1, -18: 5.9, -19: 5.7, -20: 5.5, -21: 5.3, -22: 5.2, -23: 5.0, -24: 4.9, -25: 4.7 },
+          45: { 20: 10.5, 12: 10.5, 10: 10.5, 7: 9.89, 2: 9.5, 1: 9.4, 0: 9.4, -1: 9.2, -2: 9.0, -3: 8.8, -4: 8.7, -5: 8.6, -6: 8.3, -7: 8.4, -8: 7.9, -9: 7.7, -10: 7.5, -11: 7.3, -12: 7.1, -13: 6.9, -14: 6.7, -15: 6.6, -16: 6.3, -17: 6.1, -18: 5.9, -19: 5.7, -20: 5.5, -21: 5.3, -22: 5.2, -23: 5.0, -24: 4.9, -25: 4.7 },
+          55: { 20: 7.65, 12: 9.95, 10: 9.98, 7: 10.03, 2: 9.5, 1: 9.4, 0: 9.4, -1: 9.3, -2: 9.1, -3: 9.0, -4: 8.9, -5: 8.8, -6: 8.5, -7: 8.4, -8: 8.1, -9: 7.9, -10: 7.7, -11: 7.5, -12: 7.3, -13: 7.0, -14: 6.8, -15: 6.6, -16: 6.4, -17: 6.2, -18: 6.1, -19: 5.9, -20: 5.7, -21: 5.5, -22: 5.3, -23: 5.2, -24: 5.0, -25: 4.8 }
+        },
+        "S2125-16": {
+          35: { 20: 20.9, 12: 19.2, 10: 17.7, 7: 16.5, 2: 14.9, 1: 14.7, 0: 14.1, -1: 13.9, -2: 13.8, -3: 13.7, -4: 13.6, -5: 13.4, -6: 13.1, -7: 12.7, -8: 12.3, -9: 11.9, -10: 11.38, -11: 11.21, -12: 10.31, -13: 9.98, -14: 9.67, -15: 9.01, -16: 8.9, -17: 8.8, -18: 8.6, -19: 8.5, -20: 8.3, -21: 8.1, -22: 8.0, -23: 7.8, -24: 7.7, -25: 7.5 },
+          45: { 20: 19.1, 12: 18.2, 10: 16.7, 7: 15.6, 2: 14.9, 1: 14.7, 0: 14.1, -1: 13.9, -2: 13.8, -3: 13.7, -4: 13.6, -5: 13.4, -6: 13.1, -7: 12.7, -8: 12.3, -9: 11.9, -10: 11.38, -11: 11.21, -12: 10.31, -13: 9.98, -14: 9.67, -15: 9.01, -16: 8.9, -17: 8.8, -18: 8.6, -19: 8.5, -20: 8.3, -21: 8.1, -22: 8.0, -23: 7.8, -24: 7.7, -25: 7.5 },
+          55: { 20: 18.01, 12: 17.1, 10: 15.7, 7: 15.6, 2: 14.9, 1: 14.7, 0: 14.1, -1: 13.9, -2: 13.8, -3: 13.7, -4: 13.6, -5: 13.4, -6: 13.1, -7: 12.7, -8: 12.3, -9: 11.9, -10: 11.38, -11: 11.21, -12: 10.31, -13: 9.98, -14: 9.67, -15: 9.01, -16: 8.9, -17: 8.8, -18: 8.6, -19: 8.5, -20: 8.3, -21: 8.1, -22: 8.0, -23: 7.8, -24: 7.7, -25: 7.5 }
+        },
+        "S2125-20": {
+          35: { 20: 27.1, 12: 25.4, 10: 22.4, 7: 20.01, 2: 17.81, 1: 17.01, 0: 16.8, -1: 16.6, -2: 15.96, -3: 15.45, -4: 14.97, -5: 14.91, -6: 14.79, -7: 14.61, -8: 13.96, -9: 13.56, -10: 12.96, -11: 12.81, -12: 12.72, -13: 12.43, -14: 12.04, -15: 11.91, -16: 11.81, -17: 11.05, -18: 10.93, -19: 10.53, -20: 10.01, -21: 9.96, -22: 9.64, -23: 9.45, -24: 9.03, -25: 8.47 },
+          45: { 20: 26.0, 12: 24.3, 10: 22.4, 7: 20.01, 2: 18.2, 1: 17.9, 0: 16.9, -1: 16.6, -2: 15.96, -3: 15.45, -4: 14.97, -5: 14.91, -6: 14.79, -7: 14.61, -8: 13.96, -9: 13.56, -10: 12.96, -11: 12.81, -12: 12.72, -13: 12.43, -14: 12.04, -15: 11.91, -16: 11.81, -17: 11.05, -18: 10.93, -19: 10.53, -20: 10.01, -21: 9.96, -22: 9.64, -23: 9.45, -24: 9.03, -25: 8.47 },
+          55: { 20: 24.1, 12: 23.1, 10: 21.2, 7: 19.42, 2: 18.8, 1: 17.9, 0: 16.9, -1: 16.6, -2: 15.96, -3: 15.45, -4: 14.97, -5: 14.91, -6: 14.79, -7: 14.61, -8: 13.96, -9: 13.56, -10: 12.96, -11: 12.81, -12: 12.72, -13: 12.43, -14: 12.04, -15: 11.91, -16: 11.81, -17: 11.05, -18: 10.93, -19: 10.53, -20: 10.01, -21: 9.96, -22: 9.64, -23: 9.45, -24: 9.03, -25: 8.47 }
+        },
+        "F2050-6": {
+          35: { 2: 6.9, 1: 6.8, 0: 6.6, -1: 6.4, -2: 6.2, -3: 6.1, -4: 6.0, -5: 5.9, -6: 5.6, -7: 5.6, -8: 5.4, -9: 5.2, -10: 5.1, -11: 5.0, -12: 4.9, -13: 4.8, -14: 4.6, -15: 4.5, -16: 4.4, -17: 4.2, -18: 4.0, -19: 3.8, -20: 3.7 },
+          45: { 2: 6.9, 1: 6.8, 0: 6.4, -1: 6.3, -2: 6.2, -3: 6.0, -4: 5.6, -5: 5.4, -6: 5.2, -7: 5.1, -8: 5.0, -9: 4.9, -10: 4.8, -11: 4.7, -12: 4.6, -13: 4.5, -14: 4.4, -15: 4.3, -16: 4.2, -17: 4.1, -18: 4.0, -19: 3.8, -20: 3.7 },
+          55: { 2: 6.4, 1: 6.1, 0: 6.0, -1: 5.9, -2: 5.8, -3: 5.4, -4: 5.1, -5: 5.0, -6: 4.9, -7: 4.8, -8: 4.6, -9: 4.4, -10: 4.3, -11: 4.1, -12: 4.0, -13: 3.9, -14: 3.8, -15: 3.8, -16: 3.6, -17: 3.5, -18: 3.4, -19: 3.3, -20: 3.1 }
+        },
+        "F2050-10": {
+          35: { 2: 10.4, 1: 10.3, 0: 10.2, -1: 10.1, -2: 10.01, -3: 9.8, -4: 9.5, -5: 9.3, -6: 9.0, -7: 8.9, -8: 8.6, -9: 8.3, -10: 8.2, -11: 7.9, -12: 7.7, -13: 7.5, -14: 7.2, -15: 7.1, -16: 6.9, -17: 6.5, -18: 6.4, -19: 6.1, -20: 5.9 },
+          45: { 2: 10.2, 1: 9.9, 0: 9.8, -1: 9.6, -2: 9.4, -3: 9.1, -4: 8.9, -5: 8.7, -6: 8.5, -7: 8.2, -8: 8.0, -9: 7.8, -10: 7.6, -11: 7.2, -12: 7.0, -13: 6.8, -14: 6.7, -15: 6.6, -16: 6.5, -17: 6.3, -18: 6.1, -19: 5.8, -20: 5.6 },
+          55: { 2: 9.2, 1: 9.1, 0: 9.0, -1: 8.7, -2: 8.5, -3: 8.0, -4: 7.9, -5: 7.6, -6: 7.4, -7: 7.1, -8: 7.0, -9: 6.7, -10: 6.4, -11: 6.3, -12: 6.2, -13: 6.1, -14: 5.8, -15: 5.5, -16: 5.2, -17: 5.0, -18: 4.8, -19: 4.6, -20: 4.5 }
+        },
+        "F2050-12": {
+          35: { 9: 12.5, 8: 12.4, 7: 12.1, 6: 11.9, 5: 11.7, 4: 11.5, 3: 11.0, 2: 10.5, 1: 10.1, 0: 9.9, -1: 9.8, -2: 9.6, -3: 9.3, -4: 9.0, -5: 8.8, -6: 8.6, -7: 8.4, -8: 8.2, -9: 7.8, -10: 7.5, -11: 7.2, -12: 7.0, -13: 6.8, -14: 6.6, -15: 6.4, -16: 6.2, -17: 6.0, -18: 5.8, -19: 5.6, -20: 5.4, -21: 5.2, -22: 5.0, -23: 4.8, -24: 4.6, -25: 4.4 },
+          45: { 9: 11.5, 8: 11.2, 7: 11.1, 6: 10.9, 5: 10.3, 4: 10.3, 3: 10.0, 2: 9.9, 1: 9.7, 0: 9.6, -1: 9.4, -2: 9.1, -3: 8.9, -4: 8.4, -5: 8.2, -6: 8.0, -7: 7.8, -8: 7.4, -9: 7.2, -10: 7.0, -11: 6.7, -12: 6.5, -13: 6.3, -14: 6.1, -15: 5.9, -16: 5.8, -17: 5.7, -18: 5.5, -19: 5.1, -20: 4.9, -21: 4.8, -22: 4.7, -23: 4.6, -24: 4.4, -25: 4.1 },
+          55: { 9: 11.5, 8: 11.2, 7: 11.1, 6: 10.9, 5: 10.1, 4: 9.7, 3: 9.4, 2: 9.0, 1: 8.9, 0: 8.8, -1: 8.8, -2: 8.7, -3: 8.1, -4: 7.9, -5: 7.5, -6: 7.3, -7: 7.0, -8: 6.8, -9: 6.5, -10: 6.3, -11: 6.2, -12: 6.0, -13: 5.8, -14: 5.7, -15: 5.2, -16: 5.0, -17: 4.9, -18: 4.8, -19: 4.7, -20: 4.6, -21: 4.5, -22: 4.3, -23: 3.9, -24: 3.8, -25: 3.7 }
+        },
+        "F2050-16": {
+          35: { 9: 17.0, 8: 16.87, 7: 16.09, 6: 15.91, 5: 15.5, 4: 15.04, 3: 14.7, 2: 14.4, 1: 14.0, 0: 13.7, -1: 13.4, -2: 13.0, -3: 12.8, -4: 12.4, -5: 11.9, -6: 11.6, -7: 11.3, -8: 11.1, -9: 10.8, -10: 10.4, -11: 10.0, -12: 9.8, -13: 9.4, -14: 9.0, -15: 8.5, -16: 7.9, -17: 7.4, -18: 7.1, -19: 7.0, -20: 6.9, -21: 6.2, -22: 5.8, -23: 5.6, -24: 5.5, -25: 5.3 },
+          45: { 9: 15.4, 8: 14.9, 7: 14.4, 6: 14.1, 5: 13.8, 4: 13.6, 3: 13.0, 2: 12.7, 1: 12.4, 0: 12.0, -1: 11.7, -2: 11.5, -3: 11.0, -4: 10.8, -5: 10.5, -6: 10.0, -7: 9.7, -8: 9.4, -9: 9.0, -10: 8.7, -11: 8.4, -12: 8.0, -13: 7.7, -14: 7.4, -15: 7.2, -16: 6.7, -17: 6.4, -18: 6.1, -19: 5.9, -20: 5.6, -21: 5.1, -22: 5.0, -23: 4.8, -24: 4.6, -25: 4.2 },
+          55: { 9: 15.4, 8: 14.9, 7: 14.4, 6: 14.1, 5: 13.8, 4: 13.6, 3: 13.0, 2: 12.7, 1: 12.4, 0: 12.0, -1: 11.7, -2: 11.5, -3: 11.0, -4: 10.8, -5: 10.5, -6: 10.0, -7: 9.7, -8: 9.4, -9: 9.0, -10: 8.7, -11: 8.4, -12: 8.0, -13: 7.7, -14: 7.4, -15: 7.2, -16: 6.7, -17: 6.4, -18: 6.1, -19: 5.9, -20: 5.6, -21: 5.1, -22: 5.0, -23: 4.8, -24: 4.6, -25: 4.2 }
+        },
+        "AMS 20-6": {
+          35: { 2: 6.9, 1: 6.8, 0: 6.6, -1: 6.4, -2: 6.2, -3: 6.1, -4: 6.0, -5: 5.9, -6: 5.6, -7: 5.6, -8: 5.4, -9: 5.2, -10: 5.1, -11: 5.0, -12: 4.9, -13: 4.8, -14: 4.6, -15: 4.5, -16: 4.4, -17: 4.2, -18: 4.0, -19: 3.8, -20: 3.7 },
+          45: { 2: 6.9, 1: 6.8, 0: 6.4, -1: 6.3, -2: 6.2, -3: 6.0, -4: 5.6, -5: 5.4, -6: 5.2, -7: 5.1, -8: 5.0, -9: 4.9, -10: 4.8, -11: 4.7, -12: 4.6, -13: 4.5, -14: 4.4, -15: 4.3, -16: 4.2, -17: 4.1, -18: 4.0, -19: 3.8, -20: 3.7 },
+          55: { 2: 6.4, 1: 6.1, 0: 6.0, -1: 5.9, -2: 5.8, -3: 5.4, -4: 5.1, -5: 5.0, -6: 4.9, -7: 4.8, -8: 4.6, -9: 4.4, -10: 4.3, -11: 4.1, -12: 4.0, -13: 3.9, -14: 3.8, -15: 3.8, -16: 3.6, -17: 3.5, -18: 3.4, -19: 3.3, -20: 3.1 }
+        },
+        "AMS 20-10": {
+          35: { 2: 10.4, 1: 10.3, 0: 10.2, -1: 10.1, -2: 10.01, -3: 9.8, -4: 9.5, -5: 9.3, -6: 9.0, -7: 8.9, -8: 8.6, -9: 8.3, -10: 8.2, -11: 7.9, -12: 7.7, -13: 7.5, -14: 7.2, -15: 7.1, -16: 6.9, -17: 6.5, -18: 6.4, -19: 6.1, -20: 5.9 },
+          45: { 2: 10.2, 1: 9.9, 0: 9.8, -1: 9.6, -2: 9.4, -3: 9.1, -4: 8.9, -5: 8.7, -6: 8.5, -7: 8.2, -8: 8.0, -9: 7.8, -10: 7.6, -11: 7.2, -12: 7.0, -13: 6.8, -14: 6.7, -15: 6.6, -16: 6.5, -17: 6.3, -18: 6.1, -19: 5.8, -20: 5.6 },
+          55: { 2: 9.2, 1: 9.1, 0: 9.0, -1: 8.7, -2: 8.5, -3: 8.0, -4: 7.9, -5: 7.6, -6: 7.4, -7: 7.1, -8: 7.0, -9: 6.7, -10: 6.4, -11: 6.3, -12: 6.2, -13: 6.1, -14: 5.8, -15: 5.5, -16: 5.2, -17: 5.0, -18: 4.8, -19: 4.6, -20: 4.5 }
+        }
+      };
+      const airExtractModels = {
+        "S735-4": {
+          flows: [
+            60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390
+          ],
+          data: {
+            35: { 60: 1.3, 75: 1.5, 90: 1.8, 105: 2.2, 120: 2.4, 135: 2.65, 150: 2.9, 165: 3.25, 180: 3.45, 195: 3.65, 210: 3.8, 225: 3.9, 240: 3.9, 255: 4.2, 270: 4.2, 285: 4.2, 300: 4.2, 315: 4.2, 330: 4.2, 345: 4.2, 360: 4.2, 375: 4.2, 390: 4.2 },
+            45: { 60: 1.4, 75: 1.6, 90: 2.0, 105: 2.4, 120: 2.65, 135: 3.05, 150: 3.25, 165: 3.5, 180: 3.6, 195: 3.8, 210: 3.9, 225: 4.0, 240: 4.0, 255: 4.2, 270: 4.2, 285: 4.2, 300: 4.2, 315: 4.2, 330: 4.2, 345: 4.2, 360: 4.2, 375: 4.2, 390: 4.2 },
+            55: { 60: 1.5, 75: 1.75, 90: 2.25, 105: 2.6, 120: 2.9, 135: 3.2, 150: 3.4, 165: 3.6, 180: 3.75, 195: 3.9, 210: 4.0, 225: 4.1, 240: 4.1, 255: 4.2, 270: 4.2, 285: 4.2, 300: 4.2, 315: 4.2, 330: 4.2, 345: 4.2, 360: 4.2, 375: 4.2, 390: 4.2 }
+          }
+        },
+        "S735-7": {
+          flows: [
+            90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390
+          ],
+          data: {
+            35: { 90: 2.0, 105: 2.4, 120: 2.6, 135: 3.0, 150: 3.25, 165: 3.6, 180: 4.0, 195: 4.2, 210: 4.4, 225: 4.8, 240: 4.8, 255: 5.2, 270: 5.4, 285: 5.4, 300: 5.8, 315: 5.9, 330: 6.2, 345: 6.3, 360: 6.4, 375: 6.4, 390: 6.4 },
+            45: { 90: 2.23, 105: 2.6, 120: 2.9, 135: 3.25, 150: 3.5, 165: 3.9, 180: 4.5, 195: 4.6, 210: 4.7, 225: 4.95, 240: 4.95, 255: 5.4, 270: 5.5, 285: 5.5, 300: 5.9, 315: 6.0, 330: 6.25, 345: 6.3, 360: 6.42, 375: 6.42, 390: 6.42 },
+            55: { 90: 2.6, 105: 3.0, 120: 3.2, 135: 3.65, 150: 3.8, 165: 4.2, 180: 4.6, 195: 4.75, 210: 5.0, 225: 5.15, 240: 5.15, 255: 5.4, 270: 5.5, 285: 5.5, 300: 6.0, 315: 6.1, 330: 6.3, 345: 6.4, 360: 6.52, 375: 6.52, 390: 6.52 }
+          }
+        },
+        "S735-7C": {
+          flows: [
+            90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390
+          ],
+          data: {
+            35: { 90: 2.0, 105: 2.4, 120: 2.6, 135: 3.0, 150: 3.25, 165: 3.6, 180: 4.0, 195: 4.2, 210: 4.4, 225: 4.8, 240: 4.8, 255: 5.2, 270: 5.4, 285: 5.4, 300: 5.8, 315: 5.9, 330: 6.2, 345: 6.3, 360: 6.4, 375: 6.4, 390: 6.4 },
+            45: { 90: 2.23, 105: 2.6, 120: 2.9, 135: 3.25, 150: 3.5, 165: 3.9, 180: 4.5, 195: 4.6, 210: 4.7, 225: 4.95, 240: 4.95, 255: 5.4, 270: 5.5, 285: 5.5, 300: 5.9, 315: 6.0, 330: 6.25, 345: 6.3, 360: 6.42, 375: 6.42, 390: 6.42 },
+            55: { 90: 2.6, 105: 3.0, 120: 3.2, 135: 3.65, 150: 3.8, 165: 4.2, 180: 4.6, 195: 4.75, 210: 5.0, 225: 5.15, 240: 5.15, 255: 5.4, 270: 5.5, 285: 5.5, 300: 6.0, 315: 6.1, 330: 6.3, 345: 6.4, 360: 6.52, 375: 6.52, 390: 6.52 }
+          }
+        }
+      };
+      const etasData = {
+        "S735-4": { 35: 191, 55: 147 },
+        "S735-7": { 35: 181, 55: 148 },
+        "S735-7C": { 35: 193, 55: 154 },
+        "F2050-6": { 35: 204, 55: 143 },
+        "F2050-10": { 35: 185, 55: 136 },
+        "F2050-12": { 35: 196, 55: 141 },
+        "F2050-16": { 35: 184, 55: 138 },
+        "S2125-8": { 35: 200, 55: 150 },
+        "S2125-12": { 35: 199, 55: 154 },
+        "S2125-16": { 35: 214, 55: 164 },
+        "S2125-20": { 35: 213, 55: 164 },
+        "AMS 20-6": { 35: 204, 55: 143 },
+        "AMS 20-10": { 35: 185, 55: 136 },
+        "F1153-4_geo": { 35: 206, 55: 154 },
+        "F1153-6_geo": { 35: 204, 55: 154 },
+        "F1253-4_geo": { 35: 206, 55: 154 },
+        "F1253-6_geo": { 35: 204, 55: 154 },
+        "S1156-8_geo": { 35: 223, 55: 166 },
+        "S1156-13_geo": { 35: 231, 55: 167 },
+        "S1156-18_geo": { 35: 234, 55: 173 },
+        "S1155-25_geo": { 35: 204, 55: 154 },
+        "S1256-8_geo": { 35: 223, 55: 166 },
+        "S1256-13_geo": { 35: 231, 55: 167 },
+        "S1256-18_geo": { 35: 234, 55: 173 },
+        "F1345-24_geo": { 35: 187, 55: 145 },
+        "F1345-30_geo": { 35: 180, 55: 139 },
+        "F1345-40_geo": { 35: 184, 55: 145 },
+        "F1345-60_geo": { 35: 178, 55: 140 },
+        "F1355-28_geo": { 35: 195, 55: 152 },
+        "F1355-43_geo": { 35: 194, 55: 154 },
+        "F1153-4_aqua": { 35: 272, 55: 210 },
+        "F1153-6_aqua": { 35: 270, 55: 214 },
+        "F1253-4_aqua": { 35: 272, 55: 210 },
+        "F1253-6_aqua": { 35: 270, 55: 214 },
+        "S1156-8_aqua": { 35: 311, 55: 221 },
+        "S1156-13_aqua": { 35: 346, 55: 236 },
+        "S1156-18_aqua": { 35: 333, 55: 232 },
+        "S1155-25_aqua": { 35: 289, 55: 201 },
+        "S1256-8_aqua": { 35: 311, 55: 221 },
+        "S1256-13_aqua": { 35: 346, 55: 236 },
+        "S1256-18_aqua": { 35: 333, 55: 232 },
+        "F1345-24_aqua": { 35: 229, 55: 178 },
+        "F1345-30_aqua": { 35: 215, 55: 165 },
+        "F1345-40_aqua": { 35: 223, 55: 179 },
+        "F1345-60_aqua": { 35: 212, 55: 166 },
+        "F1355-28_aqua": { 35: 244, 55: 190 },
+        "F1355-43_aqua": { 35: 246, 55: 196 }
+      };
+      function getDepartmentFromPostal(postalCode) {
+        if (!postalCode || postalCode.length < 2) return null;
+        let dept = postalCode.slice(0, 2);
+        if (dept === "97" && postalCode.length >= 3) {
+          dept = postalCode.slice(0, 3);
+        }
+        return dept;
+      }
+
+      function computeBaseTemperature() {
+        if (state.beneficiary.seaside) {
+          return -2;
+        }
+        const deptCode = getDepartmentFromPostal(state.beneficiary.postalCode);
+        if (!deptCode) return null;
+        const base = deptBaseTemperatures[deptCode];
+        if (base === undefined) return null;
+        const bandIndex = altitudeBands.findIndex((b) => b.value === state.beneficiary.altitudeBand);
+        const adjustments = altitudeAdjustments[String(base)];
+        if (!adjustments) {
+          return base;
+        }
+        const idx = Math.min(bandIndex, adjustments.length - 1);
+        return adjustments[idx];
+      }
+
+      function ensureZonesInitialized() {
+        if (state.project.zones.length === 0) {
+          addZone();
+        }
+      }
+
+      function addZone() {
+        if (state.project.zones.length >= 20) return;
+        const index = state.project.zones.length + 1;
+        state.project.zones.push({
+          id: crypto.randomUUID(),
+          name: `Zone ${index}`,
+          surface: "",
+          height: 2.5,
+          isolation: isolationOptions[0].label,
+          operatingTemp: 35,
+          ambientTemp: 20,
+          manualLoss: "",
+          manualOverride: false
+        });
+        updateZonesLosses();
+      }
+
+      function removeZone(id) {
+        state.project.zones = state.project.zones.filter((zone) => zone.id !== id);
+        state.project.zones.forEach((zone, idx) => {
+          zone.name = `Zone ${idx + 1}`;
+        });
+        if (state.project.zones.length === 0) {
+          addZone();
+        } else {
+          updateZonesLosses();
+        }
+      }
+
+      function getIsolationValue(label) {
+        const option = isolationOptions.find((opt) => opt.label === label);
+        return option ? option.value : null;
+      }
+
+      function updateZonesLosses() {
+        const base = state.beneficiary.baseTemperature;
+        state.project.zones.forEach((zone) => {
+          if (zone.manualOverride && zone.manualLoss !== "") {
+            return;
+          }
+          const g = getIsolationValue(zone.isolation);
+          if (g === null || base === null || zone.surface === "" || zone.height === "" || zone.ambientTemp === "") {
+            zone.calculatedLoss = null;
+            return;
+          }
+          const volume = parseFloat(zone.surface || 0) * parseFloat(zone.height || 0);
+          const delta = parseFloat(zone.ambientTemp || 0) - parseFloat(base || 0);
+          const loss = g * volume * delta;
+          zone.calculatedLoss = Number.isFinite(loss) ? loss : null;
+        });
+        render();
+      }
+
+      function getZoneLoss(zone) {
+        if (zone.manualOverride && zone.manualLoss !== "") {
+          const value = parseFloat(zone.manualLoss);
+          return Number.isFinite(value) ? value : 0;
+        }
+        return zone.calculatedLoss || 0;
+      }
+
+      function getTotalLossesW() {
+        return state.project.zones.reduce((sum, zone) => sum + getZoneLoss(zone), 0);
+      }
+
+      function round(value, decimals = 2) {
+        if (!Number.isFinite(value)) return "-";
+        const factor = Math.pow(10, decimals);
+        return Math.round(value * factor) / factor;
+      }
+
+      function formatKW(value) {
+        if (!Number.isFinite(value)) return "-";
+        return `${round(value, 2).toLocaleString("fr-FR")} kW`;
+      }
+
+      function formatWToKW(value) {
+        if (!Number.isFinite(value)) return "-";
+        return `${round(value / 1000, 2).toLocaleString("fr-FR")} kW`;
+      }
+
+      function computeHighestOperatingTemperature() {
+        if (state.project.zones.length === 0) return null;
+        return state.project.zones.reduce((max, zone) => Math.max(max, Number(zone.operatingTemp || 0)), 0);
+      }
+
+      function computeHighestAmbientTemperature() {
+        if (state.project.zones.length === 0) return null;
+        return state.project.zones.reduce((max, zone) => Math.max(max, Number(zone.ambientTemp || 0)), 0);
+      }
+
+      function computeAverageHeight() {
+        const totalSurface = state.project.zones.reduce((sum, zone) => sum + Number(zone.surface || 0), 0);
+        if (totalSurface === 0) return null;
+        const weighted = state.project.zones.reduce((sum, zone) => sum + Number(zone.surface || 0) * Number(zone.height || 0), 0);
+        return weighted / totalSurface;
+      }
+
+      function aggregateSurfaceByTemperature() {
+        const map = new Map();
+        state.project.zones.forEach((zone) => {
+          const temp = Number(zone.operatingTemp || 0);
+          const surface = Number(zone.surface || 0);
+          if (!map.has(temp)) {
+            map.set(temp, 0);
+          }
+          map.set(temp, map.get(temp) + surface);
+        });
+        return Array.from(map.entries())
+          .filter(([_, surface]) => surface > 0)
+          .sort((a, b) => a[0] - b[0]);
+      }
+
+      function determineWaterTemperature() {
+        const highest = computeHighestOperatingTemperature();
+        if (!highest) return 35;
+        if (highest >= 65) return 55;
+        return highest;
+      }
+
+      function getAirWaterPower(model, baseTemperature, waterTemperature) {
+        const modelData = airWaterModels[model];
+        if (!modelData) return null;
+        const targetWater = waterTemperature === 65 ? 55 : waterTemperature;
+        const waterMap = modelData[targetWater];
+        if (!waterMap) return null;
+        if (baseTemperature == null) return null;
+        if (waterMap[baseTemperature] !== undefined) {
+          return waterMap[baseTemperature];
+        }
+        const temps = Object.keys(waterMap)
+          .map(Number)
+          .sort((a, b) => a - b);
+        let chosen = temps[temps.length - 1];
+        for (const t of temps) {
+          if (t <= baseTemperature) {
+            chosen = t;
+          }
+        }
+        return waterMap[chosen];
+      }
+
+      function getGeothermyPower(model, sourceTemperature, waterTemperature) {
+        const dataset = geothermyModels[model];
+        if (!dataset) return null;
+        const targetWater = waterTemperature === 65 ? 55 : waterTemperature;
+        if (sourceTemperature === "10") {
+          return dataset.aqua?.[10]?.[targetWater] ?? null;
+        }
+        const source = Number(sourceTemperature);
+        return dataset.geo?.[source]?.[targetWater] ?? null;
+      }
+
+      function getAirExtractPower(model, airflow, waterTemperature) {
+        const dataset = airExtractModels[model];
+        if (!dataset) return null;
+        const targetWater = waterTemperature === 65 ? 55 : waterTemperature;
+        return dataset.data[targetWater]?.[airflow] ?? null;
+      }
+
+      function getSelectedModelPower() {
+        const totalLosses = getTotalLossesW();
+        if (totalLosses <= 0) {
+          return { power: null, description: "" };
+        }
+        const waterTemperature = determineWaterTemperature();
+        if (state.technology.type === "geothermie") {
+          const power = getGeothermyPower(state.technology.model, state.technology.sourceTemperature, waterTemperature);
+          const units = Number(state.technology.units || 1);
+          if (!Number.isFinite(power)) return { power: null, description: "" };
+          return {
+            power: power * units,
+            description: `${state.technology.model}${units > 1 ? ` × ${units}` : ""} - ${state.technology.sourceTemperature === "10" ? "Aquathermie" : `Géothermie ${state.technology.sourceTemperature}°C`}`
+          };
+        }
+        if (state.technology.type === "air-eau") {
+          const power = getAirWaterPower(state.technology.model, state.beneficiary.baseTemperature, waterTemperature);
+          const units = Number(state.technology.units || 1);
+          if (!Number.isFinite(power)) return { power: null, description: "" };
+          return {
+            power: power * units,
+            description: `${state.technology.model}${units > 1 ? ` × ${units}` : ""}`
+          };
+        }
+        if (state.technology.type === "air-extrait") {
+          const power = getAirExtractPower(state.technology.model, state.technology.airflow, waterTemperature);
+          if (!Number.isFinite(power)) return { power: null, description: "" };
+          return {
+            power,
+            description: `${state.technology.model} - ${state.technology.airflow} m³/h`
+          };
+        }
+        return { power: null, description: "" };
+      }
+
+      function getEtasValues() {
+        if (!state.technology.model) return null;
+        if (state.technology.type === "geothermie") {
+          const key = `${state.technology.model}_${state.technology.sourceTemperature === "10" ? "aqua" : "geo"}`;
+          return etasData[key] || null;
+        }
+        return etasData[state.technology.model] || null;
+      }
+
+      function ensureTechnologyCompatibility() {
+        const highestTemp = computeHighestOperatingTemperature();
+        if (highestTemp >= 65) {
+          if (state.technology.type === "air-extrait") {
+            state.technology.type = null;
+            state.technology.model = null;
+            state.technology.airflow = null;
+          }
+          if (state.technology.type === "air-eau" && state.technology.model && ["F2050-6", "F2050-10", "AMS 20-6", "AMS 20-10"].includes(state.technology.model) && highestTemp >= 65) {
+            state.technology.model = null;
+          }
+        }
+        if (state.technology.type === "geothermie" && state.technology.sourceTemperature === "10" && !geothermyModels[state.technology.model]?.aqua) {
+          state.technology.sourceTemperature = "0";
+        }
+        if (state.technology.type === "geothermie" && state.technology.model) {
+          const dataset = geothermyModels[state.technology.model];
+          if (state.technology.sourceTemperature === "10" && !dataset.aqua) {
+            state.technology.sourceTemperature = "0";
+          }
+        }
+      }
+
+      function calculateReportFigures() {
+        const totalLossesW = getTotalLossesW();
+        const powerInfo = getSelectedModelPower();
+        const powerKW = powerInfo.power ? powerInfo.power : 0;
+        const ratio = powerKW && totalLossesW ? (powerKW * 1000) / totalLossesW * 100 : null;
+        const backup = Math.max(totalLossesW - powerKW * 1000, 0);
+        return { totalLossesW, powerKW, ratio, backup };
+      }
+
+      function getCutOffTemperature() {
+        if (!state.technology.model) return null;
+        if (["F2050-6", "F2050-10", "AMS 20-6", "AMS 20-10"].includes(state.technology.model)) {
+          return -20;
+        }
+        return -25;
+      }
+      function renderStepper() {
+        const stepper = document.getElementById("stepper");
+        stepper.innerHTML = stepLabels
+          .map((label, idx) => `<div class="${idx === state.step ? "active" : ""}">${idx + 1}. ${label}</div>`)
+          .join("");
+      }
+
+      function renderInstallerStep() {
+        return `
+          <h2 class="section-title">Installateur</h2>
+          <div class="grid two">
+            <div>
+              <label>Nom de l’entreprise</label>
+              <input type="text" id="company" value="${state.installer.company}" />
+            </div>
+            <div>
+              <label>Adresse</label>
+              <input type="text" id="company-address" value="${state.installer.address}" />
+            </div>
+            <div>
+              <label>Numéro de SIRET</label>
+              <input type="text" id="company-siret" value="${state.installer.siret}" />
+            </div>
+          </div>
+        `;
+      }
+
+      function renderBeneficiaryStep() {
+        const base = state.beneficiary.baseTemperature;
+        const baseLabel = base !== null && base !== undefined ? `${base} °C` : "-";
+        return `
+          <h2 class="section-title">Bénéficiaire</h2>
+          <div class="grid two">
+            <div>
+              <label>Prénom</label>
+              <input type="text" id="beneficiary-first-name" value="${state.beneficiary.firstName}" />
+            </div>
+            <div>
+              <label>Nom</label>
+              <input type="text" id="beneficiary-last-name" value="${state.beneficiary.lastName}" />
+            </div>
+            <div>
+              <label>Adresse</label>
+              <input type="text" id="beneficiary-address" value="${state.beneficiary.address}" />
+            </div>
+            <div>
+              <label>Code postal</label>
+              <input type="text" id="beneficiary-postal" value="${state.beneficiary.postalCode}" maxlength="5" />
+            </div>
+            <div>
+              <label>Ville</label>
+              <input type="text" id="beneficiary-city" value="${state.beneficiary.city}" />
+            </div>
+            <div>
+              <label>Année de construction</label>
+              <input type="number" id="construction-year" value="${state.beneficiary.constructionYear}" min="1800" max="2100" />
+            </div>
+          </div>
+          <div class="grid two" style="margin-top:1.5rem;">
+            <div>
+              <label>Altitude</label>
+              <select id="altitude-select">
+                ${altitudeBands
+                  .map((band) => `<option value="${band.value}" ${band.value === state.beneficiary.altitudeBand ? "selected" : ""}>${band.label}</option>`)
+                  .join("")}
+              </select>
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <label style="display:flex; gap:0.65rem; align-items:center; font-weight:500;">
+                <input type="checkbox" id="seaside" ${state.beneficiary.seaside ? "checked" : ""} /> Bord de mer
+              </label>
+            </div>
+          </div>
+          <div class="totals-box" style="margin-top:1.5rem;">
+            <span>Température extérieure de base estimée</span>
+            <strong style="font-size:1.2rem; color:#312e81;">${baseLabel}</strong>
+          </div>
+        `;
+      }
+
+      function renderZone(zone) {
+        const loss = getZoneLoss(zone);
+        const formattedLoss = loss ? `${round(loss / 1000, 2)} kW` : "-";
+        return `
+          <div class="zone-card">
+            <div class="zone-header">
+              <span class="zone-title">${zone.name}</span>
+              ${state.project.zones.length > 1
+                ? `<button type="button" class="remove-zone" data-remove-zone="${zone.id}">Supprimer</button>`
+                : ""}
+            </div>
+            <div class="grid two">
+              <div>
+                <label>Surface (m²)</label>
+                <input type="number" min="0" step="0.1" data-zone-field="surface" data-zone-id="${zone.id}" value="${zone.surface}" />
+              </div>
+              <div>
+                <label>Hauteur sous plafond (m)</label>
+                <input type="number" min="0" step="0.05" data-zone-field="height" data-zone-id="${zone.id}" value="${zone.height}" />
+              </div>
+              <div>
+                <label>Type d’isolation</label>
+                <select data-zone-field="isolation" data-zone-id="${zone.id}">
+                  ${isolationOptions
+                    .map((opt) => `<option value="${opt.label}" ${opt.label === zone.isolation ? "selected" : ""}>${opt.label}</option>`)
+                    .join("")}
+                </select>
+              </div>
+              <div>
+                <label>Température de fonctionnement</label>
+                <select data-zone-field="operatingTemp" data-zone-id="${zone.id}">
+                  ${[35, 45, 55, 65]
+                    .map((temp) => `<option value="${temp}" ${Number(zone.operatingTemp) === temp ? "selected" : ""}>${temp} °C</option>`)
+                    .join("")}
+                </select>
+              </div>
+              <div>
+                <label>Température ambiante (°C)</label>
+                <input type="number" min="5" max="40" data-zone-field="ambientTemp" data-zone-id="${zone.id}" value="${zone.ambientTemp}" />
+              </div>
+              <div>
+                <label>Déperditions (W)</label>
+                <input type="number" min="0" step="0.1" data-zone-field="manualLoss" data-zone-id="${zone.id}" value="${zone.manualLoss}" placeholder="Calcul automatique" />
+                <small style="display:block; margin-top:0.35rem; color:#475569;">Valeur calculée : ${formattedLoss}</small>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderProjectStep() {
+        ensureZonesInitialized();
+        const zonesHtml = state.project.zones.map(renderZone).join("");
+        const totalLosses = getTotalLossesW();
+        return `
+          <h2 class="section-title">Projet</h2>
+          <div class="grid" style="gap:1.5rem;">
+            ${zonesHtml}
+          </div>
+          <div style="margin-top:1.5rem; display:flex; justify-content:flex-end;">
+            <button type="button" id="add-zone" class="btn-secondary" ${state.project.zones.length >= 20 ? "disabled" : ""}>Ajouter une zone</button>
+          </div>
+          <div class="totals-box">
+            <span>Déperditions totales</span>
+            <strong style="font-size:1.3rem; color:#1e40af;">${formatWToKW(totalLosses)}</strong>
+          </div>
+        `;
+      }
+
+      function renderTechnologyStep() {
+        const highestTemp = computeHighestOperatingTemperature();
+        const base = state.beneficiary.baseTemperature;
+        const waterTemperature = determineWaterTemperature();
+        const totalLosses = getTotalLossesW();
+        const powerInfo = getSelectedModelPower();
+        const ratio = powerInfo.power && totalLosses ? `${round((powerInfo.power * 1000) / totalLosses * 100, 1)} %` : "-";
+        const totalPower = powerInfo.power ? `${round(powerInfo.power, 2)} kW` : "-";
+        const geoOptions = Object.keys(geothermyModels)
+          .map((model) => `<option value="${model}" ${state.technology.model === model ? "selected" : ""}>${model}</option>`)
+          .join("");
+        const airWaterOptions = Object.keys(airWaterModels)
+          .map((model) => `<option value="${model}" ${state.technology.model === model ? "selected" : ""}>${model}</option>`)
+          .join("");
+        const airExtractOptions = Object.keys(airExtractModels)
+          .map((model) => `<option value="${model}" ${state.technology.model === model ? "selected" : ""}>${model}</option>`)
+          .join("");
+        const airflowOptions = state.technology.model && airExtractModels[state.technology.model]
+          ? airExtractModels[state.technology.model].flows
+              .map((flow) => `<option value="${flow}" ${Number(state.technology.airflow) === flow ? "selected" : ""}>${flow} m³/h</option>`)
+              .join("")
+          : "";
+
+        return `
+          <h2 class="section-title">Technologie de pompe à chaleur</h2>
+          <div class="badge">Température de base : ${base !== null ? base + " °C" : "-"}</div>
+          <div class="badge" style="margin-left:0.75rem;">Température de fonctionnement : ${waterTemperature} °C</div>
+          <div class="tech-grid">
+            <div class="tech-card ${state.technology.type === "geothermie" ? "active" : ""}">
+              <input type="radio" name="tech" value="geothermie" ${state.technology.type === "geothermie" ? "checked" : ""} />
+              <h3>Géothermie / Aquathermie</h3>
+              <p>Jusqu’à 9 unités.</p>
+            </div>
+            <div class="tech-card ${state.technology.type === "air-eau" ? "active" : ""}">
+              <input type="radio" name="tech" value="air-eau" ${state.technology.type === "air-eau" ? "checked" : ""} />
+              <h3>PAC Air/Eau</h3>
+              <p>Jusqu’à 8 unités.</p>
+            </div>
+            <div class="tech-card ${state.technology.type === "air-extrait" ? "active" : ""} ${highestTemp >= 65 ? "" : ""}">
+              <input type="radio" name="tech" value="air-extrait" ${state.technology.type === "air-extrait" ? "checked" : ""} ${highestTemp >= 65 ? "disabled" : ""} />
+              <h3>PAC sur air extrait</h3>
+              <p>Unités uniques.</p>
+              ${highestTemp >= 65 ? '<p style="color:#dc2626; font-size:0.85rem; margin-top:0.5rem;">Indisponible à 65 °C.</p>' : ""}
+            </div>
+          </div>
+
+          ${state.technology.type === "geothermie"
+            ? `
+              <div class="grid three" style="margin-top:1.5rem;">
+                <div>
+                  <label>Modèle</label>
+                  <select id="geo-model">${geoOptions}</select>
+                </div>
+                <div>
+                  <label>Température source</label>
+                  <select id="geo-source">
+                    <option value="0" ${state.technology.sourceTemperature === "0" ? "selected" : ""}>0 °C</option>
+                    <option value="5" ${state.technology.sourceTemperature === "5" ? "selected" : ""}>5 °C</option>
+                    <option value="10" ${state.technology.sourceTemperature === "10" ? "selected" : ""}>Aquathermie 10 °C</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Nombre d’unités</label>
+                  <input type="number" min="1" max="9" id="geo-units" value="${state.technology.units}" />
+                </div>
+              </div>
+            `
+            : ""}
+
+          ${state.technology.type === "air-eau"
+            ? `
+              <div class="grid three" style="margin-top:1.5rem;">
+                <div>
+                  <label>Modèle</label>
+                  <select id="airwater-model">${airWaterOptions}</select>
+                </div>
+                <div>
+                  <label>Nombre d’unités</label>
+                  <input type="number" min="1" max="8" id="airwater-units" value="${state.technology.units}" />
+                </div>
+              </div>
+            `
+            : ""}
+
+          ${state.technology.type === "air-extrait"
+            ? `
+              <div class="grid three" style="margin-top:1.5rem;">
+                <div>
+                  <label>Modèle</label>
+                  <select id="airextract-model">${airExtractOptions}</select>
+                </div>
+                <div>
+                  <label>Débit de ventilation</label>
+                  <select id="airextract-airflow">${airflowOptions}</select>
+                </div>
+              </div>
+            `
+            : ""}
+
+          <div class="totals-box" style="margin-top:2rem;">
+            <div>
+              <div style="font-size:0.85rem; color:#475569;">Puissance PAC totale</div>
+              <div style="font-size:1.2rem; font-weight:600; color:#1e40af;">${totalPower}</div>
+            </div>
+            <div>
+              <div style="font-size:0.85rem; color:#475569;">Rapport PAC / déperditions</div>
+              <div style="font-size:1.2rem; font-weight:600; color:#0f172a;">${ratio}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderSummaryTable() {
+        const powerInfo = getSelectedModelPower();
+        const figures = calculateReportFigures();
+        const etas = getEtasValues();
+        const surfaces = aggregateSurfaceByTemperature();
+        const averageHeight = computeAverageHeight();
+        const highestAmbient = computeHighestAmbientTemperature();
+        const highestOperatingTemp = computeHighestOperatingTemperature();
+        const cutOff = getCutOffTemperature();
+        const totalSurface = surfaces.reduce((sum, [, surface]) => sum + surface, 0);
+
+        const surfaceRows = surfaces
+          .map(
+            ([temp, surface]) => `
+              <tr>
+                <th style="width:45%;">Surface à ${temp} °C</th>
+                <td>${round(surface, 2).toLocaleString("fr-FR")} m²</td>
+              </tr>
+            `
+          )
+          .join("");
+
+        return `
+          <div class="print-area">
+            <div class="report-header">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s" alt="Logo" />
+              <div class="report-title">NOTE DE DIMENSIONNEMENT</div>
+              <div style="width:140px;"></div>
+            </div>
+            <table class="report-table">
+              <tr>
+                <th style="width:45%;">Installateur</th>
+                <td>
+                  <strong>${state.installer.company || "-"}</strong><br />
+                  ${state.installer.address || "-"}<br />
+                  SIRET : ${state.installer.siret || "-"}
+                </td>
+              </tr>
+              <tr>
+                <th>Bénéficiaire</th>
+                <td>
+                  <strong>${state.beneficiary.firstName || ""} ${state.beneficiary.lastName || ""}</strong><br />
+                  ${state.beneficiary.address || "-"}<br />
+                  ${state.beneficiary.postalCode || ""} ${state.beneficiary.city || ""}<br />
+                  Année de construction : ${state.beneficiary.constructionYear || "-"}
+                </td>
+              </tr>
+              <tr>
+                <th>Température extérieure de base</th>
+                <td>${state.beneficiary.baseTemperature !== null ? state.beneficiary.baseTemperature + " °C" : "-"}</td>
+              </tr>
+              <tr>
+                <th>Surface chauffée</th>
+                <td>${round(totalSurface, 2).toLocaleString("fr-FR")} m²</td>
+              </tr>
+              ${surfaceRows}
+              <tr>
+                <th>Hauteur sous plafond moyenne</th>
+                <td>${averageHeight ? round(averageHeight, 2).toLocaleString("fr-FR") + " m" : "-"}</td>
+              </tr>
+              <tr>
+                <th>Température ambiante</th>
+                <td>${highestAmbient ? `${highestAmbient} °C` : "-"}</td>
+              </tr>
+              <tr>
+                <th>Température maximale de fonctionnement</th>
+                <td>${highestOperatingTemp ? `${highestOperatingTemp} °C${highestOperatingTemp >= 65 ? " — Haute température" : ""}` : "-"}</td>
+              </tr>
+              <tr>
+                <th>Déperditions calculées</th>
+                <td>${formatWToKW(figures.totalLossesW)}</td>
+              </tr>
+              <tr>
+                <th>Modèle sélectionné</th>
+                <td>${powerInfo.description || "-"}</td>
+              </tr>
+              <tr>
+                <th>Température d’arrêt PAC NIBE</th>
+                <td>${cutOff !== null ? `${cutOff} °C` : "-"}</td>
+              </tr>
+              <tr>
+                <th>Puissance PAC à température de base</th>
+                <td>${powerInfo.power ? `${round(powerInfo.power, 2)} kW` : "-"}</td>
+              </tr>
+              <tr>
+                <th>Rapport PAC / déperditions</th>
+                <td>${figures.ratio ? `${round(figures.ratio, 1)} %` : "-"}</td>
+              </tr>
+              <tr>
+                <th>Puissance d’appoint recommandée</th>
+                <td>${formatWToKW(figures.backup)}</td>
+              </tr>
+              <tr>
+                <th>60 % des déperditions</th>
+                <td>${formatWToKW(figures.totalLossesW * 0.6)}</td>
+              </tr>
+              <tr>
+                <th>130 % des déperditions</th>
+                <td>${formatWToKW(figures.totalLossesW * 1.3)}</td>
+              </tr>
+            </table>
+            <p class="etas-line">ETAS 35°C : ${etas ? etas[35] + " %" : "-"}</p>
+            <p class="etas-line">ETAS 55°C : ${etas ? etas[55] + " %" : "-"}</p>
+            <p style="margin-top:1rem; color:#1f2937;">
+              Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.
+            </p>
+            <div class="report-footer">
+              informations données à titre informatif, vérifier les notices, réglementations en vigueur et régimes de fonctionnement
+            </div>
+          </div>
+          <div style="margin-top:1.5rem; display:flex; justify-content:flex-end;">
+            <button id="print-button" class="btn-primary" type="button">Imprimer</button>
+          </div>
+        `;
+      }
+
+      function renderStep() {
+        renderStepper();
+        const content = document.getElementById("step-content");
+        let html = "";
+        switch (state.step) {
+          case 0:
+            html = renderInstallerStep();
+            break;
+          case 1:
+            html = renderBeneficiaryStep();
+            break;
+          case 2:
+            html = renderProjectStep();
+            break;
+          case 3:
+            html = renderTechnologyStep();
+            break;
+          case 4:
+            html = renderSummaryTable();
+            break;
+        }
+        content.innerHTML = html;
+        document.getElementById("prev-button").style.visibility = state.step === 0 ? "hidden" : "visible";
+        document.getElementById("next-button").textContent = state.step === stepLabels.length - 1 ? "Terminé" : "Suivant";
+        document.getElementById("next-button").style.visibility = state.step === stepLabels.length - 1 ? "hidden" : "visible";
+        attachEventListeners();
+      }
+
+      function render() {
+        state.beneficiary.baseTemperature = computeBaseTemperature();
+        ensureTechnologyCompatibility();
+        renderStep();
+      }
+
+      function attachEventListeners() {
+        if (state.step === 0) {
+          document.getElementById("company").addEventListener("input", (e) => {
+            state.installer.company = e.target.value;
+          });
+          document.getElementById("company-address").addEventListener("input", (e) => {
+            state.installer.address = e.target.value;
+          });
+          document.getElementById("company-siret").addEventListener("input", (e) => {
+            state.installer.siret = e.target.value;
+          });
+        }
+
+        if (state.step === 1) {
+          document.getElementById("beneficiary-first-name").addEventListener("input", (e) => {
+            state.beneficiary.firstName = e.target.value;
+          });
+          document.getElementById("beneficiary-last-name").addEventListener("input", (e) => {
+            state.beneficiary.lastName = e.target.value;
+          });
+          document.getElementById("beneficiary-address").addEventListener("input", (e) => {
+            state.beneficiary.address = e.target.value;
+          });
+          document.getElementById("beneficiary-postal").addEventListener("input", (e) => {
+            state.beneficiary.postalCode = e.target.value.replace(/[^0-9]/g, "");
+            render();
+          });
+          document.getElementById("beneficiary-city").addEventListener("input", (e) => {
+            state.beneficiary.city = e.target.value;
+          });
+          document.getElementById("construction-year").addEventListener("input", (e) => {
+            state.beneficiary.constructionYear = e.target.value;
+          });
+          document.getElementById("altitude-select").addEventListener("change", (e) => {
+            state.beneficiary.altitudeBand = e.target.value;
+            render();
+          });
+          document.getElementById("seaside").addEventListener("change", (e) => {
+            state.beneficiary.seaside = e.target.checked;
+            render();
+          });
+        }
+
+        if (state.step === 2) {
+          document.getElementById("add-zone").addEventListener("click", () => {
+            addZone();
+            render();
+          });
+          document.querySelectorAll("[data-zone-field]").forEach((element) => {
+            element.addEventListener("input", (e) => {
+              const id = e.target.getAttribute("data-zone-id");
+              const field = e.target.getAttribute("data-zone-field");
+              const zone = state.project.zones.find((z) => z.id === id);
+              if (!zone) return;
+              if (field === "manualLoss") {
+                zone.manualLoss = e.target.value;
+                zone.manualOverride = e.target.value !== "";
+                if (zone.manualOverride) {
+                  zone.isolation = "Saisie manuelle";
+                }
+              } else if (field === "isolation") {
+                zone.isolation = e.target.value;
+                if (e.target.value !== "Saisie manuelle") {
+                  zone.manualOverride = false;
+                  zone.manualLoss = "";
+                }
+              } else if (field === "surface" || field === "height" || field === "ambientTemp") {
+                zone[field] = e.target.value;
+              } else if (field === "operatingTemp") {
+                zone.operatingTemp = Number(e.target.value);
+              }
+              updateZonesLosses();
+            });
+          });
+          document.querySelectorAll("[data-remove-zone]").forEach((button) => {
+            button.addEventListener("click", (e) => {
+              const id = e.target.getAttribute("data-remove-zone");
+              removeZone(id);
+              render();
+            });
+          });
+        }
+
+        if (state.step === 3) {
+          document.querySelectorAll('input[name="tech"]').forEach((input) => {
+            input.addEventListener("change", (e) => {
+              state.technology.type = e.target.value;
+              if (state.technology.type === "geothermie") {
+                state.technology.units = Math.min(state.technology.units || 1, 9);
+                state.technology.model = state.technology.model && geothermyModels[state.technology.model] ? state.technology.model : Object.keys(geothermyModels)[0];
+                state.technology.sourceTemperature = "0";
+              } else if (state.technology.type === "air-eau") {
+                state.technology.units = Math.min(state.technology.units || 1, 8);
+                state.technology.model = state.technology.model && airWaterModels[state.technology.model] ? state.technology.model : Object.keys(airWaterModels)[0];
+              } else if (state.technology.type === "air-extrait") {
+                state.technology.units = 1;
+                state.technology.model = state.technology.model && airExtractModels[state.technology.model] ? state.technology.model : Object.keys(airExtractModels)[0];
+                state.technology.airflow = airExtractModels[state.technology.model].flows[0];
+              }
+              render();
+            });
+          });
+
+          if (state.technology.type === "geothermie") {
+            document.getElementById("geo-model").addEventListener("change", (e) => {
+              state.technology.model = e.target.value;
+              render();
+            });
+            document.getElementById("geo-source").addEventListener("change", (e) => {
+              state.technology.sourceTemperature = e.target.value;
+              render();
+            });
+            document.getElementById("geo-units").addEventListener("input", (e) => {
+              const value = Math.min(Math.max(parseInt(e.target.value || "1", 10), 1), 9);
+              state.technology.units = value;
+              e.target.value = value;
+              render();
+            });
+          }
+
+          if (state.technology.type === "air-eau") {
+            document.getElementById("airwater-model").addEventListener("change", (e) => {
+              state.technology.model = e.target.value;
+              render();
+            });
+            document.getElementById("airwater-units").addEventListener("input", (e) => {
+              const value = Math.min(Math.max(parseInt(e.target.value || "1", 10), 1), 8);
+              state.technology.units = value;
+              e.target.value = value;
+              render();
+            });
+          }
+
+          if (state.technology.type === "air-extrait") {
+            document.getElementById("airextract-model").addEventListener("change", (e) => {
+              state.technology.model = e.target.value;
+              state.technology.airflow = airExtractModels[state.technology.model].flows[0];
+              render();
+            });
+            document.getElementById("airextract-airflow").addEventListener("change", (e) => {
+              state.technology.airflow = Number(e.target.value);
+              render();
+            });
+          }
+        }
+
+        if (state.step === 4) {
+          const printButton = document.getElementById("print-button");
+          if (printButton) {
+            printButton.addEventListener("click", () => window.print());
+          }
+        }
+      }
+
+      document.getElementById("prev-button").addEventListener("click", () => {
+        if (state.step > 0) {
+          state.step -= 1;
+          render();
+        }
+      });
+
+      document.getElementById("next-button").addEventListener("click", () => {
+        if (state.step < stepLabels.length - 1) {
+          state.step += 1;
+          render();
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>
