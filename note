@@ -1,516 +1,1413 @@
-import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { CheckCircle, ChevronRight, FileText, Printer, AlertTriangle, Thermometer, Ruler, Building2, Settings2 } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 
-// --- UI helpers (minimal, shadcn-like shells so file runs standalone) ---
+const StepButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = "", ...props }) => (
+  <button
+    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors bg-black text-white hover:bg-black/90 disabled:bg-black/30 ${className}`}
+    {...props}
+  />
+);
+
+const SecondaryButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = "", ...props }) => (
+  <button
+    className={`px-4 py-2 rounded-xl text-sm font-medium border border-black/20 text-black hover:bg-black/5 disabled:text-black/40 disabled:border-black/10 ${className}`}
+    {...props}
+  />
+);
+
 const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className = "", ...props }) => (
-  <div className={`bg-white rounded-2xl shadow p-6 ${className}`} {...props} />
+  <div className={`bg-white border border-black/10 shadow-sm rounded-2xl p-6 ${className}`} {...props} />
 );
-const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = "", ...props }) => (
-  <button className={`px-4 py-2 rounded-2xl shadow text-sm font-medium bg-black text-white hover:opacity-90 disabled:opacity-50 ${className}`} {...props} />
-);
+
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = "", ...props }) => (
-  <input className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 ${className}`} {...props} />
+  <input
+    className={`w-full border border-black/15 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/30 ${className}`}
+    {...props}
+  />
 );
+
 const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className = "", children, ...props }) => (
-  <select className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 ${className}`} {...props}>
+  <select
+    className={`w-full border border-black/15 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/30 ${className}`}
+    {...props}
+  >
     {children}
   </select>
 );
-const Checkbox: React.FC<{checked:boolean; onChange:(v:boolean)=>void; label:string}> = ({checked, onChange, label}) => (
-  <label className="flex items-start gap-3 cursor-pointer select-none">
-    <input type="checkbox" className="mt-1" checked={checked} onChange={(e)=>onChange(e.target.checked)} />
-    <span className="text-sm">{label}</span>
+
+const Checkbox: React.FC<{ checked: boolean; onChange: (value: boolean) => void; label: string }> = ({ checked, onChange, label }) => (
+  <label className="flex items-center gap-3 cursor-pointer text-sm select-none">
+    <input type="checkbox" className="w-4 h-4" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+    <span>{label}</span>
   </label>
 );
 
-// --- Domain data ---
-// Minimal département map from code (first two digits of CP) to name. Includes Corse edge case.
-const DEPARTEMENTS: Record<string, string> = {
-  "01": "Ain", "02": "Aisne", "03": "Allier", "04": "Alpes-de-Haute-Provence", "05": "Hautes-Alpes",
-  "06": "Alpes-Maritimes", "07": "Ardèche", "08": "Ardennes", "09": "Ariège", "10": "Aube",
-  "11": "Aude", "12": "Aveyron", "13": "Bouches-du-Rhône", "14": "Calvados", "15": "Cantal",
-  "16": "Charente", "17": "Charente-Maritime", "18": "Cher", "19": "Corrèze", "2A": "Corse-du-Sud", "2B": "Haute-Corse",
-  "21": "Côte-d'Or", "22": "Côtes-d'Armor", "23": "Creuse", "24": "Dordogne", "25": "Doubs",
-  "26": "Drôme", "27": "Eure", "28": "Eure-et-Loir", "29": "Finistère", "30": "Gard",
-  "31": "Haute-Garonne", "32": "Gers", "33": "Gironde", "34": "Hérault", "35": "Ille-et-Vilaine",
-  "36": "Indre", "37": "Indre-et-Loire", "38": "Isère", "39": "Jura", "40": "Landes",
-  "41": "Loir-et-Cher", "42": "Loire", "43": "Haute-Loire", "44": "Loire-Atlantique", "45": "Loiret",
-  "46": "Lot", "47": "Lot-et-Garonne", "48": "Lozère", "49": "Maine-et-Loire", "50": "Manche",
-  "51": "Marne", "52": "Haute-Marne", "53": "Mayenne", "54": "Meurthe-et-Moselle", "55": "Meuse",
-  "56": "Morbihan", "57": "Moselle", "58": "Nièvre", "59": "Nord", "60": "Oise",
-  "61": "Orne", "62": "Pas-de-Calais", "63": "Puy-de-Dôme", "64": "Pyrénées-Atlantiques", "65": "Hautes-Pyrénées",
-  "66": "Pyrénées-Orientales", "67": "Bas-Rhin", "68": "Haut-Rhin", "69": "Rhône", "70": "Haute-Saône",
-  "71": "Saône-et-Loire", "72": "Sarthe", "73": "Savoie", "74": "Haute-Savoie", "75": "Paris",
-  "76": "Seine-Maritime", "77": "Seine-et-Marne", "78": "Yvelines", "79": "Deux-Sèvres", "80": "Somme",
-  "81": "Tarn", "82": "Tarn-et-Garonne", "83": "Var", "84": "Vaucluse", "85": "Vendée",
-  "86": "Vienne", "87": "Haute-Vienne", "88": "Vosges", "89": "Yonne", "90": "Territoire de Belfort",
-  "91": "Essonne", "92": "Hauts-de-Seine", "93": "Seine-Saint-Denis", "94": "Val-de-Marne", "95": "Val-d'Oise",
-  "971": "Guadeloupe", "972": "Martinique", "973": "Guyane", "974": "La Réunion", "976": "Mayotte"
+const DEPARTMENT_BASE_TEMPS: Record<string, number> = {
+  "01": -10, "02": -7, "03": -8, "04": -8, "05": -10, "06": -2, "07": -7, "08": -10, "09": -5, "10": -10,
+  "11": -5, "12": -8, "13": -5, "14": -7, "15": -8, "16": -5, "17": -5, "18": -7, "19": -8, "21": -10,
+  "22": -4, "23": -8, "24": -5, "25": -12, "26": -7, "27": -7, "28": -7, "29": -4, "30": -5, "31": -5,
+  "32": -5, "33": -5, "34": -5, "35": -5, "36": -7, "37": -7, "38": -10, "39": -10, "40": -5, "41": -7,
+  "42": -10, "43": -8, "44": -5, "45": -7, "46": -7, "47": -5, "48": -8, "49": -7, "50": -4, "51": -10,
+  "52": -12, "53": -7, "54": -15, "55": -12, "56": -4, "57": -15, "58": -10, "59": -9, "60": -7, "61": -7,
+  "62": -9, "63": -8, "64": -5, "65": -5, "66": -5, "67": -15, "68": -15, "69": -10, "70": -12, "71": -10,
+  "72": -7, "73": -10, "74": -10, "75": -7, "76": -7, "77": -7, "78": -7, "79": -7, "80": -9, "81": -5,
+  "82": -5, "83": -2, "84": -7, "85": -5, "86": -7, "87": -8, "88": -15, "89": -10, "90": -15, "91": -7,
+  "92": -7, "93": -7, "94": -7, "95": -7,
 };
 
-// Machine catalog with capacity (kW) vs. base outdoor temperature (°C)
-// Values as provided; keys are strings like "-2", "-4", ..., "-20".
-const MACHINES: Record<string, { name: string; cutoff: number; map: Record<string, number>; }> = {
-  F2050_6: {
-    name: "NIBE F2050-6",
-    cutoff: -20,
-    map: { "-2": 7.1, "-4": 6.9, "-5": 6.8, "-7": 6.6, "-8": 6.4, "-9": 6.3, "-10": 6.2, "-11": 6.0, "-12": 5.9, "-13": 5.7, "-14": 5.5, "-15": 5.4, "-16": 5.2, "-17": 5.1, "-18": 4.9, "-19": 4.8, "-20": 4.6 }
+const ALTITUDE_OPTIONS: { key: string; label: string }[] = [
+  { key: "0-200", label: "0 à 200 m" },
+  { key: "201-400", label: "201 à 400 m" },
+  { key: "401-600", label: "401 à 600 m" },
+  { key: "601-800", label: "601 à 800 m" },
+  { key: "801-1000", label: "801 à 1000 m" },
+  { key: "1001-1200", label: "1001 à 1200 m" },
+  { key: "1201-1400", label: "1201 à 1400 m" },
+  { key: "1401-1600", label: "1401 à 1600 m" },
+  { key: "1601-1800", label: "1601 à 1800 m" },
+  { key: "1801-2000", label: "1801 à 2000 m" },
+  { key: "2001-2200", label: "2001 à 2200 m" },
+];
+
+const ALTITUDE_TABLE: Record<number, Partial<Record<string, number>>> = {
+  [-2]: {
+    "0-200": -2,
+    "201-400": -4,
+    "401-600": -6,
+    "601-800": -8,
+    "801-1000": -10,
+    "1001-1200": -12,
+    "1201-1400": -14,
+    "1401-1600": -16,
+    "1601-1800": -18,
+    "1801-2000": -20,
   },
-  F2050_10: {
-    name: "NIBE F2050-10",
-    cutoff: -20,
-    map: { "-2": 10.2, "-4": 10.0, "-5": 9.8, "-7": 9.8, "-8": 9.7, "-9": 9.7, "-10": 9.5, "-11": 9.4, "-12": 9.2, "-13": 8.9, "-14": 8.7, "-15": 8.5, "-16": 8.1, "-17": 7.9, "-18": 7.5, "-19": 7.2, "-20": 6.9 }
-  }
+  [-4]: {
+    "0-200": -4,
+    "201-400": -5,
+    "401-600": -6,
+    "601-800": -7,
+    "801-1000": -8,
+    "1001-1200": -9,
+    "1201-1400": -10,
+  },
+  [-5]: {
+    "0-200": -5,
+    "201-400": -6,
+    "401-600": -7,
+    "601-800": -8,
+    "801-1000": -9,
+    "1001-1200": -10,
+    "1201-1400": -11,
+    "1401-1600": -12,
+    "1601-1800": -13,
+    "1801-2000": -14,
+    "2001-2200": -15,
+  },
+  [-7]: {
+    "0-200": -7,
+    "201-400": -8,
+    "401-600": -9,
+    "601-800": -11,
+    "801-1000": -13,
+    "1001-1200": -14,
+    "1201-1400": -15,
+  },
+  [-8]: {
+    "0-200": -8,
+    "201-400": -9,
+    "401-600": -11,
+    "601-800": -13,
+    "801-1000": -15,
+    "1001-1200": -17,
+    "1201-1400": -19,
+    "1401-1600": -21,
+    "1601-1800": -23,
+    "1801-2000": -25,
+    "2001-2200": -27,
+  },
+  [-9]: {
+    "0-200": -9,
+    "201-400": -10,
+    "401-600": -11,
+    "601-800": -12,
+    "801-1000": -13,
+  },
+  [-10]: {
+    "0-200": -10,
+    "201-400": -11,
+    "401-600": -13,
+    "601-800": -14,
+    "801-1000": -17,
+    "1001-1200": -19,
+    "1201-1400": -21,
+    "1401-1600": -23,
+    "1601-1800": -24,
+    "1801-2000": -25,
+    "2001-2200": -29,
+  },
+  [-12]: {
+    "0-200": -12,
+    "201-400": -13,
+    "401-600": -15,
+    "601-800": -17,
+    "801-1000": -19,
+    "1001-1200": -21,
+    "1201-1400": -23,
+    "1401-1600": -24,
+  },
+  [-15]: {
+    "0-200": -15,
+    "201-400": -15,
+    "401-600": -19,
+    "601-800": -21,
+    "801-1000": -23,
+    "1001-1200": -24,
+    "1201-1400": -25,
+  },
 };
 
-// --- Helpers ---
-function cpToDepartement(cp: string): string | undefined {
-  const clean = cp.replace(/\s/g, "");
-  if (clean.length < 2) return undefined;
-  // Outre-mer 3-digit codes
-  if (/^(97[1-6]|98[4-9])/.test(clean)) {
-    const code = clean.slice(0, 3);
-    return DEPARTEMENTS[code];
+const G_COEFFICIENTS: { label: string; value: number | null }[] = [
+  { label: "véranda récente", value: 2.0 },
+  { label: "pas isolé, pas d’inertie", value: 1.6 },
+  { label: "pas isolé, ancien, mur 60cm", value: 1.4 },
+  { label: "isolé, bâtiment années 1960", value: 1.3 },
+  { label: "entre 1974-1982", value: 1.2 },
+  { label: "maison années 1980", value: 1.1 },
+  { label: "entre 1990-2000", value: 1.0 },
+  { label: "maison RT2000", value: 0.9 },
+  { label: "entre 2001-2005", value: 0.8 },
+  { label: "isolation norme RT2000", value: 0.8 },
+  { label: "maison RT2005", value: 0.75 },
+  { label: "isolation norme RT2012", value: 0.6 },
+  { label: "isolation norme RT2012 Bbio +", value: 0.5 },
+  { label: "isolation norme RE2020", value: 0.4 },
+  { label: "saisie manuelle", value: null },
+];
+
+const TEMPERATURE_OPTIONS = ["35", "45", "55", "65"] as const;
+
+interface Zone {
+  name: string;
+  surface: string;
+  height: string;
+  insulation: string;
+  ambient: string;
+  temperature: typeof TEMPERATURE_OPTIONS[number];
+  manualLoss: string;
+}
+
+const defaultZone = (index: number): Zone => ({
+  name: `Zone ${index + 1}`,
+  surface: "",
+  height: "2.5",
+  insulation: G_COEFFICIENTS[0].label,
+  ambient: "20",
+  temperature: "35",
+  manualLoss: "",
+});
+
+
+type GeoSource = "geo0" | "geo5" | "aqua10";
+
+type WaterTempKey = "35" | "45" | "55";
+
+interface GeoPowerMap {
+  [source in GeoSource]?: Partial<Record<WaterTempKey, number>>;
+}
+
+const GEO_MODELS: Record<string, { label: string; powers: GeoPowerMap }> = {
+  "F1153-4": {
+    label: "F1153-4",
+    powers: {
+      geo0: { "35": 4.5, "45": 4.5, "55": 4.1 },
+      geo5: { "35": 4.8, "45": 4.8, "55": 4.4 },
+      aqua10: { "35": 5.0, "45": 5.0, "55": 4.6 },
+    },
+  },
+  "F1253-4": {
+    label: "F1253-4",
+    powers: {
+      geo0: { "35": 4.5, "45": 4.5, "55": 4.1 },
+      geo5: { "35": 4.8, "45": 4.8, "55": 4.4 },
+      aqua10: { "35": 5.0, "45": 5.0, "55": 4.6 },
+    },
+  },
+  "F1153-6": {
+    label: "F1153-6",
+    powers: {
+      geo0: { "35": 7.6, "45": 7.7, "55": 7.0 },
+      geo5: { "35": 8.0, "45": 8.0, "55": 7.3 },
+      aqua10: { "35": 8.2, "45": 8.2, "55": 7.5 },
+    },
+  },
+  "F1253-6": {
+    label: "F1253-6",
+    powers: {
+      geo0: { "35": 7.6, "45": 7.7, "55": 7.0 },
+      geo5: { "35": 8.0, "45": 8.0, "55": 7.3 },
+      aqua10: { "35": 8.2, "45": 8.2, "55": 7.5 },
+    },
+  },
+  "S1156-8": {
+    label: "S1156-8",
+    powers: {
+      geo0: { "35": 8.5, "45": 8.5, "55": 7.8 },
+      geo5: { "35": 9.8, "45": 9.8, "55": 9.1 },
+      aqua10: { "35": 11.0, "45": 11.0, "55": 10.5 },
+    },
+  },
+  "S1256-8": {
+    label: "S1256-8",
+    powers: {
+      geo0: { "35": 8.5, "45": 8.5, "55": 7.8 },
+      geo5: { "35": 9.8, "45": 9.8, "55": 9.1 },
+      aqua10: { "35": 11.0, "45": 11.0, "55": 10.5 },
+    },
+  },
+  "S1156-13": {
+    label: "S1156-13",
+    powers: {
+      geo0: { "35": 13.5, "45": 13.5, "55": 12.5 },
+      geo5: { "35": 15.5, "45": 15.5, "55": 14.2 },
+      aqua10: { "35": 17.5, "45": 17.5, "55": 16.0 },
+    },
+  },
+  "S1256-13": {
+    label: "S1256-13",
+    powers: {
+      geo0: { "35": 13.5, "45": 13.5, "55": 12.5 },
+      geo5: { "35": 15.5, "45": 15.5, "55": 14.2 },
+      aqua10: { "35": 17.5, "45": 17.5, "55": 16.0 },
+    },
+  },
+  "S1156-18": {
+    label: "S1156-18",
+    powers: {
+      geo0: { "35": 18.9, "45": 18.9, "55": 17.8 },
+      geo5: { "35": 22.0, "45": 22.0, "55": 20.2 },
+      aqua10: { "35": 24.8, "45": 24.8, "55": 22.8 },
+    },
+  },
+  "S1256-18": {
+    label: "S1256-18",
+    powers: {
+      geo0: { "35": 18.9, "45": 18.9, "55": 17.8 },
+      geo5: { "35": 22.0, "45": 22.0, "55": 20.2 },
+      aqua10: { "35": 24.8, "45": 24.8, "55": 22.8 },
+    },
+  },
+  "S1155-25": {
+    label: "S1155-25",
+    powers: {
+      geo0: { "35": 25.0, "45": 25.0, "55": 24.0 },
+      geo5: { "35": 29.0, "45": 29.0, "55": 27.0 },
+      aqua10: { "35": 34.0, "45": 34.0, "55": 31.0 },
+    },
+  },
+  "F1345-24": {
+    label: "F1345-24",
+    powers: {
+      geo0: { "35": 23.0, "45": 23.0, "55": 22.0 },
+      aqua10: { "35": 30.0, "45": 30.0, "55": 28.0 },
+    },
+  },
+  "F1345-30": {
+    label: "F1345-30",
+    powers: {
+      geo0: { "35": 31.0, "45": 31.0, "55": 29.0 },
+      aqua10: { "35": 40.0, "45": 40.0, "55": 39.0 },
+    },
+  },
+  "F1345-40": {
+    label: "F1345-40",
+    powers: {
+      geo0: { "35": 40.0, "45": 40.0, "55": 38.0 },
+      aqua10: { "35": 52.0, "45": 52.0, "55": 49.0 },
+    },
+  },
+  "F1345-60": {
+    label: "F1345-60",
+    powers: {
+      geo0: { "35": 59.0, "45": 59.0, "55": 54.0 },
+      aqua10: { "35": 78.0, "45": 78.0, "55": 69.0 },
+    },
+  },
+  "F1355-28": {
+    label: "F1355-28",
+    powers: {
+      geo0: { "35": 28.0, "45": 28.0, "55": 27.0 },
+      aqua10: { "35": 35.0, "45": 35.0, "55": 33.0 },
+    },
+  },
+  "F1355-43": {
+    label: "F1355-43",
+    powers: {
+      geo0: { "35": 45.0, "45": 45.0, "55": 38.0 },
+      aqua10: { "35": 58.0, "45": 58.0, "55": 52.0 },
+    },
+  },
+};
+
+
+const F2050_6_DATA: Record<WaterTempKey, Record<number, number>> = {
+  "35": {
+    2: 6.9, 1: 6.8, 0: 6.6, [-1]: 6.4, [-2]: 6.2, [-3]: 6.1, [-4]: 6.0, [-5]: 5.9, [-6]: 5.6, [-7]: 5.6, [-8]: 5.4,
+    [-9]: 5.2, [-10]: 5.1, [-11]: 5.0, [-12]: 4.9, [-13]: 4.8, [-14]: 4.6, [-15]: 4.5, [-16]: 4.4, [-17]: 4.2,
+    [-18]: 4.0, [-19]: 3.8, [-20]: 3.7,
+  },
+  "45": {
+    2: 6.9, 1: 6.8, 0: 6.4, [-1]: 6.3, [-2]: 6.2, [-3]: 6.0, [-4]: 5.6, [-5]: 5.4, [-6]: 5.2, [-7]: 5.1,
+    [-8]: 5.0, [-9]: 4.9, [-10]: 4.8, [-11]: 4.7, [-12]: 4.6, [-13]: 4.5, [-14]: 4.4, [-15]: 4.3, [-16]: 4.2,
+    [-17]: 4.1, [-18]: 4.0, [-19]: 3.8, [-20]: 3.7,
+  },
+  "55": {
+    2: 6.4, 1: 6.1, 0: 6.0, [-1]: 5.9, [-2]: 5.8, [-3]: 5.4, [-4]: 5.1, [-5]: 5.0, [-6]: 4.9, [-7]: 4.8,
+    [-8]: 4.6, [-9]: 4.4, [-10]: 4.3, [-11]: 4.1, [-12]: 4.0, [-13]: 3.9, [-14]: 3.8, [-15]: 3.8, [-16]: 3.6,
+    [-17]: 3.5, [-18]: 3.4, [-19]: 3.3, [-20]: 3.1,
+  },
+};
+
+const F2050_10_DATA: Record<WaterTempKey, Record<number, number>> = {
+  "35": {
+    2: 10.4, 1: 10.3, 0: 10.2, [-1]: 10.1, [-2]: 10.01, [-3]: 9.8, [-4]: 9.5, [-5]: 9.3, [-6]: 9.0, [-7]: 8.9,
+    [-8]: 8.6, [-9]: 8.3, [-10]: 8.2, [-11]: 7.9, [-12]: 7.7, [-13]: 7.5, [-14]: 7.2, [-15]: 7.1, [-16]: 6.9,
+    [-17]: 6.5, [-18]: 6.4, [-19]: 6.1, [-20]: 5.9,
+  },
+  "45": {
+    2: 10.2, 1: 9.9, 0: 9.8, [-1]: 9.6, [-2]: 9.4, [-3]: 9.1, [-4]: 8.9, [-5]: 8.7, [-6]: 8.5, [-7]: 8.2,
+    [-8]: 8.0, [-9]: 7.8, [-10]: 7.6, [-11]: 7.2, [-12]: 7.0, [-13]: 6.8, [-14]: 6.7, [-15]: 6.6, [-16]: 6.5,
+    [-17]: 6.3, [-18]: 6.1, [-19]: 5.8, [-20]: 5.6,
+  },
+  "55": {
+    2: 9.2, 1: 9.1, 0: 9.0, [-1]: 8.7, [-2]: 8.5, [-3]: 8.0, [-4]: 7.9, [-5]: 7.6, [-6]: 7.4, [-7]: 7.1,
+    [-8]: 7.0, [-9]: 6.7, [-10]: 6.4, [-11]: 6.3, [-12]: 6.2, [-13]: 6.1, [-14]: 5.8, [-15]: 5.5, [-16]: 5.2,
+    [-17]: 5.0, [-18]: 4.8, [-19]: 4.6, [-20]: 4.5,
+  },
+};
+
+const F2050_12_DATA: Record<WaterTempKey, Record<number, number>> = {
+  "35": {
+    9: 12.5, 8: 12.4, 7: 12.1, 6: 11.9, 5: 11.7, 4: 11.5, 3: 11.0, 2: 10.5, 1: 10.1, 0: 9.9,
+    [-1]: 9.8, [-2]: 9.6, [-3]: 9.3, [-4]: 9.0, [-5]: 8.8, [-6]: 8.6, [-7]: 8.4, [-8]: 8.2, [-9]: 7.8,
+    [-10]: 7.5, [-11]: 7.2, [-12]: 7.0, [-13]: 6.8, [-14]: 6.6, [-15]: 6.4, [-16]: 6.2, [-17]: 6.0,
+    [-18]: 5.8, [-19]: 5.6, [-20]: 5.4, [-21]: 5.2, [-22]: 5.0, [-23]: 4.8, [-24]: 4.6, [-25]: 4.4,
+  },
+  "45": {
+    9: 11.5, 8: 11.2, 7: 11.1, 6: 10.9, 5: 10.3, 4: 10.3, 3: 10.0, 2: 9.9, 1: 9.7, 0: 9.6,
+    [-1]: 9.4, [-2]: 9.1, [-3]: 8.9, [-4]: 8.4, [-5]: 8.2, [-6]: 8.0, [-7]: 7.8, [-8]: 7.4, [-9]: 7.2,
+    [-10]: 7.0, [-11]: 6.7, [-12]: 6.5, [-13]: 6.3, [-14]: 6.1, [-15]: 5.9, [-16]: 5.8, [-17]: 5.7,
+    [-18]: 5.5, [-19]: 5.1, [-20]: 4.9, [-21]: 4.8, [-22]: 4.7, [-23]: 4.6, [-24]: 4.4, [-25]: 4.1,
+  },
+  "55": {
+    9: 11.5, 8: 11.2, 7: 11.1, 6: 10.9, 5: 10.1, 4: 9.7, 3: 9.4, 2: 9.0, 1: 8.9, 0: 8.8,
+    [-1]: 8.8, [-2]: 8.7, [-3]: 8.1, [-4]: 7.9, [-5]: 7.5, [-6]: 7.3, [-7]: 7.0, [-8]: 6.8, [-9]: 6.5,
+    [-10]: 6.3, [-11]: 6.2, [-12]: 6.0, [-13]: 5.8, [-14]: 5.7, [-15]: 5.2, [-16]: 5.0, [-17]: 4.9,
+    [-18]: 4.8, [-19]: 4.7, [-20]: 4.6, [-21]: 4.5, [-22]: 4.3, [-23]: 3.9, [-24]: 3.8, [-25]: 3.7,
+  },
+};
+
+const F2050_16_DATA: Record<WaterTempKey, Record<number, number>> = {
+  "35": {
+    9: 17.0, 8: 16.87, 7: 16.09, 6: 15.91, 5: 15.5, 4: 15.04, 3: 14.7, 2: 14.4, 1: 14.0, 0: 13.7,
+    [-1]: 13.4, [-2]: 13.0, [-3]: 12.8, [-4]: 12.4, [-5]: 11.9, [-6]: 11.6, [-7]: 11.3, [-8]: 11.1,
+    [-9]: 10.8, [-10]: 10.4, [-11]: 10.0, [-12]: 9.8, [-13]: 9.4, [-14]: 9.0, [-15]: 8.5, [-16]: 7.9,
+    [-17]: 7.4, [-18]: 7.1, [-19]: 7.0, [-20]: 6.9, [-21]: 6.2, [-22]: 5.8, [-23]: 5.6, [-24]: 5.5,
+    [-25]: 5.3,
+  },
+  "45": {
+    9: 15.4, 8: 14.9, 7: 14.4, 6: 14.1, 5: 13.8, 4: 13.6, 3: 13.0, 2: 12.7, 1: 12.4, 0: 12.0,
+    [-1]: 11.7, [-2]: 11.5, [-3]: 11.0, [-4]: 10.8, [-5]: 10.5, [-6]: 10.0, [-7]: 9.7, [-8]: 9.4,
+    [-9]: 9.0, [-10]: 8.7, [-11]: 8.4, [-12]: 8.0, [-13]: 7.7, [-14]: 7.4, [-15]: 7.2, [-16]: 6.7,
+    [-17]: 6.4, [-18]: 6.1, [-19]: 5.9, [-20]: 5.6, [-21]: 5.1, [-22]: 5.0, [-23]: 4.8, [-24]: 4.6,
+    [-25]: 4.2,
+  },
+  "55": {
+    9: 15.4, 8: 14.9, 7: 14.4, 6: 14.1, 5: 13.8, 4: 13.6, 3: 13.0, 2: 12.7, 1: 12.4, 0: 12.0,
+    [-1]: 11.7, [-2]: 11.5, [-3]: 11.0, [-4]: 10.8, [-5]: 10.5, [-6]: 10.0, [-7]: 9.7, [-8]: 9.4,
+    [-9]: 9.0, [-10]: 8.7, [-11]: 8.4, [-12]: 8.0, [-13]: 7.7, [-14]: 7.4, [-15]: 7.2, [-16]: 6.7,
+    [-17]: 6.4, [-18]: 6.1, [-19]: 5.9, [-20]: 5.6, [-21]: 5.1, [-22]: 5.0, [-23]: 4.8, [-24]: 4.6,
+    [-25]: 4.2,
+  },
+};
+
+
+const AIR_MODELS: Record<string, {
+  label: string;
+  cutoff: number;
+  data: Record<WaterTempKey, Record<number, number>>;
+}> = {
+  "S2125-8": {
+    label: "S2125-8",
+    cutoff: -25,
+    data: {
+      "35": {
+        7: 6.4, 2: 6.4, 1: 6.4, 0: 6.3, [-1]: 6.2, [-2]: 6.1, [-3]: 5.9, [-4]: 5.8, [-5]: 5.7, [-6]: 5.6,
+        [-7]: 5.5, [-8]: 5.3, [-9]: 5.1, [-10]: 5.0, [-11]: 4.8, [-12]: 4.7, [-13]: 4.5, [-14]: 4.4, [-15]: 4.2,
+        [-16]: 4.1, [-17]: 4.0, [-18]: 3.8, [-19]: 3.7, [-20]: 3.6, [-21]: 3.5, [-22]: 3.4, [-23]: 3.3,
+        [-24]: 3.2, [-25]: 3.2,
+      },
+      "45": {
+        7: 6.2, 2: 6.2, 1: 6.1, 0: 6.0, [-1]: 5.9, [-2]: 5.7, [-3]: 5.6, [-4]: 5.5, [-5]: 5.4, [-6]: 5.3,
+        [-7]: 5.1, [-8]: 5.0, [-9]: 4.9, [-10]: 4.7, [-11]: 4.6, [-12]: 4.4, [-13]: 4.3, [-14]: 4.1,
+        [-15]: 4.0, [-16]: 4.0, [-17]: 3.9, [-18]: 3.7, [-19]: 3.6, [-20]: 3.5, [-21]: 3.4, [-22]: 3.3,
+        [-23]: 3.2, [-24]: 3.1, [-25]: 3.1,
+      },
+      "55": {
+        7: 6.0, 2: 6.0, 1: 5.9, 0: 5.9, [-1]: 5.8, [-2]: 5.7, [-3]: 5.6, [-4]: 5.5, [-5]: 5.4, [-6]: 5.3,
+        [-7]: 5.2, [-8]: 5.0, [-9]: 4.9, [-10]: 4.8, [-11]: 4.6, [-12]: 4.5, [-13]: 4.3, [-14]: 4.2,
+        [-15]: 4.0, [-16]: 3.9, [-17]: 3.8, [-18]: 3.6, [-19]: 3.5, [-20]: 3.4, [-21]: 3.3, [-22]: 3.2,
+        [-23]: 3.0, [-24]: 2.9, [-25]: 2.8,
+      },
+    },
+  },
+  "S2125-12": {
+    label: "S2125-12",
+    cutoff: -25,
+    data: {
+      "35": {
+        20: 8.43, 12: 9.41, 10: 9.53, 7: 9.71, 2: 9.5, 1: 9.4, 0: 9.3, [-1]: 9.1, [-2]: 9.0, [-3]: 8.9,
+        [-4]: 8.8, [-5]: 8.7, [-6]: 8.5, [-7]: 8.3, [-8]: 8.0, [-9]: 7.8, [-10]: 7.6, [-11]: 7.4, [-12]: 7.2,
+        [-13]: 6.9, [-14]: 6.7, [-15]: 6.5, [-16]: 6.3, [-17]: 6.1, [-18]: 5.9, [-19]: 5.7, [-20]: 5.5,
+        [-21]: 5.3, [-22]: 5.2, [-23]: 5.0, [-24]: 4.9, [-25]: 4.7,
+      },
+      "45": {
+        20: 10.5, 12: 10.5, 10: 10.5, 7: 9.89, 2: 9.5, 1: 9.4, 0: 9.4, [-1]: 9.2, [-2]: 9.0, [-3]: 8.8,
+        [-4]: 8.7, [-5]: 8.6, [-6]: 8.3, [-7]: 8.4, [-8]: 7.9, [-9]: 7.7, [-10]: 7.5, [-11]: 7.3, [-12]: 7.1,
+        [-13]: 6.9, [-14]: 6.7, [-15]: 6.6, [-16]: 6.3, [-17]: 6.1, [-18]: 5.9, [-19]: 5.7, [-20]: 5.5,
+        [-21]: 5.3, [-22]: 5.2, [-23]: 5.0, [-24]: 4.9, [-25]: 4.7,
+      },
+      "55": {
+        20: 7.65, 12: 9.95, 10: 9.98, 7: 10.03, 2: 9.5, 1: 9.4, 0: 9.4, [-1]: 9.3, [-2]: 9.1, [-3]: 9.0,
+        [-4]: 8.9, [-5]: 8.8, [-6]: 8.5, [-7]: 8.4, [-8]: 8.1, [-9]: 7.9, [-10]: 7.7, [-11]: 7.5, [-12]: 7.3,
+        [-13]: 7.0, [-14]: 6.8, [-15]: 6.6, [-16]: 6.4, [-17]: 6.2, [-18]: 6.1, [-19]: 5.9, [-20]: 5.7,
+        [-21]: 5.5, [-22]: 5.3, [-23]: 5.2, [-24]: 5.0, [-25]: 4.8,
+      },
+    },
+  },
+  "S2125-16": {
+    label: "S2125-16",
+    cutoff: -25,
+    data: {
+      "35": {
+        20: 20.9, 12: 19.2, 10: 17.7, 7: 16.5, 2: 14.9, 1: 14.7, 0: 14.1, [-1]: 13.9, [-2]: 13.8,
+        [-3]: 13.7, [-4]: 13.6, [-5]: 13.4, [-6]: 13.1, [-7]: 12.7, [-8]: 12.3, [-9]: 11.9, [-10]: 11.38,
+        [-11]: 11.21, [-12]: 10.31, [-13]: 9.98, [-14]: 9.67, [-15]: 9.01, [-16]: 8.9, [-17]: 8.8, [-18]: 8.6,
+        [-19]: 8.5, [-20]: 8.3, [-21]: 8.1, [-22]: 8.0, [-23]: 7.8, [-24]: 7.7, [-25]: 7.5,
+      },
+      "45": {
+        20: 19.1, 12: 18.2, 10: 16.7, 7: 15.6, 2: 14.9, 1: 14.7, 0: 14.1, [-1]: 13.9, [-2]: 13.8,
+        [-3]: 13.7, [-4]: 13.6, [-5]: 13.4, [-6]: 13.1, [-7]: 12.7, [-8]: 12.3, [-9]: 11.9, [-10]: 11.38,
+        [-11]: 11.21, [-12]: 10.31, [-13]: 9.98, [-14]: 9.67, [-15]: 9.01, [-16]: 8.9, [-17]: 8.8, [-18]: 8.6,
+        [-19]: 8.5, [-20]: 8.3, [-21]: 8.1, [-22]: 8.0, [-23]: 7.8, [-24]: 7.7, [-25]: 7.5,
+      },
+      "55": {
+        20: 18.01, 12: 17.1, 10: 15.7, 7: 15.6, 2: 14.9, 1: 14.7, 0: 14.1, [-1]: 13.9, [-2]: 13.8,
+        [-3]: 13.7, [-4]: 13.6, [-5]: 13.4, [-6]: 13.1, [-7]: 12.7, [-8]: 12.3, [-9]: 11.9, [-10]: 11.38,
+        [-11]: 11.21, [-12]: 10.31, [-13]: 9.98, [-14]: 9.67, [-15]: 9.01, [-16]: 8.9, [-17]: 8.8, [-18]: 8.6,
+        [-19]: 8.5, [-20]: 8.3, [-21]: 8.1, [-22]: 8.0, [-23]: 7.8, [-24]: 7.7, [-25]: 7.5,
+      },
+    },
+  },
+  "S2125-20": {
+    label: "S2125-20",
+    cutoff: -25,
+    data: {
+      "35": {
+        20: 27.1, 12: 25.4, 10: 22.4, 7: 20.01, 2: 17.81, 1: 17.01, 0: 16.8, [-1]: 16.6, [-2]: 15.96,
+        [-3]: 15.45, [-4]: 14.97, [-5]: 14.91, [-6]: 14.79, [-7]: 14.61, [-8]: 13.96, [-9]: 13.56, [-10]: 12.96,
+        [-11]: 12.81, [-12]: 12.72, [-13]: 12.43, [-14]: 12.04, [-15]: 11.91, [-16]: 11.81, [-17]: 11.05,
+        [-18]: 10.93, [-19]: 10.53, [-20]: 10.01, [-21]: 9.96, [-22]: 9.64, [-23]: 9.45, [-24]: 9.03,
+        [-25]: 8.47,
+      },
+      "45": {
+        20: 26.0, 12: 24.3, 10: 22.4, 7: 20.01, 2: 18.2, 1: 17.9, 0: 16.9, [-1]: 16.6, [-2]: 15.96,
+        [-3]: 15.45, [-4]: 14.97, [-5]: 14.91, [-6]: 14.79, [-7]: 14.61, [-8]: 13.96, [-9]: 13.56, [-10]: 12.96,
+        [-11]: 12.81, [-12]: 12.72, [-13]: 12.43, [-14]: 12.04, [-15]: 11.91, [-16]: 11.81, [-17]: 11.05,
+        [-18]: 10.93, [-19]: 10.53, [-20]: 10.01, [-21]: 9.96, [-22]: 9.64, [-23]: 9.45, [-24]: 9.03,
+        [-25]: 8.47,
+      },
+      "55": {
+        20: 24.1, 12: 23.1, 10: 21.2, 7: 19.42, 2: 18.8, 1: 17.9, 0: 16.9, [-1]: 16.6, [-2]: 15.96,
+        [-3]: 15.45, [-4]: 14.97, [-5]: 14.91, [-6]: 14.79, [-7]: 14.61, [-8]: 13.96, [-9]: 13.56, [-10]: 12.96,
+        [-11]: 12.81, [-12]: 12.72, [-13]: 12.43, [-14]: 12.04, [-15]: 11.91, [-16]: 11.81, [-17]: 11.05,
+        [-18]: 10.93, [-19]: 10.53, [-20]: 10.01, [-21]: 9.96, [-22]: 9.64, [-23]: 9.45, [-24]: 9.03,
+        [-25]: 8.47,
+      },
+    },
+  },
+  "F2050-6": { label: "F2050-6", cutoff: -20, data: F2050_6_DATA },
+  "F2050-10": { label: "F2050-10", cutoff: -20, data: F2050_10_DATA },
+  "F2050-12": { label: "F2050-12", cutoff: -25, data: F2050_12_DATA },
+  "F2050-16": { label: "F2050-16", cutoff: -25, data: F2050_16_DATA },
+  "AMS 20-6": { label: "AMS 20-6", cutoff: -20, data: F2050_6_DATA },
+  "AMS 20-10": { label: "AMS 20-10", cutoff: -20, data: F2050_10_DATA },
+};
+
+
+const AIR_EXTRACT_MODELS: Record<string, {
+  label: string;
+  flows: number[];
+  powers: Record<number, { "35": number; "45": number; "55": number }>;
+}> = {
+  "S735-4": {
+    label: "S735-4",
+    flows: [60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390],
+    powers: {
+      60: { "35": 1.3, "45": 1.4, "55": 1.5 },
+      75: { "35": 1.5, "45": 1.6, "55": 1.75 },
+      90: { "35": 1.8, "45": 2.0, "55": 2.25 },
+      105: { "35": 2.2, "45": 2.4, "55": 2.6 },
+      120: { "35": 2.4, "45": 2.65, "55": 2.9 },
+      135: { "35": 2.65, "45": 3.05, "55": 3.2 },
+      150: { "35": 2.9, "45": 3.25, "55": 3.4 },
+      165: { "35": 3.25, "45": 3.5, "55": 3.6 },
+      180: { "35": 3.45, "45": 3.6, "55": 3.75 },
+      195: { "35": 3.65, "45": 3.8, "55": 3.9 },
+      210: { "35": 3.8, "45": 3.9, "55": 4.0 },
+      225: { "35": 3.9, "45": 4.0, "55": 4.1 },
+      240: { "35": 3.9, "45": 4.0, "55": 4.1 },
+      255: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      270: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      285: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      300: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      315: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      330: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      345: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      360: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      375: { "35": 4.2, "45": 4.2, "55": 4.2 },
+      390: { "35": 4.2, "45": 4.2, "55": 4.2 },
+    },
+  },
+  "S735-7": {
+    label: "S735-7",
+    flows: [90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390],
+    powers: {
+      90: { "35": 2.0, "45": 2.23, "55": 2.6 },
+      105: { "35": 2.4, "45": 2.6, "55": 3.0 },
+      120: { "35": 2.6, "45": 2.9, "55": 3.2 },
+      135: { "35": 3.0, "45": 3.25, "55": 3.65 },
+      150: { "35": 3.25, "45": 3.5, "55": 3.8 },
+      165: { "35": 3.6, "45": 3.9, "55": 4.2 },
+      180: { "35": 4.0, "45": 4.5, "55": 4.6 },
+      195: { "35": 4.2, "45": 4.6, "55": 4.75 },
+      210: { "35": 4.4, "45": 4.7, "55": 5.0 },
+      225: { "35": 4.8, "45": 4.95, "55": 5.15 },
+      240: { "35": 4.8, "45": 4.95, "55": 5.15 },
+      255: { "35": 5.2, "45": 5.4, "55": 5.4 },
+      270: { "35": 5.4, "45": 5.5, "55": 5.5 },
+      285: { "35": 5.4, "45": 5.5, "55": 5.5 },
+      300: { "35": 5.8, "45": 5.9, "55": 6.0 },
+      315: { "35": 5.9, "45": 6.0, "55": 6.1 },
+      330: { "35": 6.2, "45": 6.25, "55": 6.3 },
+      345: { "35": 6.3, "45": 6.3, "55": 6.4 },
+      360: { "35": 6.4, "45": 6.42, "55": 6.52 },
+      375: { "35": 6.4, "45": 6.42, "55": 6.52 },
+      390: { "35": 6.4, "45": 6.42, "55": 6.52 },
+    },
+  },
+  "S735-7C": {
+    label: "S735-7C",
+    flows: [90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345, 360, 375, 390],
+    powers: {
+      90: { "35": 2.0, "45": 2.23, "55": 2.6 },
+      105: { "35": 2.4, "45": 2.6, "55": 3.0 },
+      120: { "35": 2.6, "45": 2.9, "55": 3.2 },
+      135: { "35": 3.0, "45": 3.25, "55": 3.65 },
+      150: { "35": 3.25, "45": 3.5, "55": 3.8 },
+      165: { "35": 3.6, "45": 3.9, "55": 4.2 },
+      180: { "35": 4.0, "45": 4.5, "55": 4.6 },
+      195: { "35": 4.2, "45": 4.6, "55": 4.75 },
+      210: { "35": 4.4, "45": 4.7, "55": 5.0 },
+      225: { "35": 4.8, "45": 4.95, "55": 5.15 },
+      240: { "35": 4.8, "45": 4.95, "55": 5.15 },
+      255: { "35": 5.2, "45": 5.4, "55": 5.4 },
+      270: { "35": 5.4, "45": 5.5, "55": 5.5 },
+      285: { "35": 5.4, "45": 5.5, "55": 5.5 },
+      300: { "35": 5.8, "45": 5.9, "55": 6.0 },
+      315: { "35": 5.9, "45": 6.0, "55": 6.1 },
+      330: { "35": 6.2, "45": 6.25, "55": 6.3 },
+      345: { "35": 6.3, "45": 6.3, "55": 6.4 },
+      360: { "35": 6.4, "45": 6.42, "55": 6.52 },
+      375: { "35": 6.4, "45": 6.42, "55": 6.52 },
+      390: { "35": 6.4, "45": 6.42, "55": 6.52 },
+    },
+  },
+};
+
+
+const ETAS_VALUES: Record<string, { "35": number; "55": number }> = {
+  "S735-4": { "35": 191, "55": 147 },
+  "S735-7": { "35": 181, "55": 148 },
+  "S735-7C": { "35": 193, "55": 154 },
+  "F2050-6": { "35": 204, "55": 143 },
+  "F2050-10": { "35": 185, "55": 136 },
+  "F2050-12": { "35": 196, "55": 141 },
+  "F2050-16": { "35": 184, "55": 138 },
+  "S2125-8": { "35": 200, "55": 150 },
+  "S2125-12": { "35": 199, "55": 154 },
+  "S2125-16": { "35": 214, "55": 164 },
+  "S2125-20": { "35": 213, "55": 164 },
+  "AMS 20-6": { "35": 204, "55": 143 },
+  "AMS 20-10": { "35": 185, "55": 136 },
+  "F1153-4": { "35": 206, "55": 154 },
+  "F1153-6": { "35": 204, "55": 154 },
+  "F1253-4": { "35": 206, "55": 154 },
+  "F1253-6": { "35": 204, "55": 154 },
+  "S1156-8": { "35": 223, "55": 166 },
+  "S1156-13": { "35": 231, "55": 167 },
+  "S1156-18": { "35": 234, "55": 173 },
+  "S1155-25": { "35": 204, "55": 154 },
+  "S1256-8": { "35": 223, "55": 166 },
+  "S1256-13": { "35": 231, "55": 167 },
+  "S1256-18": { "35": 234, "55": 173 },
+  "F1345-24": { "35": 187, "55": 145 },
+  "F1345-30": { "35": 180, "55": 139 },
+  "F1345-40": { "35": 184, "55": 145 },
+  "F1345-60": { "35": 178, "55": 140 },
+  "F1355-28": { "35": 195, "55": 152 },
+  "F1355-43": { "35": 194, "55": 154 },
+  "F1353-4": { "35": 272, "55": 210 },
+  "F1353-6": { "35": 270, "55": 214 },
+  "S1156-8-aqua": { "35": 311, "55": 221 },
+  "S1156-13-aqua": { "35": 346, "55": 236 },
+  "S1156-18-aqua": { "35": 333, "55": 232 },
+  "S1155-25-aqua": { "35": 289, "55": 201 },
+  "S1256-8-aqua": { "35": 311, "55": 221 },
+  "S1256-13-aqua": { "35": 346, "55": 236 },
+  "S1256-18-aqua": { "35": 333, "55": 232 },
+  "F1345-24-aqua": { "35": 229, "55": 178 },
+  "F1345-30-aqua": { "35": 215, "55": 165 },
+  "F1345-40-aqua": { "35": 223, "55": 179 },
+  "F1345-60-aqua": { "35": 212, "55": 166 },
+  "F1355-28-aqua": { "35": 244, "55": 190 },
+  "F1355-43-aqua": { "35": 246, "55": 196 },
+};
+
+
+const SOURCE_LABELS: Record<GeoSource, string> = {
+  geo0: "Géothermie 0 °C",
+  geo5: "Géothermie 5 °C",
+  aqua10: "Aquathermie 10 °C",
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const parseNumber = (value: string): number | undefined => {
+  if (!value) return undefined;
+  const parsed = Number(value.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const getDepartmentCode = (cp: string): string | undefined => {
+  const digits = cp.replace(/\s+/g, "");
+  if (digits.length < 2) return undefined;
+  if (digits.startsWith("97") && digits.length >= 3) return digits.slice(0, 3);
+  if (digits.startsWith("98") && digits.length >= 3) return digits.slice(0, 3);
+  return digits.slice(0, 2);
+};
+
+const computeBaseTemperature = (cp: string, altitudeKey: string, seaside: boolean): number | undefined => {
+  if (seaside) return -2;
+  const deptCode = getDepartmentCode(cp);
+  const base = deptCode ? DEPARTMENT_BASE_TEMPS[deptCode] : undefined;
+  if (base === undefined) return undefined;
+  const altitudeMap = ALTITUDE_TABLE[base];
+  if (altitudeMap && altitudeMap[altitudeKey] !== undefined) {
+    return altitudeMap[altitudeKey];
   }
-  // Corse special-case: postal codes 20000-20999 map to 2A/2B (we pick unknown until city helps)
-  if (/^20/.test(clean)) {
-    return "Corse (2A/2B)";
+  return base;
+};
+
+const getAvailableAltitudeOptions = (base?: number) => {
+  if (base === undefined) return ALTITUDE_OPTIONS;
+  const map = ALTITUDE_TABLE[base];
+  if (!map) return ALTITUDE_OPTIONS;
+  return ALTITUDE_OPTIONS.filter((option) => map[option.key] !== undefined);
+};
+
+const findGValue = (label: string): number | null => {
+  const entry = G_COEFFICIENTS.find((item) => item.label === label);
+  return entry ? entry.value : null;
+};
+
+const wattsToKW = (watts: number): number => watts / 1000;
+
+const roundValue = (value: number, digits = 1) => Number(value.toFixed(digits));
+
+
+type Technology = "" | "geothermie" | "airEau" | "airExtrait";
+
+const MIN_ZONES = 1;
+const MAX_ZONES = 20;
+
+const highestWaterKey = (zones: Zone[]): WaterTempKey => {
+  const max = zones.reduce((acc, zone) => Math.max(acc, Number(zone.temperature || "0")), 0);
+  if (max >= 65) return "55";
+  if (max >= 55) return "55";
+  if (max >= 45) return "45";
+  return "35";
+};
+
+const highestTemperatureValue = (zones: Zone[]): number => zones.reduce((acc, zone) => Math.max(acc, Number(zone.temperature || "0")), 0);
+
+const highestAmbientValue = (zones: Zone[]): number => {
+  const values = zones
+    .map((zone) => parseNumber(zone.ambient))
+    .filter((value): value is number => value !== undefined);
+  return values.length ? Math.max(...values) : 0;
+};
+
+const computeZoneLoss = (zone: Zone, baseTemperature: number): number => {
+  const manual = parseNumber(zone.manualLoss);
+  if (manual !== undefined) {
+    return manual;
   }
-  const code = clean.slice(0, 2);
-  return DEPARTEMENTS[code];
-}
+  const g = findGValue(zone.insulation);
+  if (g === null) return 0;
+  const surface = parseNumber(zone.surface) ?? 0;
+  const height = parseNumber(zone.height) ?? 0;
+  const ambient = parseNumber(zone.ambient) ?? 0;
+  const delta = ambient - baseTemperature;
+  if (surface <= 0 || height <= 0 || delta <= 0) return 0;
+  return g * surface * height * delta;
+};
 
-// Placeholder: real implementation should query an authoritative referential (NF EN 12831 / Th-BCE, etc.)
-function inferBaseTempFromAddress(city: string, cp: string, departementName?: string): number {
-  // Until a dataset is integrated, provide a conservative default and let installer override.
-  // Heuristic: colder in NE, milder on coasts; we can't geocode here, so return -7°C.
-  return -7;
-}
+const formatAddressLine = (label: string, value: string) => (value ? `${label} : ${value}` : "");
 
-function classFromEmitterTemp(t: number): "Basse température" | "Moyenne température" | "Haute température" {
-  if (t <= 35) return "Basse température";
-  if (t >= 65) return "Haute température";
-  return "Moyenne température"; // 45 ou 55
-}
+const formatNumber = (value: number, digits = 1, suffix = "") => `${value.toFixed(digits)}${suffix}`;
 
-function formatKW(v?: number) { return (v ?? 0).toFixed(1) + " kW"; }
+const shouldUseAquaKey = (model: string, source: GeoSource) => source === "aqua10" ? `${model}-aqua` : model;
 
-// --- Main component ---
-export default function DimensionnementWizard() {
-  const [step, setStep] = useState<number>(0);
+export default function DimensionnementNote() {
+  const [step, setStep] = useState(0);
 
-  // Step 0: Cadre réglementaire + type de note
-  const [fiche, setFiche] = useState<"BAR-TH171" | "BAR-TH172" | "">("");
+  const [company, setCompany] = useState({ name: "", address: "", siret: "" });
+  const [beneficiary, setBeneficiary] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    postalCode: "",
+    city: "",
+  });
+  const [constructionYear, setConstructionYear] = useState("");
+  const [altitude, setAltitude] = useState<string>(ALTITUDE_OPTIONS[0].key);
+  const [seaside, setSeaside] = useState(false);
 
-  // Step 1: infos installateur & chantier
-  const [inst, setInst] = useState({ installateur:"", societe:"", siret:"", adresse:"", cp:"", ville:"", departement:"" });
-  const [benef, setBenef] = useState({ prenom:"", nom:"", adresse:"", cp:"", ville:"", departement:"" });
-  const [anneeConstruction, setAnneeConstruction] = useState<string>("");
+  const [zones, setZones] = useState<Zone[]>([defaultZone(0)]);
 
-  // Step 2: Tbase
-  const [tBase, setTBase] = useState<number | "">("");
-  const [tBaseConfirmed, setTBaseConfirmed] = useState<boolean | null>(null);
+  const [technology, setTechnology] = useState<Technology>("");
+  const [geoSource, setGeoSource] = useState<GeoSource>("geo0");
+  const [geoModel, setGeoModel] = useState("");
+  const [geoUnits, setGeoUnits] = useState(1);
 
-  // Step 3: dimensions & consigne intérieure
-  const [surface, setSurface] = useState<string>("");
-  const [hsp, setHsp] = useState<string>("2.5");
-  const volume = useMemo(()=>{
-    const s = parseFloat(surface);
-    const h = parseFloat(hsp);
-    if (isNaN(s) || isNaN(h)) return "";
-    return (s*h).toFixed(1);
-  }, [surface, hsp]);
-  const [volumeOverride, setVolumeOverride] = useState<string>("");
-  const [tInt, setTInt] = useState<string>("20");
+  const [airModel, setAirModel] = useState("");
+  const [airUnits, setAirUnits] = useState(1);
 
-  // Step 4: Sélection machine
-  const [machineKey, setMachineKey] = useState<keyof typeof MACHINES | "">("");
+  const [extractModel, setExtractModel] = useState("");
+  const [extractFlow, setExtractFlow] = useState<number | "">("");
 
-  // Step 5: Émetteurs & engagements
-  const [emetteur, setEmetteur] = useState<"Plancher chauffant"|"Radiateurs"|"Ventilo-convecteurs"|"Mixte (plancher + radiateurs)"|"">("");
-  const [tEau, setTEau] = useState<string>("35");
-  const [engAllRooms, setEngAllRooms] = useState<boolean>(true);
-  const [engNoOtherGen, setEngNoOtherGen] = useState<boolean>(true);
+  const baseFromDepartment = useMemo(() => {
+    const deptCode = getDepartmentCode(beneficiary.postalCode);
+    return deptCode ? DEPARTMENT_BASE_TEMPS[deptCode] : undefined;
+  }, [beneficiary.postalCode]);
 
-  // Step 5b (conditionnel mixte): zones
-  const [zonePC, setZonePC] = useState<string>("");
-  const [zoneRad, setZoneRad] = useState<string>("");
+  const availableAltitudeOptions = useMemo(() => getAvailableAltitudeOptions(baseFromDepartment), [baseFromDepartment]);
 
-  // Rendements saisonniers (à fournir par vous ; placeholders)
-  const [eta35, setEta35] = useState<string>("");
-  const [eta55, setEta55] = useState<string>("");
+  useEffect(() => {
+    if (!availableAltitudeOptions.find((option) => option.key === altitude)) {
+      setAltitude(availableAltitudeOptions[0]?.key ?? ALTITUDE_OPTIONS[0].key);
+    }
+  }, [availableAltitudeOptions, altitude]);
 
-  // Derived machine values
-  const machine = machineKey ? MACHINES[machineKey] : undefined;
-  const baseKey = typeof tBase === "number" ? String(tBase) : "";
-  const machineCapacityAtBase = useMemo(()=>{
-    if (!machine || !tBase) return undefined;
-    // Find nearest available key <= selected Tbase
-    const keys = Object.keys(machine.map).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
-    const target = Number(tBase);
-    let bestKey = keys[0];
-    for (const k of keys) { if (k <= target) bestKey = k; }
-    return machine.map[String(bestKey)];
-  }, [machine, tBase]);
+  const effectiveBaseTemperature = useMemo(() => {
+    const computed = computeBaseTemperature(beneficiary.postalCode, altitude, seaside);
+    if (computed !== undefined) return computed;
+    if (baseFromDepartment !== undefined) return baseFromDepartment;
+    return -7;
+  }, [beneficiary.postalCode, altitude, seaside, baseFromDepartment]);
 
-  const pacMaxAtBase = machineCapacityAtBase ? +(machineCapacityAtBase * 0.70).toFixed(1) : undefined;
-  const elecPointRecommended = machineCapacityAtBase ? +(machineCapacityAtBase * 0.30).toFixed(1) : undefined;
-  const cap60 = machineCapacityAtBase ? +(machineCapacityAtBase * 0.60).toFixed(1) : undefined;
-  const cap130 = machineCapacityAtBase ? +(machineCapacityAtBase * 1.30).toFixed(1) : undefined;
+  const highestZoneTemperature = useMemo(() => highestTemperatureValue(zones), [zones]);
+  const highestWaterTemperatureKey = useMemo(() => highestWaterKey(zones), [zones]);
+  const highestAmbientTemperature = useMemo(() => highestAmbientValue(zones), [zones]);
 
-  const emitterClass = classFromEmitterTemp(parseFloat(tEau || "35"));
+  useEffect(() => {
+    if (highestZoneTemperature >= 65 && technology === "airExtrait") {
+      setTechnology("");
+      setExtractModel("");
+      setExtractFlow("");
+    }
+    if (
+      highestZoneTemperature >= 65 &&
+      technology === "airEau" &&
+      (airModel.startsWith("F2050") || airModel.startsWith("AMS"))
+    ) {
+      setAirModel("");
+    }
+  }, [highestZoneTemperature, technology, airModel]);
 
-  // Validation helpers
-  const canContinueAfterTbase = tBase !== "" && tBaseConfirmed === true;
-  const mustStopAfterTbase = tBaseConfirmed === false;
-  const canConfirmProject = engAllRooms && engNoOtherGen;
+  const totalLossWatts = useMemo(() => zones.reduce((sum, zone) => sum + computeZoneLoss(zone, effectiveBaseTemperature), 0), [zones, effectiveBaseTemperature]);
+  const totalLossKwRaw = wattsToKW(totalLossWatts);
+  const totalLossKw = roundValue(totalLossKwRaw, 2);
 
-  // Report printing
-  const printReport = () => window.print();
+  const surfacesByTemperature = useMemo(() => {
+    const map = new Map<number, number>();
+    zones.forEach((zone) => {
+      const surface = parseNumber(zone.surface);
+      if (!surface) return;
+      const temp = Number(zone.temperature || "0");
+      map.set(temp, (map.get(temp) ?? 0) + surface);
+    });
+    return Array.from(map.entries()).sort((a, b) => a[0] - b[0]);
+  }, [zones]);
 
-  // Auto-fill département on CP changes
-  const updateDepartement = (cp: string) => {
-    const d = cpToDepartement(cp) || "";
-    setInst(p=>({...p, departement: d || p.departement}));
-  };
-  const updateDepartementBenef = (cp: string) => {
-    const d = cpToDepartement(cp) || "";
-    setBenef(p=>({...p, departement: d || p.departement}));
-  };
+  const totalSurface = useMemo(() => surfacesByTemperature.reduce((sum, [, value]) => sum + value, 0), [surfacesByTemperature]);
+
+  const averageCeilingHeight = useMemo(() => {
+    let surfaceSum = 0;
+    let weightedHeight = 0;
+    zones.forEach((zone) => {
+      const surface = parseNumber(zone.surface);
+      const height = parseNumber(zone.height);
+      if (surface && height) {
+        surfaceSum += surface;
+        weightedHeight += surface * height;
+      }
+    });
+    if (!surfaceSum) return 0;
+    return weightedHeight / surfaceSum;
+  }, [zones]);
+
+  const geoPower = useMemo(() => {
+    if (technology !== "geothermie" || !geoModel) return undefined;
+    const model = GEO_MODELS[geoModel];
+    const powers = model.powers[geoSource];
+    if (!powers) return undefined;
+    const waterKey = highestWaterTemperatureKey;
+    const selectedPower = powers[waterKey] ?? powers["55"];
+    if (selectedPower === undefined) return undefined;
+    return selectedPower * geoUnits;
+  }, [technology, geoModel, geoSource, highestWaterTemperatureKey, geoUnits]);
+
+  const airPower = useMemo(() => {
+    if (technology !== "airEau" || !airModel) return undefined;
+    const model = AIR_MODELS[airModel];
+    const data = model.data[highestWaterTemperatureKey];
+    const outdoorTemperatures = Object.keys(data).map(Number).sort((a, b) => a - b);
+    if (!outdoorTemperatures.length) return undefined;
+    const base = Math.round(effectiveBaseTemperature);
+    let chosen = outdoorTemperatures[0];
+    outdoorTemperatures.forEach((value) => {
+      if (value <= base) {
+        chosen = value;
+      }
+    });
+    if (base < outdoorTemperatures[0]) {
+      chosen = outdoorTemperatures[0];
+    }
+    const capacity = data[chosen];
+    if (capacity === undefined) return undefined;
+    return capacity * airUnits;
+  }, [technology, airModel, highestWaterTemperatureKey, effectiveBaseTemperature, airUnits]);
+
+  const extractPower = useMemo(() => {
+    if (technology !== "airExtrait" || !extractModel || typeof extractFlow !== "number") return undefined;
+    const model = AIR_EXTRACT_MODELS[extractModel];
+    const flowPower = model.powers[extractFlow];
+    if (!flowPower) return undefined;
+    const capacity = flowPower[highestWaterTemperatureKey];
+    return capacity;
+  }, [technology, extractModel, extractFlow, highestWaterTemperatureKey]);
+
+  const pacPowerKw = geoPower ?? airPower ?? extractPower;
+
+  const ratioPercent = totalLossKwRaw > 0 && pacPowerKw !== undefined ? roundValue((pacPowerKw / totalLossKwRaw) * 100, 1) : undefined;
+  const backupPowerKw = pacPowerKw !== undefined ? Math.max(totalLossKwRaw - pacPowerKw, 0) : undefined;
+  const sixtyPercent = roundValue(totalLossKwRaw * 0.6, 2);
+  const oneThirtyPercent = roundValue(totalLossKwRaw * 1.3, 2);
+
+  const etasKey = useMemo(() => {
+    if (technology === "geothermie" && geoModel) {
+      return shouldUseAquaKey(geoModel, geoSource);
+    }
+    if (technology === "airEau" && airModel) return airModel;
+    if (technology === "airExtrait" && extractModel) return extractModel;
+    return undefined;
+  }, [technology, geoModel, geoSource, airModel, extractModel]);
+
+  const etasValues = etasKey ? ETAS_VALUES[etasKey] : undefined;
+
+  const pacLabel = useMemo(() => {
+    if (technology === "geothermie" && geoModel) {
+      const label = GEO_MODELS[geoModel].label;
+      const units = geoUnits > 1 ? ` (${geoUnits} unités)` : "";
+      return `${label}${units} – ${SOURCE_LABELS[geoSource]}`;
+    }
+    if (technology === "airEau" && airModel) {
+      const label = AIR_MODELS[airModel].label;
+      const units = airUnits > 1 ? ` (${airUnits} unités)` : "";
+      return `${label}${units}`;
+    }
+    if (technology === "airExtrait" && extractModel) {
+      const label = AIR_EXTRACT_MODELS[extractModel].label;
+      return `${label} – ${extractFlow ? `${extractFlow} m³/h` : "débit à définir"}`;
+    }
+    return "";
+  }, [technology, geoModel, geoUnits, geoSource, airModel, airUnits, extractModel, extractFlow]);
+
+  const stopTemperature = useMemo(() => {
+    if (technology === "airEau") {
+      if (["F2050-6", "F2050-10", "AMS 20-6", "AMS 20-10"].includes(airModel)) {
+        return -20;
+      }
+    }
+    return -25;
+  }, [technology, airModel]);
 
   const steps = [
-    { title: "Choix de la fiche", icon: <Settings2 className="w-5 h-5"/> },
-    { title: "Coordonnées", icon: <Building2 className="w-5 h-5"/> },
-    { title: "Température extérieure de base", icon: <Thermometer className="w-5 h-5"/> },
-    { title: "Dimensions & consignes", icon: <Ruler className="w-5 h-5"/> },
-    { title: "Sélection machine", icon: <Settings2 className="w-5 h-5"/> },
-    { title: "Émetteurs & engagements", icon: <CheckCircle className="w-5 h-5"/> },
-    { title: "Zones (si mixte)", icon: <Ruler className="w-5 h-5"/> },
-    { title: "Rapport", icon: <FileText className="w-5 h-5"/> },
+    "Installateur",
+    "Bénéficiaire",
+    "Projet",
+    "Technologie",
+    "Note finale",
   ];
 
+  const goNext = () => setStep((current) => Math.min(current + 1, steps.length - 1));
+  const goPrevious = () => setStep((current) => Math.max(current - 1, 0));
+
+  const addZone = () => {
+    if (zones.length >= MAX_ZONES) return;
+    setZones((previous) => [...previous, defaultZone(previous.length)]);
+  };
+
+  const removeZone = (index: number) => {
+    if (zones.length <= MIN_ZONES) return;
+    setZones((previous) => previous.filter((_, zoneIndex) => zoneIndex !== index));
+  };
+
+  const updateZone = (index: number, patch: Partial<Zone>) => {
+    setZones((previous) => {
+      const next = [...previous];
+      const updated: Zone = { ...next[index], ...patch };
+      if ("manualLoss" in patch) {
+        if (patch.manualLoss && patch.manualLoss.trim().length > 0) {
+          updated.insulation = "saisie manuelle";
+        }
+      }
+      next[index] = updated;
+      return next;
+    });
+  };
+
+  const disableAirExtrait = highestZoneTemperature >= 65;
+  const restrictedAirModels = new Set(["F2050-6", "F2050-10", "F2050-12", "F2050-16", "AMS 20-6", "AMS 20-10"]);
+  const airModelOptions = Object.keys(AIR_MODELS).filter((modelKey) =>
+    highestZoneTemperature >= 65 ? !restrictedAirModels.has(modelKey) : true
+  );
+
+  const printableSurfaceLines = surfacesByTemperature.map(([temp, surface]) => `${surface.toFixed(1)} m² à ${temp.toFixed(0)} °C`);
+
   return (
-    <div className="min-h-screen bg-neutral-50 print:bg-white">
-      <div className="max-w-5xl mx-auto p-4 md:p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6 print:hidden">
-          <div className="flex items-center gap-3">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Heat_pump_icon.svg" className="w-8 h-8" alt="PAC"/>
-            <h1 className="text-2xl font-semibold">Assistant note de dimensionnement – BAR-TH171 / BAR-TH172</h1>
-          </div>
-          <Button onClick={printReport}><Printer className="w-4 h-4 inline mr-2"/> Imprimer</Button>
-        </div>
-
-        {/* Stepper */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-6 print:hidden">
-          {steps.map((s, i) => (
-            <div key={i} className={`flex items-center gap-2 rounded-xl px-3 py-2 ${i===step?"bg-black text-white":"bg-white"}`}>
-              {s.icon}
-              <span className="text-xs font-medium">{s.title}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Cards */}
-        {step===0 && (
-          <Card>
-            <h2 className="text-lg font-semibold mb-4">1) Cadre réglementaire</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Type de note</label>
-                <Select value={fiche} onChange={(e)=>setFiche(e.target.value as any)}>
-                  <option value="">— Sélectionner —</option>
-                  <option value="BAR-TH172">Sol/Eau & Eau/Eau – Fiche BAR-TH172</option>
-                  <option value="BAR-TH171">Air/Eau – Fiche BAR-TH171</option>
-                </Select>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <Button disabled={!fiche} onClick={()=>setStep(1)}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
-            </div>
-          </Card>
-        )}
-
-        {step===1 && (
-          <Card>
-            <h2 className="text-lg font-semibold mb-4">2) Coordonnées</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-medium mb-2">Installateur 🔧</h3>
-                <div className="grid gap-3">
-                  <Input placeholder="Nom de l'installateur" value={inst.installateur} onChange={e=>setInst({...inst, installateur:e.target.value})}/>
-                  <Input placeholder="Société" value={inst.societe} onChange={e=>setInst({...inst, societe:e.target.value})}/>
-                  <Input placeholder="N° SIRET" value={inst.siret} onChange={e=>setInst({...inst, siret:e.target.value})}/>
-                  <Input placeholder="Adresse" value={inst.adresse} onChange={e=>setInst({...inst, adresse:e.target.value})}/>
-                  <div className="grid grid-cols-3 gap-3">
-                    <Input placeholder="Code postal" value={inst.cp} onChange={e=>{ setInst({...inst, cp:e.target.value}); updateDepartement(e.target.value); }}/>
-                    <Input placeholder="Ville" value={inst.ville} onChange={e=>setInst({...inst, ville:e.target.value})}/>
-                    <Input placeholder="Département (auto)" value={inst.departement} onChange={e=>setInst({...inst, departement:e.target.value})}/>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="font-medium mb-2">Bénéficiaire 🏠</h3>
-                <div className="grid gap-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Input placeholder="Prénom" value={benef.prenom} onChange={e=>setBenef({...benef, prenom:e.target.value})}/>
-                    <Input placeholder="Nom" value={benef.nom} onChange={e=>setBenef({...benef, nom:e.target.value})}/>
-                  </div>
-                  <Input placeholder="Adresse du chantier" value={benef.adresse} onChange={e=>setBenef({...benef, adresse:e.target.value})}/>
-                  <div className="grid grid-cols-3 gap-3">
-                    <Input placeholder="Code postal" value={benef.cp} onChange={e=>{ setBenef({...benef, cp:e.target.value}); updateDepartementBenef(e.target.value); }}/>
-                    <Input placeholder="Ville" value={benef.ville} onChange={e=>setBenef({...benef, ville:e.target.value})}/>
-                    <Input placeholder="Département (auto)" value={benef.departement} onChange={e=>setBenef({...benef, departement:e.target.value})}/>
-                  </div>
-                  <Input placeholder="Année de construction du bâtiment" value={anneeConstruction} onChange={e=>setAnneeConstruction(e.target.value)} />
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-between items-center">
-              <p className="text-sm text-neutral-500">Le département est déduit du code postal. Pour la température de base, un référentiel officiel sera utilisé (à intégrer).</p>
-              <Button onClick={()=>{
-                const dep = benef.departement || cpToDepartement(benef.cp) || "";
-                const base = inferBaseTempFromAddress(benef.ville, benef.cp, typeof dep === "string" ? dep : undefined);
-                setTBase(base);
-                setStep(2);
-              }}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
-            </div>
-          </Card>
-        )}
-
-        {step===2 && (
-          <Card>
-            <h2 className="text-lg font-semibold mb-4">3) Température extérieure de base</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <div className="text-sm">Température proposée (modifiable) pour {benef.ville || "la commune"} ({benef.cp || "CP"})</div>
-                <Input type="number" step="1" value={tBase} onChange={e=>setTBase(parseFloat(e.target.value))} />
-                <div className="text-xs text-neutral-500">Référentiel à intégrer (NF EN 12831 / Th-BCE). L'installateur peut corriger si nécessaire.</div>
-              </div>
-              <div className="space-y-3">
-                <div className="text-sm font-medium">Confirmez-vous cette température de base ?</div>
-                <div className="flex gap-3">
-                  <Button onClick={()=>{ setTBaseConfirmed(true); setStep(3); }}>Oui, continuer</Button>
-                  <Button className="bg-red-600" onClick={()=>setTBaseConfirmed(false)}>Non, arrêter</Button>
-                </div>
-                {mustStopAfterTbase && (
-                  <div className="flex items-start gap-2 text-red-700 bg-red-50 p-3 rounded-xl">
-                    <AlertTriangle className="w-4 h-4 mt-0.5"/> <span className="text-sm">Projet interrompu car la température de base n'est pas validée.</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {step===3 && canContinueAfterTbase && (
-          <Card>
-            <h2 className="text-lg font-semibold mb-4">4) Dimensions & consignes</h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium">Surface habitable (m²)</label>
-                <Input type="number" value={surface} onChange={e=>setSurface(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Hauteur sous plafond moyenne (m)</label>
-                <Input type="number" step="0.1" value={hsp} onChange={e=>setHsp(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Volume calculé (m³) – modifiable</label>
-                <Input type="number" value={volumeOverride || volume as string} onChange={e=>setVolumeOverride(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Température intérieure souhaitée (°C)</label>
-                <Input type="number" value={tInt} onChange={e=>setTInt(e.target.value)} />
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <Button onClick={()=>setStep(4)}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
-            </div>
-          </Card>
-        )}
-
-        {step===4 && (
-          <Card>
-            <h2 className="text-lg font-semibold mb-4">5) Sélection de la machine</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-sm font-medium">Modèle</label>
-                <Select value={machineKey} onChange={e=>setMachineKey(e.target.value as any)}>
-                  <option value="">— Choisir —</option>
-                  <option value="F2050_6">NIBE F2050-6</option>
-                  <option value="F2050_10">NIBE F2050-10</option>
-                </Select>
-                {!!machine && tBase!=="" && (
-                  <div className="mt-4 text-sm">
-                    <div>Température d'arrêt PAC : <strong>{machine.cutoff}°C</strong></div>
-                    <div>Capacité de référence à Tbase ~ <strong>{formatKW(machineCapacityAtBase)}</strong> (selon courbe fournie)</div>
-                  </div>
-                )}
-              </div>
-              <div className="grid gap-3">
-                <div className="text-sm">Rendement saisonnier (SCOP) à 35°C</div>
-                <Input placeholder="ex: 4.2" value={eta35} onChange={e=>setEta35(e.target.value)} />
-                <div className="text-sm">Rendement saisonnier (SCOP) à 55°C</div>
-                <Input placeholder="ex: 3.2" value={eta55} onChange={e=>setEta55(e.target.value)} />
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <Button disabled={!machineKey} onClick={()=>setStep(5)}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
-            </div>
-          </Card>
-        )}
-
-        {step===5 && (
-          <Card>
-            <h2 className="text-lg font-semibold mb-4">6) Émetteurs & engagements</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="grid gap-3">
-                <label className="text-sm font-medium">Type d'émetteur</label>
-                <Select value={emetteur} onChange={e=>setEmetteur(e.target.value as any)}>
-                  <option value="">— Sélectionner —</option>
-                  <option>Plancher chauffant</option>
-                  <option>Radiateurs</option>
-                  <option>Ventilo-convecteurs</option>
-                  <option>Mixte (plancher + radiateurs)</option>
-                </Select>
-                <label className="text-sm font-medium">Température d'eau moyenne (°C)</label>
-                <Select value={tEau} onChange={e=>setTEau(e.target.value)}>
-                  <option value="35">35</option>
-                  <option value="45">45</option>
-                  <option value="55">55</option>
-                  <option value="65">65</option>
-                </Select>
-                <div className="text-sm">Classe de température: <strong>{emitterClass}</strong></div>
-              </div>
-              <div className="grid gap-3">
-                <Checkbox checked={engAllRooms} onChange={setEngAllRooms} label={"Je confirme que les déperditions calculées couvrent toutes les pièces desservies par le réseau de chauffage."} />
-                <Checkbox checked={engNoOtherGen} onChange={setEngNoOtherGen} label={"Je confirme que les déperditions sont calculées sans considérer d'autres générateurs présents."} />
-                {!canConfirmProject && (
-                  <div className="text-sm text-red-700 bg-red-50 p-3 rounded-xl flex items-start gap-2"><AlertTriangle className="w-4 h-4 mt-0.5"/>Ces engagements doivent être cochés pour confirmer le projet.</div>
-                )}
-              </div>
-            </div>
-            <div className="mt-6 flex justify-between">
-              <div/>
-              <Button onClick={()=> setStep(emetteur.includes("Mixte") ? 6 : 7)} disabled={!canConfirmProject || !emetteur}>Continuer <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
-            </div>
-          </Card>
-        )}
-
-        {step===6 && (
-          <Card>
-            <h2 className="text-lg font-semibold mb-4">7) Zones (mixte plancher + radiateurs)</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Surface zone plancher chauffant (m²)</label>
-                <Input type="number" value={zonePC} onChange={e=>setZonePC(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Surface zone radiateurs (m²)</label>
-                <Input type="number" value={zoneRad} onChange={e=>setZoneRad(e.target.value)} />
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <Button onClick={()=>setStep(7)}>Voir le rapport <ChevronRight className="inline w-4 h-4 ml-1"/></Button>
-            </div>
-          </Card>
-        )}
-
-        {step===7 && (
-          <Card>
-            <div className="print:shadow-none">
-              <h2 className="text-xl font-semibold mb-1">Rapport de note de dimensionnement</h2>
-              <p className="text-sm text-neutral-500 mb-4">Fiche {fiche || "—"} • Généré le {(new Date()).toLocaleDateString()} • Imprimable</p>
-
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h3 className="font-medium mb-2">Installateur</h3>
-                  <div className="text-sm leading-6">
-                    <div>{inst.installateur} – {inst.societe}</div>
-                    <div>SIRET : {inst.siret}</div>
-                    <div>{inst.adresse}</div>
-                    <div>{inst.cp} {inst.ville} ({inst.departement})</div>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-medium mb-2">Bénéficiaire / Chantier</h3>
-                  <div className="text-sm leading-6">
-                    <div>{benef.prenom} {benef.nom}</div>
-                    <div>{benef.adresse}</div>
-                    <div>{benef.cp} {benef.ville} ({benef.departement})</div>
-                    <div>Année construction : {anneeConstruction}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-neutral-50 rounded-xl p-4">
-                  <div className="text-xs text-neutral-500">Température extérieure de base</div>
-                  <div className="text-2xl font-semibold">{tBase}°C</div>
-                </div>
-                <div className="bg-neutral-50 rounded-xl p-4">
-                  <div className="text-xs text-neutral-500">Volume logement</div>
-                  <div className="text-2xl font-semibold">{(volumeOverride || volume || "0")} m³</div>
-                </div>
-                <div className="bg-neutral-50 rounded-xl p-4">
-                  <div className="text-xs text-neutral-500">T° intérieure visée</div>
-                  <div className="text-2xl font-semibold">{tInt}°C</div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div className="border rounded-xl p-4">
-                  <h3 className="font-medium mb-2">Émetteurs</h3>
-                  <div className="text-sm">Type : <strong>{emetteur}</strong></div>
-                  <div className="text-sm">T° eau moyenne : <strong>{tEau}°C</strong> – <em>{emitterClass}</em></div>
-                  {emetteur.includes("Mixte") && (
-                    <div className="text-sm mt-2">Surfaces : PC {zonePC || "-"} m² • Radiateurs {zoneRad || "-"} m²</div>
-                  )}
-                  <div className="text-sm mt-2">Classe du régulateur : <strong>6</strong> • Fabricant : <strong>NIBE</strong></div>
-                </div>
-                <div className="border rounded-xl p-4">
-                  <h3 className="font-medium mb-2">Machine</h3>
-                  <div className="text-sm">Modèle : <strong>{machine?.name || "—"}</strong></div>
-                  <div className="text-sm">Température d'arrêt PAC : <strong>{machine?.cutoff ?? "—"}°C</strong></div>
-                  <div className="text-sm">Capacité de référence à Tbase : <strong>{formatKW(machineCapacityAtBase)}</strong></div>
-                  <div className="text-sm">Puissance max PAC à Tbase (70%) : <strong>{formatKW(pacMaxAtBase)}</strong></div>
-                  <div className="text-sm">Puissance à appoint électrique recommandée (~30%) : <strong>{formatKW(elecPointRecommended)}</strong></div>
-                  <div className="text-sm">Puissance à 60% : <strong>{formatKW(cap60)}</strong></div>
-                  <div className="text-sm">Puissance à 130% : <strong>{formatKW(cap130)}</strong></div>
-                  <div className="text-sm mt-2">SCOP 35°C : <strong>{eta35 || "—"}</strong> • SCOP 55°C : <strong>{eta55 || "—"}</strong></div>
-                </div>
-              </div>
-
-              <div className="border rounded-xl p-4 mb-6">
-                <h3 className="font-medium mb-2">Engagements</h3>
-                <div className="text-sm">Toutes les pièces desservies par le réseau sont prises en compte : <strong>{engAllRooms?"Oui":"Non"}</strong></div>
-                <div className="text-sm">Déperditions calculées sans autres générateurs : <strong>{engNoOtherGen?"Oui":"Non"}</strong></div>
-                {!canConfirmProject && (
-                  <div className="text-sm text-red-700 bg-red-50 p-3 rounded-xl mt-2 flex items-start gap-2"><AlertTriangle className="w-4 h-4 mt-0.5"/>Projet non confirmable tant que les deux consentements ne sont pas cochés.</div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between print:hidden">
-                <div className="text-xs text-neutral-500">Ce rapport est conçu pour impression directe (A4). Utilisez le bouton ci-dessous.</div>
-                <Button onClick={printReport}><Printer className="w-4 h-4 inline mr-2"/> Imprimer le rapport</Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        <div className="mt-10 text-center text-xs text-neutral-500 print:hidden">Prototype – données de température de base et SCOP à intégrer depuis un référentiel officiel. © NIBE régulateur classe 6.</div>
-      </div>
-
-      {/* Print styles */}
+    <div className="min-h-screen bg-white text-neutral-900">
       <style>{`
         @media print {
-          .print\\:hidden { display: none !important; }
-          .print\\:bg-white { background: white !important; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body { margin: 0; }
+          .no-print { display: none !important; }
+          .print-page { width: 210mm; min-height: 297mm; padding: 20mm; }
         }
       `}</style>
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        <div className="no-print">
+          <div className="flex flex-col gap-3 mb-6">
+            <h1 className="text-2xl font-semibold">Note de dimensionnement</h1>
+            <div className="flex items-center gap-2 text-sm text-neutral-500">
+              {steps.map((title, index) => (
+                <React.Fragment key={title}>
+                  <div className={`px-3 py-1 rounded-full border ${index === step ? "bg-black text-white border-black" : "border-black/20"}`}>
+                    {title}
+                  </div>
+                  {index < steps.length - 1 && <span>›</span>}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {step === 0 && (
+          <Card>
+            <h2 className="text-xl font-semibold mb-4">Installateur</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Nom de l’entreprise</label>
+                <Input value={company.name} onChange={(event) => setCompany({ ...company, name: event.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Numéro de SIRET</label>
+                <Input value={company.siret} onChange={(event) => setCompany({ ...company, siret: event.target.value })} />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="text-sm font-medium">Adresse</label>
+              <Input value={company.address} onChange={(event) => setCompany({ ...company, address: event.target.value })} />
+            </div>
+          </Card>
+        )}
+
+        {step === 1 && (
+          <Card>
+            <h2 className="text-xl font-semibold mb-4">Bénéficiaire</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Prénom</label>
+                <Input value={beneficiary.firstName} onChange={(event) => setBeneficiary({ ...beneficiary, firstName: event.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Nom</label>
+                <Input value={beneficiary.lastName} onChange={(event) => setBeneficiary({ ...beneficiary, lastName: event.target.value })} />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="text-sm font-medium">Adresse</label>
+              <Input value={beneficiary.address} onChange={(event) => setBeneficiary({ ...beneficiary, address: event.target.value })} />
+            </div>
+            <div className="grid md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <label className="text-sm font-medium">Code postal</label>
+                <Input value={beneficiary.postalCode} onChange={(event) => setBeneficiary({ ...beneficiary, postalCode: event.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Ville</label>
+                <Input value={beneficiary.city} onChange={(event) => setBeneficiary({ ...beneficiary, city: event.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Année de construction</label>
+                <Input value={constructionYear} onChange={(event) => setConstructionYear(event.target.value)} />
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="text-sm font-medium">Altitude</label>
+                <Select value={altitude} onChange={(event) => setAltitude(event.target.value)}>
+                  {availableAltitudeOptions.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Checkbox checked={seaside} onChange={setSeaside} label="Bord de mer (température fixée à -2 °C)" />
+              </div>
+            </div>
+            <div className="mt-4 text-sm font-medium">Température extérieure de base : {formatNumber(effectiveBaseTemperature, 0, " °C")}</div>
+          </Card>
+        )}
+
+        {step === 2 && (
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Projet</h2>
+              <SecondaryButton onClick={addZone} disabled={zones.length >= MAX_ZONES}>
+                Ajouter une zone
+              </SecondaryButton>
+            </div>
+            <div className="space-y-6">
+              {zones.map((zone, index) => (
+                <div key={index} className="border border-black/10 rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-sm">{zone.name}</h3>
+                    {zones.length > MIN_ZONES && (
+                      <button className="text-xs text-red-500" onClick={() => removeZone(index)}>
+                        Supprimer
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-medium">Surface (m²)</label>
+                      <Input value={zone.surface} onChange={(event) => updateZone(index, { surface: event.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Hauteur sous plafond (m)</label>
+                      <Input value={zone.height} onChange={(event) => updateZone(index, { height: event.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Température de fonctionnement (°C)</label>
+                      <Select value={zone.temperature} onChange={(event) => updateZone(index, { temperature: event.target.value as Zone["temperature"] })}>
+                        {TEMPERATURE_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-3 mt-3">
+                    <div>
+                      <label className="text-xs font-medium">Température ambiante (°C)</label>
+                      <Input value={zone.ambient} onChange={(event) => updateZone(index, { ambient: event.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Type d’isolation</label>
+                      <Select value={zone.insulation} onChange={(event) => updateZone(index, { insulation: event.target.value })}>
+                        {G_COEFFICIENTS.map((entry) => (
+                          <option key={entry.label} value={entry.label}>
+                            {entry.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Déperditions saisies (W)</label>
+                      <Input value={zone.manualLoss} onChange={(event) => updateZone(index, { manualLoss: event.target.value })} placeholder="Optionnel" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 text-sm font-semibold">Déperditions totales : {formatNumber(totalLossWatts, 0, " W")}</div>
+          </Card>
+        )}
+
+        {step === 3 && (
+          <Card>
+            <h2 className="text-xl font-semibold mb-4">Technologie</h2>
+            <div className="grid md:grid-cols-3 gap-3 mb-6">
+              <button
+                className={`rounded-xl border px-3 py-2 text-sm ${technology === "geothermie" ? "bg-black text-white" : "border-black/20"}`}
+                onClick={() => setTechnology("geothermie")}
+              >
+                Géothermie / Aquathermie
+              </button>
+              <button
+                className={`rounded-xl border px-3 py-2 text-sm ${technology === "airEau" ? "bg-black text-white" : "border-black/20"}`}
+                onClick={() => setTechnology("airEau")}
+              >
+                Pompe à chaleur Air/Eau
+              </button>
+              <button
+                className={`rounded-xl border px-3 py-2 text-sm ${technology === "airExtrait" ? "bg-black text-white" : "border-black/20"}`}
+                onClick={() => !disableAirExtrait && setTechnology("airExtrait")}
+                disabled={disableAirExtrait}
+              >
+                Pompe à chaleur sur air extrait
+              </button>
+            </div>
+            {technology === "geothermie" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Source</label>
+                  <Select value={geoSource} onChange={(event) => setGeoSource(event.target.value as GeoSource)}>
+                    <option value="geo0">Géothermie 0 °C</option>
+                    <option value="geo5">Géothermie 5 °C</option>
+                    <option value="aqua10">Aquathermie 10 °C</option>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Modèle</label>
+                  <Select value={geoModel} onChange={(event) => setGeoModel(event.target.value)}>
+                    <option value="">Sélectionner</option>
+                    {Object.keys(GEO_MODELS).map((key) => (
+                      <option key={key} value={key}>
+                        {GEO_MODELS[key].label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Nombre d’unités</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={9}
+                    value={geoUnits}
+                    onChange={(event) => setGeoUnits(clamp(Number(event.target.value), 1, 9))}
+                  />
+                </div>
+                <div className="text-sm text-neutral-600">Température de fonctionnement retenue : {highestWaterTemperatureKey} °C</div>
+              </div>
+            )}
+            {technology === "airEau" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Modèle</label>
+                  <Select value={airModel} onChange={(event) => setAirModel(event.target.value)}>
+                    <option value="">Sélectionner</option>
+                    {airModelOptions.map((key) => (
+                      <option key={key} value={key}>
+                        {AIR_MODELS[key].label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Nombre d’unités</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={8}
+                    value={airUnits}
+                    onChange={(event) => setAirUnits(clamp(Number(event.target.value), 1, 8))}
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-3 text-sm text-neutral-600">
+                  <div>Température extérieure de base : {formatNumber(effectiveBaseTemperature, 0, " °C")}</div>
+                  <div>Température de fonctionnement retenue : {highestWaterTemperatureKey} °C</div>
+                </div>
+              </div>
+            )}
+            {technology === "airExtrait" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Modèle</label>
+                  <Select value={extractModel} onChange={(event) => setExtractModel(event.target.value)}>
+                    <option value="">Sélectionner</option>
+                    {Object.keys(AIR_EXTRACT_MODELS).map((key) => (
+                      <option key={key} value={key}>
+                        {AIR_EXTRACT_MODELS[key].label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                {extractModel && (
+                  <div>
+                    <label className="text-sm font-medium">Débit de ventilation (m³/h)</label>
+                    <Select
+                      value={extractFlow === "" ? "" : extractFlow}
+                      onChange={(event) => setExtractFlow(event.target.value ? Number(event.target.value) : "")}
+                    >
+                      <option value="">Sélectionner</option>
+                      {AIR_EXTRACT_MODELS[extractModel].flows.map((flow) => (
+                        <option key={flow} value={flow}>
+                          {flow}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                )}
+                <div className="text-sm text-neutral-600">Température de fonctionnement retenue : {highestWaterTemperatureKey} °C</div>
+              </div>
+            )}
+          </Card>
+        )}
+
+        {step === 4 && (
+          <div className="print-page bg-white rounded-2xl border border-black/10 shadow-sm">
+            <div className="flex items-start justify-between">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s" alt="Logo" className="w-32" />
+              <div className="flex-1 text-center">
+                <h2 className="text-xl font-semibold tracking-wide">NOTE DE DIMENSIONNEMENT</h2>
+              </div>
+            </div>
+            <div className="mt-6 text-sm space-y-2">
+              <div className="font-semibold">Installateur</div>
+              <div>{company.name}</div>
+              {company.address && <div>{company.address}</div>}
+              {company.siret && <div>SIRET : {company.siret}</div>}
+            </div>
+            <div className="mt-4 text-sm space-y-2">
+              <div className="font-semibold">Bénéficiaire</div>
+              <div>{[beneficiary.firstName, beneficiary.lastName].filter(Boolean).join(" ")}</div>
+              {beneficiary.address && <div>{beneficiary.address}</div>}
+              {[beneficiary.postalCode, beneficiary.city].filter(Boolean).join(" ") && (
+                <div>{[beneficiary.postalCode, beneficiary.city].filter(Boolean).join(" ")}</div>
+              )}
+              {constructionYear && <div>Année de construction : {constructionYear}</div>}
+            </div>
+            <div className="mt-4 text-sm">
+              <div>Température extérieure de base : {formatNumber(effectiveBaseTemperature, 0, " °C")}</div>
+            </div>
+            <div className="mt-4">
+              <table className="w-full text-sm border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Surface chauffée</td>
+                    <td className="border border-black/10 px-3 py-2">{totalSurface.toFixed(1)} m²</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Répartition par température</td>
+                    <td className="border border-black/10 px-3 py-2 whitespace-pre-line">{printableSurfaceLines.join("\n") || "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Hauteur sous plafond moyenne</td>
+                    <td className="border border-black/10 px-3 py-2">{averageCeilingHeight ? `${averageCeilingHeight.toFixed(2)} m` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Température ambiante</td>
+                    <td className="border border-black/10 px-3 py-2">{highestAmbientTemperature ? `${highestAmbientTemperature.toFixed(0)} °C` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Température maximale de fonctionnement</td>
+                    <td className="border border-black/10 px-3 py-2">
+                      {highestZoneTemperature ? `${highestZoneTemperature.toFixed(0)} °C${highestZoneTemperature >= 65 ? " – Haute température" : ""}` : "-"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Déperditions calculées</td>
+                    <td className="border border-black/10 px-3 py-2">{totalLossKw.toFixed(2)} kW</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Modèle retenu</td>
+                    <td className="border border-black/10 px-3 py-2">{pacLabel || "-"}</td>
+                  </tr>
+                  {technology === "geothermie" && (
+                    <tr>
+                      <td className="border border-black/10 px-3 py-2 font-semibold">Température source</td>
+                      <td className="border border-black/10 px-3 py-2">{SOURCE_LABELS[geoSource]}</td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Température d’arrêt de la PAC NIBE</td>
+                    <td className="border border-black/10 px-3 py-2">{stopTemperature} °C</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Puissance PAC à température de base</td>
+                    <td className="border border-black/10 px-3 py-2">{pacPowerKw !== undefined ? `${pacPowerKw.toFixed(2)} kW` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Rapport puissance PAC / déperditions</td>
+                    <td className="border border-black/10 px-3 py-2">{ratioPercent !== undefined ? `${ratioPercent.toFixed(1)} %` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">Puissance d’appoint recommandée</td>
+                    <td className="border border-black/10 px-3 py-2">{backupPowerKw !== undefined ? `${Math.max(backupPowerKw, 0).toFixed(2)} kW` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold text-emerald-700">ETAS 35 °C</td>
+                    <td className="border border-black/10 px-3 py-2 text-emerald-700 font-semibold">{etasValues ? `${etasValues["35"]} %` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold text-emerald-700">ETAS 55 °C</td>
+                    <td className="border border-black/10 px-3 py-2 text-emerald-700 font-semibold">{etasValues ? `${etasValues["55"]} %` : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">60 % des déperditions</td>
+                    <td className="border border-black/10 px-3 py-2">{sixtyPercent.toFixed(2)} kW</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black/10 px-3 py-2 font-semibold">130 % des déperditions</td>
+                    <td className="border border-black/10 px-3 py-2">{oneThirtyPercent.toFixed(2)} kW</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 text-sm">
+              Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.
+            </div>
+            <div className="mt-2 text-sm text-neutral-700">
+              Température de fonctionnement retenue : {highestWaterTemperatureKey} °C
+            </div>
+            <div className="mt-6 text-xs text-neutral-500">
+              Informations données à titre informatif, vérifier les notices, réglementations en vigueur et régimes de fonctionnement.
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center pt-4 border-t border-black/10 no-print">
+          {step > 0 ? <SecondaryButton onClick={goPrevious}>Précédent</SecondaryButton> : <span />}
+          {step < steps.length - 1 && <StepButton onClick={goNext}>Suivant</StepButton>}
+        </div>
+      </div>
     </div>
   );
 }
+
