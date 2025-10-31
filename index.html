@@ -347,6 +347,21 @@
                 display: none !important;
             }
         }
+
+        /* Style the print button in the final step to match other navigation buttons */
+        .final-step button {
+            padding: 8px 16px;
+            font-size: 15px;
+            margin: 0 8px 0 0;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
     
         /* Overrides to improve spacing and alignment */
         #step1 label, #step2 label {
@@ -528,6 +543,8 @@
             </div>
             <!-- Additional information for geothermal and aquathermal selections will be inserted here.  -->
             <div id="extraInfo" class="summary-item hidden" style="margin-top:8px;"></div>
+            <!-- Renewal rate information for air extract selections; shown only on step 4 and not included in the final report -->
+            <div id="renewalInfo" class="summary-item hidden" style="margin-top:8px;"></div>
         </div>
         </div>
         <!-- Step 5 (Final) -->
@@ -1126,6 +1143,10 @@
         // Application state
         let currentStep = 1;
         let zones = [];
+        // Flag to indicate whether the user has manually selected an air-extract flow rate.  When false, a
+        // default flow will be selected based on 0.5 volume/hour of the total heated volume.  This flag
+        // is reset whenever new flows are loaded or when returning to the air-extract selection step.
+        let airExtrFlowManuallySelected = false;
         let finalBaseTemp = null;
 
         function showStep(step) {
@@ -1152,6 +1173,16 @@
             const headerElem = document.querySelector('.header');
             if (headerElem) {
                 headerElem.style.display = (step === 5) ? 'none' : 'flex';
+            }
+            // Whenever step 4 is displayed, recompute the technology summary
+            // This ensures that any changes made in the previous step (zones) are reflected immediately.
+            if (step === 4) {
+                const techSel = document.getElementById('technologySelect').value;
+                // If air-extract technology is selected, reset the manual flow selection so the default can be recalculated
+                if (techSel === 'airextr') {
+                    airExtrFlowManuallySelected = false;
+                }
+                computeTechnology();
             }
         }
         function nextStep() {
@@ -1437,13 +1468,31 @@
             const flowSelect = document.getElementById('airExtrFlow');
             flowSelect.innerHTML = '';
             if (!model) return;
-            const flows = Object.keys(airExtractData[model]);
+            // Sort flows numerically ascending
+            const flows = Object.keys(airExtractData[model]).map(f => parseFloat(f)).sort((a,b) => a - b);
             flows.forEach(f => {
                 const opt = document.createElement('option');
-                opt.value = f;
-                opt.textContent = f;
+                opt.value = f.toString();
+                opt.textContent = f.toString();
                 flowSelect.appendChild(opt);
             });
+            // Compute the total heated volume and select the nearest flow that achieves 0.5 volume/hour
+            const totalVolume = zones.reduce((sum, z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
+            // Target flow is half the volume per hour
+            const targetFlow = totalVolume * 0.5;
+            let defaultFlow = flows[0];
+            for (let i = 0; i < flows.length; i++) {
+                if (flows[i] >= targetFlow) {
+                    defaultFlow = flows[i];
+                    break;
+                }
+            }
+            // Set the default flow if available
+            flowSelect.value = defaultFlow.toString();
+            // Reset the manual selection flag so the default can be recomputed if volumes change
+            airExtrFlowManuallySelected = false;
+            // Immediately compute technology summary to reflect the default flow
+            computeTechnology();
         }
         function computeTechnology() {
             const tech = document.getElementById('technologySelect').value;
@@ -1525,8 +1574,23 @@
             }
             if (tech === 'airextr') {
                 const model = document.getElementById('airExtrModel').value;
-                const flow = document.getElementById('airExtrFlow').value;
+                let flow = document.getElementById('airExtrFlow').value;
                 const data = airExtractData[model];
+                // If the user has not manually selected a flow, recompute the default based on 0.5 volume/hour
+                if (!airExtrFlowManuallySelected) {
+                    const flowsSorted = Object.keys(data).map(f => parseFloat(f)).sort((a,b) => a - b);
+                    const totalVolume = zones.reduce((sum,z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
+                    const targetFlow = totalVolume * 0.5;
+                    let bestFlow = flowsSorted[0];
+                    for (let i=0; i<flowsSorted.length; i++) {
+                        if (flowsSorted[i] >= targetFlow) {
+                            bestFlow = flowsSorted[i];
+                            break;
+                        }
+                    }
+                    flow = bestFlow.toString();
+                    document.getElementById('airExtrFlow').value = flow;
+                }
                 if (data && data[flow]) {
                     capacity = data[flow][heatingKey] || 0;
                 }
@@ -1534,6 +1598,30 @@
                 if (etasMap[model]) {
                     etas35 = etasMap[model]['35'];
                     etas55 = etasMap[model]['55'];
+                }
+                // Compute the renewal rate (volumes/hour) and update the summary display
+                const renewalDiv = document.getElementById('renewalInfo');
+                if (renewalDiv) {
+                    const totalVolume = zones.reduce((sum,z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
+                    const flowVal = parseFloat(flow);
+                    let renewal = 0;
+                    if (totalVolume > 0) {
+                        renewal = flowVal / totalVolume;
+                    }
+                    // Display the renewal rate with two decimal places and apply a colour based on quality thresholds.
+                    // colour coding: <0.3 -> red (qualité médiocre); 0.3-0.55 -> green (bonne); 0.55-0.70 -> orange (renouvellement élevé); >=0.70 -> red (surventilation)
+                    let colour = '';
+                    if (renewal < 0.30) {
+                        colour = 'red';
+                    } else if (renewal < 0.55) {
+                        colour = 'green';
+                    } else if (renewal < 0.70) {
+                        colour = 'orange';
+                    } else {
+                        colour = 'red';
+                    }
+                    renewalDiv.innerHTML = '<strong>Renouvellement d\'air</strong><br><span style="color:' + colour + ';">' + renewal.toFixed(2) + ' volume/heure</span>';
+                    renewalDiv.classList.remove('hidden');
                 }
             }
             const ratio = totalLoss > 0 ? (capacity / totalLoss * 100) : 0;
@@ -1574,6 +1662,14 @@
                 } else {
                     extraDiv.innerHTML = '';
                     extraDiv.classList.add('hidden');
+                }
+            }
+            // If the technology is not air extract, hide the renewal rate info
+            if (tech !== 'airextr') {
+                const renewalDiv = document.getElementById('renewalInfo');
+                if (renewalDiv) {
+                    renewalDiv.innerHTML = '';
+                    renewalDiv.classList.add('hidden');
                 }
             }
             // store for final report; include a flag if capacity has been limited to match total loss and attach the extra information
@@ -1629,7 +1725,7 @@
                         <tr><td>Hauteur sous plafond moyenne</td><td>${avgHeight} m</td></tr>
                         <tr><td>Température ambiante</td><td>${maxAmbient} °C</td></tr>
                         <tr><td>Température de fonctionnement maximale</td><td>${maxHeating} °C${(parseInt(maxHeating)>=65?' (Haute température)':'')}</td></tr>
-                        <tr><td>Déperditions calculées</td><td>${totalLoss} kW</td></tr>
+                        <tr><td style="font-weight:bold;">Déperditions calculées</td><td style="font-weight:bold;">${totalLoss} kW</td></tr>
                     </table>`;
             // PAC selected
             let pacDesc = '';
@@ -1673,19 +1769,16 @@
             // Build PAC description and power rows
             html += `<table style="width:100%; margin-bottom:8px;">
                         <tr><th colspan="2">Pompe à chaleur</th></tr>
-                        <tr><td>Modèle choisi</td><td>${pacDesc}</td></tr>
-                        <tr><td>
-                            <!-- The PAC power label always includes the base temperature -->
-                            Puissance PAC à ${finalBaseTemp}&nbsp;°C
-                        </td><td>${pac.capacity.toFixed(2)} kW</td></tr>
+                        <tr><td><strong style="color:#d62728;">Modèle choisi</strong></td><td><strong style="color:#d62728;">${pacDesc}</strong></td></tr>
+                        <tr><td style="font-weight:bold;">Puissance PAC à ${finalBaseTemp}&nbsp;°C</td><td style="font-weight:bold;">${pac.capacity.toFixed(2)} kW</td></tr>
                         <tr><td>Rapport puissance / déperditions</td><td>${pac.ratio.toFixed(1)} %</td></tr>
                         <tr><td>Puissance d'appoint recommandée</td><td>${pac.backup.toFixed(2)} kW</td></tr>
                         <tr><td>Modèle et classe du régulateur</td><td>${regulatorClass}</td></tr>
                         <!-- Insert additional geothermal/aquathermal information when applicable -->
                         ${pac.extra && pac.extra.type === 'sonde' ? `<tr><td>Longueur de sondes géothermiques estimée</td><td>${pac.extra.value}</td></tr>` : ''}
                         ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>Débit d’eau de nappe</td><td>${pac.extra.value}</td></tr>` : ''}
-                        <tr><td>ETAS 35°C</td><td style="color:#006400; font-weight:bold;">${pac.etas35} %</td></tr>
-                        <tr><td>ETAS 55°C</td><td style="color:#006400; font-weight:bold;">${pac.etas55} %</td></tr>
+                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS 35°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${pac.etas35} %</strong></td></tr>
+                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS 55°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${pac.etas55} %</strong></td></tr>
                         <tr><td>60% des déperditions</td><td>${(parseFloat(totalLoss)*0.60).toFixed(2)} kW</td></tr>
                         <tr><td>130% des déperditions</td><td>${(parseFloat(totalLoss)*1.30).toFixed(2)} kW</td></tr>
                         <tr><td>Température d'arrêt PAC NIBE</td><td>`;
@@ -1704,8 +1797,11 @@
             }
             html += `${cutoff}</td></tr>`;
             html += `</table>`;
-            html += `<p style="font-size:10px;">Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.</p>`;
-            html += `<p style="font-size:10px;">Informations données à titre informatif, vérifier les notices, réglementations en vigueur et régimes de fonctionnement.</p>`;
+            html += `<p style="font-size:8px;">Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.</p>`;
+            // Replace the generic informational disclaimer with a more comprehensive set of reserves, as requested.
+            html += `<p style="font-size:8px;">Les informations et estimations fournies dans cette note de dimensionnement sont données à titre indicatif. Elles sont basées sur les renseignements communiqués et n’ont qu’une valeur approximative. Elles doivent être vérifiées et complétées en consultant les notices des fabricants, la réglementation en vigueur et les régimes de fonctionnement applicables. Un bureau d’étude ou un professionnel qualifié devra confirmer ces données, procéder aux ajustements nécessaires et émettre les réserves d’usage.</p>`;
+            // Mention the official site nibe.fr instead of the previous tool URL
+            html += `<p style="font-size:10px;">nibe.fr</p>`;
             reportDiv.innerHTML = html;
         }
         // Initialize
@@ -1718,7 +1814,11 @@
         document.getElementById('airEauModel').addEventListener('change', function(){ computeTechnology(); });
         document.getElementById('airEauUnits').addEventListener('input', function(){ computeTechnology(); });
         document.getElementById('airExtrModel').addEventListener('change', function(){ computeTechnology(); });
-        document.getElementById('airExtrFlow').addEventListener('change', function(){ computeTechnology(); });
+        document.getElementById('airExtrFlow').addEventListener('change', function(){
+            // Mark that the user has manually selected a flow, so subsequent volume changes won't override it
+            airExtrFlowManuallySelected = true;
+            computeTechnology();
+        });
     </script>
 </body>
 </html>
