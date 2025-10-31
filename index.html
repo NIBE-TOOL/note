@@ -1649,9 +1649,15 @@
                     if (lengthVal < 50) lengthVal = 50;
                     extraInfo = { type: 'sonde', value: lengthVal.toFixed(0) + ' m' };
                 } else if (typeValGeo === '10') {
+                    // Aquathermal case: compute flow rate.  Multiply base flow by the number of units.
                     const modelValGeo = document.getElementById('geoModel').value;
+                    const unitsValGeo = parseInt(document.getElementById('geoUnits').value) || 1;
                     if (aquathermFlowMap[modelValGeo] !== undefined) {
-                        extraInfo = { type: 'flow', value: aquathermFlowMap[modelValGeo].toFixed(1) + ' m³/h' };
+                        const baseFlow = aquathermFlowMap[modelValGeo];
+                        const totalFlow = baseFlow * unitsValGeo;
+                        const isTotal = unitsValGeo > 1;
+                        // Store both base and total for use in summary and final report.
+                        extraInfo = { type: 'flow', base: baseFlow.toFixed(1), total: totalFlow.toFixed(1), units: unitsValGeo, isTotal: isTotal };
                     }
                 }
             }
@@ -1663,7 +1669,12 @@
                     if (extraInfo.type === 'sonde') {
                         extraDiv.innerHTML = '<strong>Longueur de sondes géothermiques estimée :</strong> ' + extraInfo.value;
                     } else if (extraInfo.type === 'flow') {
-                        extraDiv.innerHTML = '<strong>Débit d’eau de nappe :</strong> ' + extraInfo.value;
+                        // For aquathermie, display total flow when multiple units are selected.  Otherwise display the per-unit flow.
+                        if (extraInfo.isTotal) {
+                            extraDiv.innerHTML = '<strong>Débit total d\u2019eau de nappe :</strong> ' + extraInfo.total + ' m³/h';
+                        } else {
+                            extraDiv.innerHTML = '<strong>Débit d\u2019eau de nappe :</strong> ' + extraInfo.base + ' m³/h';
+                        }
                     }
                     extraDiv.classList.remove('hidden');
                 } else {
@@ -1783,7 +1794,7 @@
                         <tr><td>Modèle et classe du régulateur</td><td>${regulatorClass}</td></tr>
                         <!-- Insert additional geothermal/aquathermal information when applicable -->
                         ${pac.extra && pac.extra.type === 'sonde' ? `<tr><td>Longueur de sondes géothermiques estimée</td><td>${pac.extra.value}</td></tr>` : ''}
-                        ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>Débit d’eau de nappe</td><td>${pac.extra.value}</td></tr>` : ''}
+                        ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>${pac.extra.isTotal ? 'Débit total d\u2019eau de nappe' : 'Débit d\u2019eau de nappe'}</td><td>${pac.extra.isTotal ? pac.extra.total : pac.extra.base} m³/h</td></tr>` : ''}
                         <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS 35°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${pac.etas35} %</strong></td></tr>
                         <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS 55°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${pac.etas55} %</strong></td></tr>
                         <tr><td>60% des déperditions</td><td>${(parseFloat(totalLoss)*0.60).toFixed(2)} kW</td></tr>
