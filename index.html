@@ -526,6 +526,8 @@
                 <div class="summary-item"><strong>Rapport</strong><br><span id="powerRatio"></span> %</div>
                 <div class="summary-item"><strong>Appoint recommandé</strong><br><span id="backupPower"></span> kW</div>
             </div>
+            <!-- Additional information for geothermal and aquathermal selections will be inserted here.  -->
+            <div id="extraInfo" class="summary-item hidden" style="margin-top:8px;"></div>
         </div>
         </div>
         <!-- Step 5 (Final) -->
@@ -1078,6 +1080,8 @@
             'F1355-43':{ '35': 194, '55': 154 },
             // Aquathermie
             'F1353-4':{ '35': 272, '55': 210 },
+            // Ajout de l'ETAS pour le modèle F1153-4 à 10°C conformément aux spécifications utilisateur
+            'F1153-4-10':{ '35': 272, '55': 210 },
             'F1153-6-10':{ '35': 270, '55': 214 },
             'F1253-4-10':{ '35': 272, '55': 210 },
             'F1253-6-10':{ '35': 270, '55': 214 },
@@ -1094,6 +1098,29 @@
             'F1345-60-10':{ '35': 212, '55': 166 },
             'F1355-28-10':{ '35': 244, '55': 190 },
             'F1355-43-10':{ '35': 246, '55': 196 }
+        };
+
+        // Water flow rates for aquathermal models (m³/h).  These values are used when the technology is
+        // "Géothermie / Aquathermie" and the type selected is Aquathermie 10°C.  The keys correspond to
+        // the base model names (without any "-10" suffix) and the values are the required water flow rates.
+        const aquathermFlowMap = {
+            'F1153-4': 1.0,
+            'F1253-4': 1.0,
+            'F1153-6': 1.1,
+            'F1253-6': 1.1,
+            'S1156-8': 1.3,
+            'S1256-8': 1.3,
+            'S1156-13': 3.1,
+            'S1256-13': 3.1,
+            'S1156-18': 4.2,
+            'S1256-18': 4.2,
+            'S1155-25': 6.1,
+            'F1355-28': 6.1,
+            'F1355-43': 8.0,
+            'F1345-24': 4.7,
+            'F1345-30': 6.1,
+            'F1345-40': 7.6,
+            'F1345-60': 11.9
         };
 
         // Application state
@@ -1450,13 +1477,14 @@
                 }
                 capacity *= units;
                 // ETAS lookup
+                // Prioritise the key (e.g. appended "-10" for aquathermie) over the base model name
                 const etasKey = model;
-                if (etasMap[etasKey]) {
-                    etas35 = etasMap[etasKey]['35'];
-                    etas55 = etasMap[etasKey]['55'];
-                } else if (etasMap[key]) {
+                if (etasMap[key]) {
                     etas35 = etasMap[key]['35'];
                     etas55 = etasMap[key]['55'];
+                } else if (etasMap[etasKey]) {
+                    etas35 = etasMap[etasKey]['35'];
+                    etas55 = etasMap[etasKey]['55'];
                 }
                 // Special rule: if only one unit and model is F1153, F1253, S1156-8 or S1256-8 and capacity exceeds totalLoss, cap at totalLoss
                 const baseModel = model.split('-')[0];
@@ -1516,8 +1544,40 @@
             document.getElementById('powerRatio').textContent = ratio.toFixed(1);
             document.getElementById('backupPower').textContent = backup.toFixed(2);
             document.getElementById('techSummary').classList.remove('hidden');
-            // store for final report; include a flag if capacity has been limited to match total loss
-            window.finalPac = { tech: tech, capacity: capacity, ratio: ratio, backup: backup, etas35: etas35, etas55: etas55, units: units, limited: (capacity === totalLoss && totalLoss > 0) };
+            // compute additional information for geothermal and aquathermal cases
+            let extraInfo = null;
+            if (tech === 'geothermie') {
+                const typeValGeo = document.getElementById('geoType').value;
+                if (typeValGeo === '0' || typeValGeo === '5') {
+                    // Estimate the length of geothermal probes: 0.014 m per watt (14 m per kW).  Minimum 50 m.
+                    let lengthVal = totalLoss * 1000 * 0.014;
+                    if (lengthVal < 50) lengthVal = 50;
+                    extraInfo = { type: 'sonde', value: lengthVal.toFixed(0) + ' m' };
+                } else if (typeValGeo === '10') {
+                    const modelValGeo = document.getElementById('geoModel').value;
+                    if (aquathermFlowMap[modelValGeo] !== undefined) {
+                        extraInfo = { type: 'flow', value: aquathermFlowMap[modelValGeo].toFixed(1) + ' m³/h' };
+                    }
+                }
+            }
+            // Update the extra info section in the technology summary (step 4)
+            const extraDiv = document.getElementById('extraInfo');
+            if (extraDiv) {
+                if (extraInfo) {
+                    // Prefix the label with a colon for clarity.  Display the value on the same line.
+                    if (extraInfo.type === 'sonde') {
+                        extraDiv.innerHTML = '<strong>Longueur de sondes géothermiques estimée :</strong> ' + extraInfo.value;
+                    } else if (extraInfo.type === 'flow') {
+                        extraDiv.innerHTML = '<strong>Débit d’eau de nappe :</strong> ' + extraInfo.value;
+                    }
+                    extraDiv.classList.remove('hidden');
+                } else {
+                    extraDiv.innerHTML = '';
+                    extraDiv.classList.add('hidden');
+                }
+            }
+            // store for final report; include a flag if capacity has been limited to match total loss and attach the extra information
+            window.finalPac = { tech: tech, capacity: capacity, ratio: ratio, backup: backup, etas35: etas35, etas55: etas55, units: units, limited: (capacity === totalLoss && totalLoss > 0), extra: extraInfo };
         }
         // Build final report
         function buildFinalReport() {
@@ -1621,6 +1681,9 @@
                         <tr><td>Rapport puissance / déperditions</td><td>${pac.ratio.toFixed(1)} %</td></tr>
                         <tr><td>Puissance d'appoint recommandée</td><td>${pac.backup.toFixed(2)} kW</td></tr>
                         <tr><td>Modèle et classe du régulateur</td><td>${regulatorClass}</td></tr>
+                        <!-- Insert additional geothermal/aquathermal information when applicable -->
+                        ${pac.extra && pac.extra.type === 'sonde' ? `<tr><td>Longueur de sondes géothermiques estimée</td><td>${pac.extra.value}</td></tr>` : ''}
+                        ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>Débit d’eau de nappe</td><td>${pac.extra.value}</td></tr>` : ''}
                         <tr><td>ETAS 35°C</td><td style="color:#006400; font-weight:bold;">${pac.etas35} %</td></tr>
                         <tr><td>ETAS 55°C</td><td style="color:#006400; font-weight:bold;">${pac.etas55} %</td></tr>
                         <tr><td>60% des déperditions</td><td>${(parseFloat(totalLoss)*0.60).toFixed(2)} kW</td></tr>
