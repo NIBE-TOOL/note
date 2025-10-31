@@ -119,6 +119,12 @@
             font-size: 15px;
         }
 
+        /* Add some space above the first table in the final report
+           so that there's a white space between the title and the first table */
+        .final-step table:first-of-type {
+            margin-top: 12px;
+        }
+
         /* Table used in technology summary */
         .tech-summary-table {
             width: 100%;
@@ -323,8 +329,9 @@
                 font-size: 11px;
             }
             @page {
+                /* Use zero margins in print to minimize browser-added header/footer */
                 size: A4 portrait;
-                margin: 10mm;
+                margin: 0;
             }
             /* Hide navigation and intermediate steps when printing */
             .navigation, .step:not(.final-step) {
@@ -1707,19 +1714,19 @@
                         <div style="flex:1; text-align:center; font-weight:bold; font-size:20px;">NOTE DE DIMENSIONNEMENT</div>
                     </div>`;
             html += `<table style="width:100%; margin-bottom:8px;">
-                        <tr><th colspan="2">Installateur</th></tr>
+                        <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Installateur</th></tr>
                         <tr><td>Entreprise</td><td>${companyName}</td></tr>
                         <tr><td>Adresse</td><td>${companyAddress}</td></tr>
                         <tr><td>SIRET</td><td>${companySiret}</td></tr>
                     </table>`;
             html += `<table style="width:100%; margin-bottom:8px;">
-                        <tr><th colspan="2">Bénéficiaire</th></tr>
+                        <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Bénéficiaire</th></tr>
                         <tr><td>Nom</td><td>${benefFN} ${benefLN}</td></tr>
                         <tr><td>Adresse</td><td>${benefAddr}, ${benefPC} ${benefCity}</td></tr>
                         <tr><td>Année de construction</td><td>${year}</td></tr>
                     </table>`;
             html += `<table style="width:100%; margin-bottom:8px;">
-                        <tr><th colspan="2">Données de base</th></tr>
+                        <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Données de base</th></tr>
                         <tr><td>Température extérieure de base</td><td>${finalBaseTemp} °C</td></tr>
                         <tr><td>Surface chauffée</td><td>${surfacesLines.join('<br>')}</td></tr>
                         <tr><td>Hauteur sous plafond moyenne</td><td>${avgHeight} m</td></tr>
@@ -1768,7 +1775,7 @@
             }
             // Build PAC description and power rows
             html += `<table style="width:100%; margin-bottom:8px;">
-                        <tr><th colspan="2">Pompe à chaleur</th></tr>
+                        <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Pompe à chaleur</th></tr>
                         <tr><td><strong style="color:#d62728;">Modèle choisi</strong></td><td><strong style="color:#d62728;">${pacDesc}</strong></td></tr>
                         <tr><td style="font-weight:bold;">Puissance PAC à ${finalBaseTemp}&nbsp;°C</td><td style="font-weight:bold;">${pac.capacity.toFixed(2)} kW</td></tr>
                         <tr><td>Rapport puissance / déperditions</td><td>${pac.ratio.toFixed(1)} %</td></tr>
@@ -1800,8 +1807,8 @@
             html += `<p style="font-size:8px;">Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.</p>`;
             // Replace the generic informational disclaimer with a more comprehensive set of reserves, as requested.
             html += `<p style="font-size:8px;">Les informations et estimations fournies dans cette note de dimensionnement sont données à titre indicatif. Elles sont basées sur les renseignements communiqués et n’ont qu’une valeur approximative. Elles doivent être vérifiées et complétées en consultant les notices des fabricants, la réglementation en vigueur et les régimes de fonctionnement applicables. Un bureau d’étude ou un professionnel qualifié devra confirmer ces données, procéder aux ajustements nécessaires et émettre les réserves d’usage.</p>`;
-            // Mention the official site nibe.fr instead of the previous tool URL
-            html += `<p style="font-size:10px;">nibe.fr</p>`;
+            // Remove the external URL footer in the final report
+            // html += `<p style="font-size:10px;">nibe.fr</p>`;
             reportDiv.innerHTML = html;
         }
         // Initialize
