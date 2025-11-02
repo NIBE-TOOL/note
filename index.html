@@ -1193,18 +1193,37 @@
             }
         }
         function nextStep() {
+            // Step 1: no mandatory fields – allow proceeding even if fields are empty.
             if (currentStep === 1) {
-                // Validate company info
-                if (!document.getElementById('companyName').value) { alert("Veuillez saisir le nom de l'entreprise."); return; }
+                // No validation needed for installer information.
             }
+            // Step 2: ensure the beneficiary postal code is provided before moving forward
             if (currentStep === 2) {
-                // compute base temp
+                const postal = document.getElementById('beneficiaryPostalCode').value.trim();
+                if (!postal) {
+                    alert("Veuillez saisir le code postal du bénéficiaire.");
+                    return;
+                }
+                // Compute the base temperature once a postal code is available
                 computeBaseTemp();
             }
+            // Step 3: require at least one zone with a non-empty, positive surface
             if (currentStep === 3) {
                 updateProjectSummary();
+                // A zone is considered valid if it has a positive surface area OR a manual heat loss value
+                const hasZone = zones.some(z => (parseFloat(z.area) > 0) || (z.manual && parseFloat(z.manualValue) > 0));
+                if (!hasZone) {
+                    alert("Veuillez ajouter une zone avec une surface renseignée (supérieure à zéro) ou saisir manuellement les déperditions.");
+                    return;
+                }
             }
+            // Step 4: require the user to select a technology (and implicitly a model)
             if (currentStep === 4) {
+                const techSel = document.getElementById('technologySelect').value;
+                if (!techSel) {
+                    alert("Veuillez sélectionner une technologie et un modèle de PAC.");
+                    return;
+                }
                 computeTechnology();
                 buildFinalReport();
             }
