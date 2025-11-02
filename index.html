@@ -1416,14 +1416,26 @@
             document.getElementById('airExtrOptions').classList.add('hidden');
             document.getElementById('techSummary').classList.add('hidden');
             if (tech === 'geothermie') {
-                loadGeoModels();
+                // Show geothermie options and load models
+                // Always display geothermie options first so that default selection can be applied
                 document.getElementById('geoOptions').classList.remove('hidden');
+                loadGeoModels();
+                // Preselect defaults for geothermie (type, model, units) based on heat losses
+                selectDefaultModel('geothermie');
             } else if (tech === 'aireau') {
-                loadAirEauModels();
                 document.getElementById('airEauOptions').classList.remove('hidden');
+                loadAirEauModels();
+                // Preselect defaults for air/eau based on heat losses and temperatures
+                selectDefaultModel('aireau');
             } else if (tech === 'airextr') {
-                loadAirExtrModels();
                 document.getElementById('airExtrOptions').classList.remove('hidden');
+                loadAirExtrModels();
+                // Preselect defaults for air extract (model and flow) based on volume
+                selectDefaultModel('airextr');
+            }
+            // After setting defaults for the selected technology, recompute the technology summary
+            if (tech) {
+                computeTechnology();
             }
         }
         function loadGeoModels() {
@@ -1711,6 +1723,128 @@
             }
             // store for final report; include a flag if capacity has been limited to match total loss and attach the extra information
             window.finalPac = { tech: tech, capacity: capacity, ratio: ratio, backup: backup, etas35: etas35, etas55: etas55, units: units, limited: (capacity === totalLoss && totalLoss > 0), extra: extraInfo };
+        }
+
+        // Helper to compute capacity for air/eau models.  Looks up the correct entry based on
+        // the exterior temperature and heating key, mirroring the logic in computeTechnology().
+        function getAirEauCapacity(dataArr, ext, heatingKey) {
+            if (!dataArr || dataArr.length === 0) return 0;
+            // Find exact match for exterior temperature
+            let entry = dataArr.find(e => e.ext === ext);
+            if (!entry) {
+                // Sort descending by ext so we can find nearest lower ext
+                const sorted = dataArr.slice().sort((a,b) => b.ext - a.ext);
+                for (let i=0; i<sorted.length; i++) {
+                    if (sorted[i].ext <= ext) {
+                        entry = sorted[i];
+                        break;
+                    }
+                }
+                if (!entry) {
+                    entry = sorted[sorted.length - 1];
+                }
+            }
+            return entry[heatingKey] || 0;
+        }
+
+        // Select default model and unit count for the chosen technology based on the total heat loss and
+        // maximum heating temperature.  Applies special rules for air-eau 65°C, air-extract, and
+        // geothermie defaults.
+        function selectDefaultModel(tech) {
+            // Ensure the project summary is up to date so totalLoss is populated
+            updateProjectSummary();
+            const totalLoss = parseFloat(document.getElementById('totalLoss').textContent) || 0;
+            if (!(totalLoss > 0)) {
+                // Without a computed heat loss, there is no sensible default
+                return;
+            }
+            // Determine the maximum zone heating and corresponding heating key
+            const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+            const heatingKey = (heatingMax >= 65) ? '55' : (heatingMax >= 55 ? '55' : (heatingMax >= 45 ? '45' : '35'));
+
+            if (tech === 'geothermie') {
+                // For geothermie, default to type 5°C and select a model covering 70-90% of totalLoss
+                const geoTypeElem = document.getElementById('geoType');
+                // Set default type to 5°C
+                geoTypeElem.value = '5';
+                // Reload models for the 5°C type
+                loadGeoModels();
+                const modelSelect = document.getElementById('geoModel');
+                const models = Array.from(modelSelect.options).map(o => o.value);
+                let chosen = null;
+                // Find the first model whose capacity ratio is within 70-90%
+                for (let i=0; i<models.length; i++) {
+                    const m = models[i];
+                    const data = geoData[m];
+                    if (!data) continue;
+                    let tempKey = '5';
+                    // Fallback to the first available temperature key if 5°C is absent for this model
+                    if (!data[tempKey]) {
+                        tempKey = Object.keys(data)[0];
+                    }
+                    const hTemps = data[tempKey];
+                    const cap = (hTemps && hTemps[heatingKey]) ? hTemps[heatingKey] : 0;
+                    const ratio = cap / totalLoss;
+                    if (ratio >= 0.70 && ratio <= 0.90) {
+                        chosen = m;
+                        break;
+                    }
+                }
+                if (!chosen) {
+                    // Fallback to the largest geothermal model F1345-60 if no model meets the ratio criterion
+                    chosen = 'F1345-60';
+                }
+                modelSelect.value = chosen;
+                document.getElementById('geoUnits').value = '1';
+            } else if (tech === 'aireau') {
+                // For all heating temperatures, preselect among the S2125 range the model whose capacity
+                // covers 65–75% of the total heat loss.  If none qualifies (all are too weak), select
+                // the largest S2125-20.  This rule applies regardless of the maximum zone temperature.
+                const modelSelect = document.getElementById('airEauModel');
+                const models = Array.from(modelSelect.options).map(o => o.value);
+                // Filter to S2125 models only
+                const sModels = models.filter(m => m.startsWith('S2125'));
+                let chosen = null;
+                // Look for a model in the S2125 range whose capacity ratio falls between 0.65 and 0.75
+                for (let i=0; i<sModels.length; i++) {
+                    const m = sModels[i];
+                    const dataArr = airEauData[m];
+                    if (!dataArr) continue;
+                    const cap = getAirEauCapacity(dataArr, finalBaseTemp, heatingKey);
+                    const ratio = cap / totalLoss;
+                    if (ratio >= 0.65 && ratio <= 0.75) {
+                        chosen = m;
+                        break;
+                    }
+                }
+                if (!chosen) {
+                    // Fallback to the largest S2125 variant when no model satisfies the ratio criterion
+                    chosen = 'S2125-20';
+                }
+                // If the chosen model is not actually available (e.g. filtered out due to 65°C restrictions),
+                // fallback to the first available model in the options list.
+                if (!models.includes(chosen)) {
+                    chosen = models.length > 0 ? models[0] : '';
+                }
+                modelSelect.value = chosen;
+                document.getElementById('airEauUnits').value = '1';
+            } else if (tech === 'airextr') {
+                // For air-extract, select S735-4 if the target flow (0.5 volume/hour) is below 90 m³/h, otherwise S735-7
+                const totalVolume = zones.reduce((sum,z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
+                const targetFlow = totalVolume * 0.5;
+                let defaultModel = (targetFlow < 90 ? 'S735-4' : 'S735-7');
+                const modelSelect = document.getElementById('airExtrModel');
+                const available = Array.from(modelSelect.options).map(o => o.value);
+                if (!available.includes(defaultModel)) {
+                    // Fallback to the first available model if our default is not present
+                    defaultModel = available.length > 0 ? available[0] : '';
+                }
+                if (defaultModel) {
+                    modelSelect.value = defaultModel;
+                    // After setting the model, reload flows to compute the default flow for this model
+                    loadAirExtrFlows();
+                }
+            }
         }
         // Build final report
         function buildFinalReport() {
