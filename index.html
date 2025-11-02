@@ -1476,8 +1476,13 @@
                 select.appendChild(opt);
             });
         }
-        document.getElementById('geoType').addEventListener('change', function(){ loadGeoModels(); });
-        document.getElementById('geoType').addEventListener('change', function(){ computeTechnology(); });
+        // When the geothermal type changes, reload available models, pick a new default based on the selected type, then recompute
+        document.getElementById('geoType').addEventListener('change', function(){
+            loadGeoModels();
+            // Re-select default model based on current type without forcing type change
+            selectDefaultModel('geothermie', false);
+            computeTechnology();
+        });
         function loadAirEauModels() {
             const select = document.getElementById('airEauModel');
             select.innerHTML = '';
@@ -1768,7 +1773,7 @@
         // Select default model and unit count for the chosen technology based on the total heat loss and
         // maximum heating temperature.  Applies special rules for air-eau 65°C, air-extract, and
         // geothermie defaults.
-        function selectDefaultModel(tech) {
+        function selectDefaultModel(tech, overrideType = true) {
             // Ensure the project summary is up to date so totalLoss is populated
             updateProjectSummary();
             const totalLoss = parseFloat(document.getElementById('totalLoss').textContent) || 0;
@@ -1784,58 +1789,151 @@
             const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
             const heatingKey = (heatingMax >= 65) ? '55' : (heatingMax >= 55 ? '55' : (heatingMax >= 45 ? '45' : '35'));
 
+            // Helper to compute ratio bounds
+            const getRatioBounds = (tech) => {
+                if (tech === 'aireau') {
+                    return { min: 0.65, max: 0.75, limit: 8 };
+                }
+                // Geothermal/Aquathermal
+                return { min: 0.70, max: 0.90, limit: 9 };
+            };
+
             if (tech === 'geothermie') {
-                // Default type 5°C
                 const geoTypeElem = document.getElementById('geoType');
-                geoTypeElem.value = '5';
+                // If overrideType is requested (initial load), force 5°C; otherwise use current selection
+                if (overrideType) {
+                    geoTypeElem.value = '5';
+                }
+                // Load models for current type
                 loadGeoModels();
+                const typeVal = document.getElementById('geoType').value;
                 const modelSelect = document.getElementById('geoModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
-                let chosen = null;
-                let minDiff = Infinity;
+                if (models.length === 0) return;
+                // Build a map of capacities per model for the selected type
+                const caps = {};
+                let maxCap = 0;
                 models.forEach(m => {
-                    const data = geoData[m];
+                    let key = m;
+                    // For aquathermal type 10, use -10 suffix if available
+                    if (typeVal === '10' && !m.includes('-10') && m !== 'F1353-4') {
+                        key = m + '-10';
+                    }
+                    const data = geoData[key];
                     if (!data) return;
-                    let tempKey = '5';
+                    let tempKey = typeVal;
                     if (!data[tempKey]) {
                         const keys = Object.keys(data);
-                        if (keys.length > 0) {
-                            tempKey = keys[0];
-                        }
+                        if (keys.length > 0) tempKey = keys[0];
                     }
                     const hTemps = data[tempKey];
                     const cap = (hTemps && hTemps[heatingKey]) ? hTemps[heatingKey] : 0;
-                    const diff = Math.abs(cap - totalLoss);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        chosen = m;
-                    }
+                    caps[m] = cap;
+                    if (cap > maxCap) maxCap = cap;
                 });
-                if (!chosen && models.length > 0) {
-                    chosen = models[0];
+                let chosenModel = null;
+                let chosenUnits = 1;
+                const bounds = getRatioBounds('geothermie');
+                // Determine if multi-unit selection is required
+                if (totalLoss > maxCap) {
+                    // Sort models by capacity descending
+                    const sortedModels = Object.keys(caps).sort((a,b) => caps[b] - caps[a]);
+                    let found = false;
+                    // Try to fit within ratio bounds
+                    for (let mi = 0; mi < sortedModels.length && !found; mi++) {
+                        const m = sortedModels[mi];
+                        const cap = caps[m];
+                        for (let n = 2; n <= bounds.limit; n++) {
+                            const ratio = (cap * n) / totalLoss;
+                            if (ratio >= bounds.min && ratio <= bounds.max) {
+                                chosenModel = m;
+                                chosenUnits = n;
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found) {
+                        // Fallback: use the largest model and minimal units to exceed totalLoss
+                        const largestModel = Object.keys(caps).reduce((maxM, m) => (caps[m] > caps[maxM] ? m : maxM), Object.keys(caps)[0]);
+                        const cap = caps[largestModel];
+                        const unitsNeeded = Math.ceil(totalLoss / cap);
+                        chosenModel = largestModel;
+                        chosenUnits = Math.min(bounds.limit, unitsNeeded);
+                    }
+                } else {
+                    // Single unit: choose model with capacity closest to totalLoss
+                    let minDiff = Infinity;
+                    models.forEach(m => {
+                        const cap = caps[m] || 0;
+                        const diff = Math.abs(cap - totalLoss);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            chosenModel = m;
+                        }
+                    });
+                    if (!chosenModel) chosenModel = models[0];
+                    chosenUnits = 1;
                 }
-                modelSelect.value = chosen;
-                document.getElementById('geoUnits').value = '1';
+                modelSelect.value = chosenModel;
+                document.getElementById('geoUnits').value = chosenUnits.toString();
             } else if (tech === 'aireau') {
                 const modelSelect = document.getElementById('airEauModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
-                let chosen = null;
-                let minDiff = Infinity;
+                if (models.length === 0) return;
+                const caps = {};
+                let maxCap = 0;
                 models.forEach(m => {
                     const dataArr = airEauData[m];
                     if (!dataArr) return;
                     const cap = getAirEauCapacity(dataArr, finalBaseTemp, heatingKey);
-                    const diff = Math.abs(cap - totalLoss);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        chosen = m;
-                    }
+                    caps[m] = cap;
+                    if (cap > maxCap) maxCap = cap;
                 });
-                if (!chosen && models.length > 0) {
-                    chosen = models[0];
+                let chosenModel = null;
+                let chosenUnits = 1;
+                const bounds = getRatioBounds('aireau');
+                if (totalLoss > maxCap) {
+                    // Multi-unit: try to fit ratio bounds
+                    const sortedModels = Object.keys(caps).sort((a,b) => caps[b] - caps[a]);
+                    let found = false;
+                    for (let mi = 0; mi < sortedModels.length && !found; mi++) {
+                        const m = sortedModels[mi];
+                        const cap = caps[m];
+                        for (let n = 2; n <= bounds.limit; n++) {
+                            const ratio = (cap * n) / totalLoss;
+                            if (ratio >= bounds.min && ratio <= bounds.max) {
+                                chosenModel = m;
+                                chosenUnits = n;
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found) {
+                        // Fallback: use largest model with enough units to exceed totalLoss
+                        const largestModel = Object.keys(caps).reduce((maxM, m) => (caps[m] > caps[maxM] ? m : maxM), Object.keys(caps)[0]);
+                        const cap = caps[largestModel];
+                        const unitsNeeded = Math.ceil(totalLoss / cap);
+                        chosenModel = largestModel;
+                        chosenUnits = Math.min(bounds.limit, unitsNeeded);
+                    }
+                } else {
+                    // Single unit: choose model with capacity closest to totalLoss
+                    let minDiff = Infinity;
+                    models.forEach(m => {
+                        const cap = caps[m] || 0;
+                        const diff = Math.abs(cap - totalLoss);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            chosenModel = m;
+                        }
+                    });
+                    if (!chosenModel) chosenModel = models[0];
+                    chosenUnits = 1;
                 }
-                modelSelect.value = chosen;
-                document.getElementById('airEauUnits').value = '1';
+                modelSelect.value = chosenModel;
+                document.getElementById('airEauUnits').value = chosenUnits.toString();
             } else if (tech === 'airextr') {
                 const modelSelect = document.getElementById('airExtrModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
