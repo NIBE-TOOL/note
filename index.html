@@ -1273,6 +1273,12 @@
             }
             finalBaseTemp = finalBase;
             document.getElementById('baseTempValue').textContent = finalBase;
+            // Recompute PAC sizing if a technology is already selected, so that changes to base temperature
+            // immediately reflect in the technology summary and final report.
+            const tech = document.getElementById('technologySelect').value;
+            if (tech) {
+                computeTechnology();
+            }
         }
         document.getElementById('beneficiaryPostalCode').addEventListener('blur', computeBaseTemp);
         document.getElementById('altitudeRange').addEventListener('change', computeBaseTemp);
@@ -1371,6 +1377,12 @@
             computeZoneLoss(index);
             updateProjectSummary();
             renderZones();
+            // Recompute the technology summary immediately if a technology is selected.  This ensures modifications on step 3
+            // (such as area, height, isolation, etc.) are reflected in the PAC selection (step 4) and final report without
+            // needing to switch pages.
+            if (document.getElementById('technologySelect').value) {
+                computeTechnology();
+            }
         }
         function computeZoneLoss(i) {
             const zone = zones[i];
@@ -1463,11 +1475,21 @@
             const typeVal = document.getElementById('geoType').value;
             const list = [];
             if (typeVal === '0' || typeVal === '5') {
-                // Geothermal models use base names only
-                list.push('F1153-4','F1253-4','F1153-6','F1253-6','S1156-8','S1256-8','S1156-13','S1256-13','S1156-18','S1256-18','S1155-25','F1345-24','F1345-30','F1345-40','F1345-60','F1355-28','F1355-43');
+                // Geothermal models use base names only.  Prefer F1253 over F1153 and S1256 over S1156.
+                list.push(
+                    'F1253-4','F1153-4','F1253-6','F1153-6',
+                    'S1256-8','S1156-8','S1256-13','S1156-13','S1256-18','S1156-18',
+                    'S1155-25',
+                    'F1345-24','F1345-30','F1345-40','F1345-60','F1355-28','F1355-43'
+                );
             } else if (typeVal === '10') {
-                // Aquathermal models: show base names without the -10 suffix
-                list.push('F1253-4','F1153-4','F1253-6','F1153-6','S1156-8','S1256-8','S1156-13','S1256-13','S1156-18','S1256-18','S1155-25','F1345-24','F1345-30','F1345-40','F1345-60','F1355-28','F1355-43','F1353-4');
+                // Aquathermal models: show base names without the -10 suffix. Prefer F1253 over F1153 and S1256 over S1156.
+                list.push(
+                    'F1253-4','F1153-4','F1253-6','F1153-6',
+                    'S1256-8','S1156-8','S1256-13','S1156-13','S1256-18','S1156-18',
+                    'S1155-25',
+                    'F1345-24','F1345-30','F1345-40','F1345-60','F1355-28','F1355-43','F1353-4'
+                );
             }
             list.forEach(m => {
                 const opt = document.createElement('option');
@@ -1693,6 +1715,33 @@
             document.getElementById('powerRatio').textContent = ratio.toFixed(1);
             document.getElementById('backupPower').textContent = backup.toFixed(2);
             document.getElementById('techSummary').classList.remove('hidden');
+
+            // If ratio is outside desired bounds, automatically re-select a more appropriate model/units combination.
+            // This ensures that changes in other steps immediately affect the selection.
+            // Use a guard to avoid recursion if computeTechnology triggers another selection.
+            if (!window._autoSelectGuard) {
+                // Determine ratio bounds: 65-75% for air/eau, 70-90% for geothermie
+                let minRatio = 0;
+                let maxRatio = Infinity;
+                if (tech === 'aireau') {
+                    minRatio = 0.65;
+                    maxRatio = 0.75;
+                } else if (tech === 'geothermie') {
+                    minRatio = 0.70;
+                    maxRatio = 0.90;
+                }
+                if (tech === 'geothermie' || tech === 'aireau') {
+                    const withinLower = ratio >= minRatio * 100;
+                    const withinUpper = ratio <= maxRatio * 100;
+                    if (!withinLower || !withinUpper) {
+                        window._autoSelectGuard = true;
+                        selectDefaultModel(tech, false);
+                        computeTechnology();
+                        window._autoSelectGuard = false;
+                        return;
+                    }
+                }
+            }
             // compute additional information for geothermal and aquathermal cases
             let extraInfo = null;
             if (tech === 'geothermie') {
@@ -1810,12 +1859,10 @@
                 const modelSelect = document.getElementById('geoModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
                 if (models.length === 0) return;
-                // Build a map of capacities per model for the selected type
+                // Build capacity map for each model based on the selected type and heatingKey
                 const caps = {};
-                let maxCap = 0;
                 models.forEach(m => {
                     let key = m;
-                    // For aquathermal type 10, use -10 suffix if available
                     if (typeVal === '10' && !m.includes('-10') && m !== 'F1353-4') {
                         key = m + '-10';
                     }
@@ -1829,51 +1876,51 @@
                     const hTemps = data[tempKey];
                     const cap = (hTemps && hTemps[heatingKey]) ? hTemps[heatingKey] : 0;
                     caps[m] = cap;
-                    if (cap > maxCap) maxCap = cap;
                 });
+                const bounds = getRatioBounds('geothermie');
+                const combos = [];
+                // Generate combinations of 1..limit units for all models, computing ratio >= 0
+                models.forEach((m, idx) => {
+                    const cap = caps[m] || 0;
+                    for (let n = 1; n <= bounds.limit; n++) {
+                        const ratio = (cap * n) / totalLoss;
+                        combos.push({ model: m, units: n, ratio: ratio, index: idx });
+                    }
+                });
+                // Partition combos into covering (ratio >= min) and undersized (ratio < min)
+                const covering = combos.filter(c => c.ratio >= bounds.min);
+                // Among covering combos, find those within range (ratio <= max)
+                const within = covering.filter(c => c.ratio <= bounds.max);
                 let chosenModel = null;
                 let chosenUnits = 1;
-                const bounds = getRatioBounds('geothermie');
-                // Determine if multi-unit selection is required
-                if (totalLoss > maxCap) {
-                    // Sort models by capacity descending
-                    const sortedModels = Object.keys(caps).sort((a,b) => caps[b] - caps[a]);
-                    let found = false;
-                    // Try to fit within ratio bounds
-                    for (let mi = 0; mi < sortedModels.length && !found; mi++) {
-                        const m = sortedModels[mi];
-                        const cap = caps[m];
-                        for (let n = 2; n <= bounds.limit; n++) {
-                            const ratio = (cap * n) / totalLoss;
-                            if (ratio >= bounds.min && ratio <= bounds.max) {
-                                chosenModel = m;
-                                chosenUnits = n;
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!found) {
-                        // Fallback: use the largest model and minimal units to exceed totalLoss
-                        const largestModel = Object.keys(caps).reduce((maxM, m) => (caps[m] > caps[maxM] ? m : maxM), Object.keys(caps)[0]);
-                        const cap = caps[largestModel];
-                        const unitsNeeded = Math.ceil(totalLoss / cap);
-                        chosenModel = largestModel;
-                        chosenUnits = Math.min(bounds.limit, unitsNeeded);
-                    }
-                } else {
-                    // Single unit: choose model with capacity closest to totalLoss
-                    let minDiff = Infinity;
-                    models.forEach(m => {
-                        const cap = caps[m] || 0;
-                        const diff = Math.abs(cap - totalLoss);
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            chosenModel = m;
-                        }
+                if (within.length > 0) {
+                    // Sort within-range combos by units ascending, then ratio ascending, then original model order
+                    within.sort((a,b) => {
+                        if (a.units !== b.units) return a.units - b.units;
+                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                        return a.index - b.index;
                     });
-                    if (!chosenModel) chosenModel = models[0];
-                    chosenUnits = 1;
+                    chosenModel = within[0].model;
+                    chosenUnits = within[0].units;
+                } else if (covering.length > 0) {
+                    // No combos within upper bound; choose smallest oversize (ratio > max) by units then ratio then order
+                    covering.sort((a,b) => {
+                        if (a.units !== b.units) return a.units - b.units;
+                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                        return a.index - b.index;
+                    });
+                    chosenModel = covering[0].model;
+                    chosenUnits = covering[0].units;
+                } else {
+                    // All combos undersized (ratio < min). Choose combination with highest ratio (closest to min) using minimal units if tie
+                    const undersized = combos;
+                    undersized.sort((a,b) => {
+                        if (b.ratio !== a.ratio) return b.ratio - a.ratio;
+                        if (a.units !== b.units) return a.units - b.units;
+                        return a.index - b.index;
+                    });
+                    chosenModel = undersized[0].model;
+                    chosenUnits = undersized[0].units;
                 }
                 modelSelect.value = chosenModel;
                 document.getElementById('geoUnits').value = chosenUnits.toString();
@@ -1881,56 +1928,52 @@
                 const modelSelect = document.getElementById('airEauModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
                 if (models.length === 0) return;
+                // Build capacity map for each model for the selected heatingKey
                 const caps = {};
-                let maxCap = 0;
                 models.forEach(m => {
                     const dataArr = airEauData[m];
                     if (!dataArr) return;
                     const cap = getAirEauCapacity(dataArr, finalBaseTemp, heatingKey);
                     caps[m] = cap;
-                    if (cap > maxCap) maxCap = cap;
                 });
+                const bounds = getRatioBounds('aireau');
+                const combos = [];
+                models.forEach((m, idx) => {
+                    const cap = caps[m] || 0;
+                    for (let n = 1; n <= bounds.limit; n++) {
+                        const ratio = (cap * n) / totalLoss;
+                        combos.push({ model: m, units: n, ratio: ratio, index: idx });
+                    }
+                });
+                const covering = combos.filter(c => c.ratio >= bounds.min);
+                const within = covering.filter(c => c.ratio <= bounds.max);
                 let chosenModel = null;
                 let chosenUnits = 1;
-                const bounds = getRatioBounds('aireau');
-                if (totalLoss > maxCap) {
-                    // Multi-unit: try to fit ratio bounds
-                    const sortedModels = Object.keys(caps).sort((a,b) => caps[b] - caps[a]);
-                    let found = false;
-                    for (let mi = 0; mi < sortedModels.length && !found; mi++) {
-                        const m = sortedModels[mi];
-                        const cap = caps[m];
-                        for (let n = 2; n <= bounds.limit; n++) {
-                            const ratio = (cap * n) / totalLoss;
-                            if (ratio >= bounds.min && ratio <= bounds.max) {
-                                chosenModel = m;
-                                chosenUnits = n;
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!found) {
-                        // Fallback: use largest model with enough units to exceed totalLoss
-                        const largestModel = Object.keys(caps).reduce((maxM, m) => (caps[m] > caps[maxM] ? m : maxM), Object.keys(caps)[0]);
-                        const cap = caps[largestModel];
-                        const unitsNeeded = Math.ceil(totalLoss / cap);
-                        chosenModel = largestModel;
-                        chosenUnits = Math.min(bounds.limit, unitsNeeded);
-                    }
-                } else {
-                    // Single unit: choose model with capacity closest to totalLoss
-                    let minDiff = Infinity;
-                    models.forEach(m => {
-                        const cap = caps[m] || 0;
-                        const diff = Math.abs(cap - totalLoss);
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            chosenModel = m;
-                        }
+                if (within.length > 0) {
+                    within.sort((a,b) => {
+                        if (a.units !== b.units) return a.units - b.units;
+                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                        return a.index - b.index;
                     });
-                    if (!chosenModel) chosenModel = models[0];
-                    chosenUnits = 1;
+                    chosenModel = within[0].model;
+                    chosenUnits = within[0].units;
+                } else if (covering.length > 0) {
+                    covering.sort((a,b) => {
+                        if (a.units !== b.units) return a.units - b.units;
+                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                        return a.index - b.index;
+                    });
+                    chosenModel = covering[0].model;
+                    chosenUnits = covering[0].units;
+                } else {
+                    // All combos undersized. Choose combination with highest ratio using minimal units if tie
+                    combos.sort((a,b) => {
+                        if (b.ratio !== a.ratio) return b.ratio - a.ratio;
+                        if (a.units !== b.units) return a.units - b.units;
+                        return a.index - b.index;
+                    });
+                    chosenModel = combos[0].model;
+                    chosenUnits = combos[0].units;
                 }
                 modelSelect.value = chosenModel;
                 document.getElementById('airEauUnits').value = chosenUnits.toString();
