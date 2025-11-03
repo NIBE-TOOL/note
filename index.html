@@ -331,9 +331,9 @@
                 font-size: 11px;
             }
             @page {
-                /* Use zero margins in print to minimize browser-added header/footer */
+                /* Set custom margins: no top/bottom margin, larger left/right margins for a compact layout */
                 size: A4 portrait;
-                margin: 0;
+                margin: 0mm 20mm;
             }
             /* Hide navigation and intermediate steps when printing */
             .navigation, .step:not(.final-step) {
@@ -563,7 +563,7 @@
             <div class="summary-grid">
                 <div class="summary-item"><strong>Déperditions totales</strong><br><span id="summaryLoss"></span> kW</div>
                 <div class="summary-item"><strong>Puissance PAC</strong><br><span id="pacPower"></span> kW</div>
-                <div class="summary-item"><strong>Rapport</strong><br><span id="powerRatio"></span> %</div>
+                <div class="summary-item"><strong>Puissance/Déperditions</strong><br><span id="powerRatio"></span> %</div>
                 <div class="summary-item"><strong>Appoint recommandé</strong><br><span id="backupPower"></span> kW</div>
             </div>
             <!-- Additional information for geothermal and aquathermal selections will be inserted here.  -->
@@ -1936,9 +1936,13 @@
                     const cap = getAirEauCapacity(dataArr, finalBaseTemp, heatingKey);
                     caps[m] = cap;
                 });
+                // Restrict default selection to S2125 models
+                const sModels = models.filter(m => m.startsWith('S2125'));
+                // If no S2125 models found, fall back to all models
+                const comboModels = sModels.length > 0 ? sModels : models;
                 const bounds = getRatioBounds('aireau');
                 const combos = [];
-                models.forEach((m, idx) => {
+                comboModels.forEach((m, idx) => {
                     const cap = caps[m] || 0;
                     for (let n = 1; n <= bounds.limit; n++) {
                         const ratio = (cap * n) / totalLoss;
@@ -2112,7 +2116,7 @@
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Pompe à chaleur</th></tr>
                         <tr><td><strong style="color:#d62728;">Modèle choisi</strong></td><td><strong style="color:#d62728;">${pacDesc}</strong></td></tr>
                         <tr><td style="font-weight:bold;">Puissance PAC à ${finalBaseTemp}&nbsp;°C</td><td style="font-weight:bold;">${pac.capacity.toFixed(2)} kW</td></tr>
-                        <tr><td>Rapport puissance / déperditions</td><td>${pac.ratio.toFixed(1)} %</td></tr>
+                        <tr><td>Puissance/Déperditions</td><td>${pac.ratio.toFixed(1)} %</td></tr>
                         <tr><td>Puissance d'appoint recommandée</td><td>${pac.backup.toFixed(2)} kW</td></tr>
                         <tr><td>Modèle et classe du régulateur</td><td>${regulatorClass}</td></tr>
                         <!-- Insert additional geothermal/aquathermal information when applicable -->
