@@ -619,6 +619,10 @@
         </div>
     </div>
     <script>
+        // Flags to track whether the user has manually selected model or units
+        let geoManuallySelected = false;
+        let airEauManuallySelected = false;
+
         /* =============================
            Données de base
         ============================== */
@@ -1484,11 +1488,15 @@
                 // Always display geothermie options first so that default selection can be applied
                 document.getElementById('geoOptions').classList.remove('hidden');
                 loadGeoModels();
+                // Reset manual selection flag for geothermie
+                geoManuallySelected = false;
                 // Preselect defaults for geothermie (type, model, units) based on heat losses
                 selectDefaultModel('geothermie');
             } else if (tech === 'aireau') {
                 document.getElementById('airEauOptions').classList.remove('hidden');
                 loadAirEauModels();
+                // Reset manual selection flag for air/eau
+                airEauManuallySelected = false;
                 // Preselect defaults for air/eau based on heat losses and temperatures
                 selectDefaultModel('aireau');
             } else if (tech === 'airextr') {
@@ -1751,7 +1759,7 @@
             document.getElementById('techSummary').classList.remove('hidden');
 
             // If ratio is outside desired bounds, automatically re-select a more appropriate model/units combination.
-            // This ensures that changes in other steps immediately affect the selection.
+            // Skip this auto-selection if the user has manually chosen a model/units combination.
             // Use a guard to avoid recursion if computeTechnology triggers another selection.
             if (!window._autoSelectGuard) {
                 // Determine ratio bounds: 65-75% for air/eau, 70-90% for geothermie
@@ -1767,7 +1775,8 @@
                 if (tech === 'geothermie' || tech === 'aireau') {
                     const withinLower = ratio >= minRatio * 100;
                     const withinUpper = ratio <= maxRatio * 100;
-                    if (!withinLower || !withinUpper) {
+                    const userManuallySelected = (tech === 'geothermie' && geoManuallySelected) || (tech === 'aireau' && airEauManuallySelected);
+                    if (!userManuallySelected && (!withinLower || !withinUpper)) {
                         window._autoSelectGuard = true;
                         selectDefaultModel(tech, false);
                         computeTechnology();
@@ -1960,8 +1969,13 @@
                     chosenUnits = unders[0].units;
                 }
                 if (chosenModel) {
-                    modelSelect.value = chosenModel;
-                    document.getElementById('geoUnits').value = chosenUnits.toString();
+                    // Only update the model and units if the user has not manually selected their own combination.
+                    // This prevents overwriting the user's choice when default selection logic runs after they
+                    // manually change the model or number of units.
+                    if (!geoManuallySelected) {
+                        modelSelect.value = chosenModel;
+                        document.getElementById('geoUnits').value = chosenUnits.toString();
+                    }
                 }
             } else if (tech === 'aireau') {
                 const modelSelect = document.getElementById('airEauModel');
@@ -2025,8 +2039,13 @@
                     chosenUnits = unders[0].units;
                 }
                 if (chosenModel) {
-                    modelSelect.value = chosenModel;
-                    document.getElementById('airEauUnits').value = chosenUnits.toString();
+                    // For air/eau selections, only update the model and unit count if the user has not
+                    // manually selected a combination.  This allows the user to override the default
+                    // combination without it being reset by subsequent recalculations.
+                    if (!airEauManuallySelected) {
+                        modelSelect.value = chosenModel;
+                        document.getElementById('airEauUnits').value = chosenUnits.toString();
+                    }
                 }
             } else if (tech === 'airextr') {
                 const modelSelect = document.getElementById('airExtrModel');
@@ -2205,10 +2224,26 @@
         showStep(1);
 
         // Attach listeners to update technology summary when selections change
-        document.getElementById('geoModel').addEventListener('change', function(){ computeTechnology(); });
-        document.getElementById('geoUnits').addEventListener('input', function(){ computeTechnology(); });
-        document.getElementById('airEauModel').addEventListener('change', function(){ computeTechnology(); });
-        document.getElementById('airEauUnits').addEventListener('input', function(){ computeTechnology(); });
+        document.getElementById('geoModel').addEventListener('change', function(){
+            // Mark that the user manually changed the geothermal model
+            geoManuallySelected = true;
+            computeTechnology();
+        });
+        document.getElementById('geoUnits').addEventListener('input', function(){
+            // Mark that the user manually changed the geothermal unit count
+            geoManuallySelected = true;
+            computeTechnology();
+        });
+        document.getElementById('airEauModel').addEventListener('change', function(){
+            // Mark that the user manually changed the air/eau model
+            airEauManuallySelected = true;
+            computeTechnology();
+        });
+        document.getElementById('airEauUnits').addEventListener('input', function(){
+            // Mark that the user manually changed the air/eau unit count
+            airEauManuallySelected = true;
+            computeTechnology();
+        });
         document.getElementById('airExtrModel').addEventListener('change', function(){ computeTechnology(); });
         document.getElementById('airExtrFlow').addEventListener('change', function(){
             // Mark that the user has manually selected a flow, so subsequent volume changes won't override it
