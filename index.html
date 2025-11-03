@@ -1934,11 +1934,14 @@
 
             // Helper to compute ratio bounds
             const getRatioBounds = (tech) => {
+                // Define the minimum and maximum ratio thresholds and the maximum number of units to check for each technology.
+                // Air/Eau: ratio should be between 65-75%; check combinations up to 9 units.
+                // Géothermie/Aquathermie: ratio should be between 70-90%; check combinations up to 8 units.
                 if (tech === 'aireau') {
-                    return { min: 0.65, max: 0.75, limit: 8 };
+                    return { min: 0.65, max: 0.75, limit: 9 };
                 }
-                // Geothermal/Aquathermal
-                return { min: 0.70, max: 0.90, limit: 9 };
+                // Default for geothermal and aquathermal
+                return { min: 0.70, max: 0.90, limit: 8 };
             };
 
             if (tech === 'geothermie') {
@@ -1955,7 +1958,7 @@
                 if (models.length === 0) return;
                 // Build capacity map for each model based on the selected type and heatingKey
                 const caps = {};
-                models.forEach(m => {
+                models.forEach((m) => {
                     let key = m;
                     if (typeVal === '10' && !m.includes('-10') && m !== 'F1353-4') {
                         key = m + '-10';
@@ -1972,57 +1975,73 @@
                     caps[m] = cap;
                 });
                 const bounds = getRatioBounds('geothermie');
-                const combos = [];
-                // Generate combinations of 1..limit units for all models
-                models.forEach((m, idx) => {
-                    const cap = caps[m] || 0;
-                    for (let n = 1; n <= bounds.limit; n++) {
-                        const ratio = (cap * n) / totalLoss;
-                        combos.push({ model: m, units: n, ratio: ratio, index: idx });
-                    }
-                });
-                // Partition combos by ratio relative to bounds
-                const within = combos.filter(c => c.ratio >= bounds.min && c.ratio <= bounds.max);
-                const overs = combos.filter(c => c.ratio > bounds.max);
-                const unders = combos.filter(c => c.ratio < bounds.min);
+                const minRatio = bounds.min;
+                const maxRatio = bounds.max;
+                const maxUnits = bounds.limit;
                 let chosenModel = null;
                 let chosenUnits = 1;
-                if (within.length > 0) {
-                    // Prefer combinations within range with the fewest units; tie-break on ratio and model order
-                    within.sort((a,b) => {
-                        if (a.units !== b.units) return a.units - b.units;
-                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                        return a.index - b.index;
+                // Iterate over unit counts from 1 up to the limit, finding the minimal n that satisfies ratio >= min
+                outerGeoLoop:
+                for (let n = 1; n <= maxUnits; n++) {
+                    // Collect candidates within range and oversize
+                    const within = [];
+                    const overs = [];
+                    models.forEach((m, idx) => {
+                        const cap = caps[m] || 0;
+                        const ratio = (cap * n) / totalLoss;
+                        if (ratio >= minRatio) {
+                            if (ratio <= maxRatio) {
+                                within.push({ model: m, units: n, ratio: ratio, index: idx });
+                            } else {
+                                overs.push({ model: m, units: n, ratio: ratio, index: idx });
+                            }
+                        }
                     });
-                    chosenModel = within[0].model;
-                    chosenUnits = within[0].units;
-                } else if (overs.length > 0) {
-                    // No combo within range; choose oversize combo with fewest units and ratio just above the max
-                    overs.sort((a,b) => {
-                        if (a.units !== b.units) return a.units - b.units;
-                        // Compare how much each ratio exceeds the max bound
-                        const diffA = a.ratio - bounds.max;
-                        const diffB = b.ratio - bounds.max;
-                        if (diffA !== diffB) return diffA - diffB;
-                        return a.index - b.index;
+                    if (within.length > 0) {
+                        // Choose the candidate within range with the lowest ratio (closest to min) and earliest in the model order
+                        within.sort((a, b) => {
+                            if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                            return a.index - b.index;
+                        });
+                        chosenModel = within[0].model;
+                        chosenUnits = within[0].units;
+                        break outerGeoLoop;
+                    }
+                    if (overs.length > 0) {
+                        // No combos within range, but oversize combos exist. Choose the one with minimal oversize relative to the max.
+                        overs.sort((a, b) => {
+                            const diffA = a.ratio - maxRatio;
+                            const diffB = b.ratio - maxRatio;
+                            if (diffA !== diffB) return diffA - diffB;
+                            // If oversize difference is equal, choose the candidate with the smallest ratio (i.e., closest to max)
+                            if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                            return a.index - b.index;
+                        });
+                        chosenModel = overs[0].model;
+                        chosenUnits = overs[0].units;
+                        break outerGeoLoop;
+                    }
+                    // Otherwise, continue to next n
+                }
+                // If no combination produced ratio >= min across all n, pick the combination with the highest ratio (closest to min) among all models and unit counts.
+                if (!chosenModel) {
+                    let best = null;
+                    models.forEach((m, idx) => {
+                        const cap = caps[m] || 0;
+                        for (let n = 1; n <= maxUnits; n++) {
+                            const ratio = (cap * n) / totalLoss;
+                            if (!best || ratio > best.ratio || (ratio === best.ratio && n < best.units)) {
+                                best = { model: m, units: n, ratio: ratio, index: idx };
+                            }
+                        }
                     });
-                    chosenModel = overs[0].model;
-                    chosenUnits = overs[0].units;
-                } else if (unders.length > 0) {
-                    // All combos undersized; choose the one closest to min with fewest units
-                    unders.sort((a,b) => {
-                        // Higher ratio (closer to min) preferred
-                        if (b.ratio !== a.ratio) return b.ratio - a.ratio;
-                        if (a.units !== b.units) return a.units - b.units;
-                        return a.index - b.index;
-                    });
-                    chosenModel = unders[0].model;
-                    chosenUnits = unders[0].units;
+                    if (best) {
+                        chosenModel = best.model;
+                        chosenUnits = best.units;
+                    }
                 }
                 if (chosenModel) {
                     // Only update the model and units if the user has not manually selected their own combination.
-                    // This prevents overwriting the user's choice when default selection logic runs after they
-                    // manually change the model or number of units.
                     if (!geoManuallySelected) {
                         modelSelect.value = chosenModel;
                         document.getElementById('geoUnits').value = chosenUnits.toString();
@@ -2040,63 +2059,74 @@
                     const cap = getAirEauCapacity(dataArr, finalBaseTemp, heatingKey);
                     caps[m] = cap;
                 });
-                // Restrict default selection to S2125 models
-                const sModels = models.filter(m => m.startsWith('S2125'));
-                // If no S2125 models found, fall back to all models
-                const comboModels = sModels.length > 0 ? sModels : models;
+                // Determine ratio bounds and maximum number of units
                 const bounds = getRatioBounds('aireau');
-                const combos = [];
-                comboModels.forEach((m, idx) => {
-                    const cap = caps[m] || 0;
-                    for (let n = 1; n <= bounds.limit; n++) {
-                        const ratio = (cap * n) / totalLoss;
-                        combos.push({ model: m, units: n, ratio: ratio, index: idx });
-                    }
-                });
-                // Partition combos by ratio relative to bounds
-                const within = combos.filter(c => c.ratio >= bounds.min && c.ratio <= bounds.max);
-                const overs = combos.filter(c => c.ratio > bounds.max);
-                const unders = combos.filter(c => c.ratio < bounds.min);
+                const minRatio = bounds.min;
+                const maxRatio = bounds.max;
+                const maxUnits = bounds.limit;
                 let chosenModel = null;
                 let chosenUnits = 1;
-                if (within.length > 0) {
-                    // Select the combo within range that has the fewest units; tie-break on ratio then order
-                    within.sort((a,b) => {
-                        if (a.units !== b.units) return a.units - b.units;
-                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                        return a.index - b.index;
+                // Iterate through unit counts from 1 to maxUnits to find a suitable combination
+                outerAirLoop:
+                for (let n = 1; n <= maxUnits; n++) {
+                    const within = [];
+                    const overs = [];
+                    models.forEach((m, idx) => {
+                        const cap = caps[m] || 0;
+                        const ratio = (cap * n) / totalLoss;
+                        if (ratio >= minRatio) {
+                            if (ratio <= maxRatio) {
+                                within.push({ model: m, units: n, ratio: ratio, index: idx });
+                            } else {
+                                overs.push({ model: m, units: n, ratio: ratio, index: idx });
+                            }
+                        }
                     });
-                    chosenModel = within[0].model;
-                    chosenUnits = within[0].units;
-                } else if (overs.length > 0) {
-                    // Choose oversize combo with fewest units and minimal excess above the max bound
-                    overs.sort((a,b) => {
-                        if (a.units !== b.units) return a.units - b.units;
-                        const diffA = a.ratio - bounds.max;
-                        const diffB = b.ratio - bounds.max;
-                        if (diffA !== diffB) return diffA - diffB;
-                        return a.index - b.index;
-                    });
-                    chosenModel = overs[0].model;
-                    chosenUnits = overs[0].units;
-                } else if (unders.length > 0) {
-                    // All combos undersized; choose the one closest to min bound with fewest units
-                    unders.sort((a,b) => {
-                        if (b.ratio !== a.ratio) return b.ratio - a.ratio;
-                        if (a.units !== b.units) return a.units - b.units;
-                        return a.index - b.index;
-                    });
-                    chosenModel = unders[0].model;
-                    chosenUnits = unders[0].units;
-                }
-                if (chosenModel) {
-                    // For air/eau selections, only update the model and unit count if the user has not
-                    // manually selected a combination.  This allows the user to override the default
-                    // combination without it being reset by subsequent recalculations.
-                    if (!airEauManuallySelected) {
-                        modelSelect.value = chosenModel;
-                        document.getElementById('airEauUnits').value = chosenUnits.toString();
+                    if (within.length > 0) {
+                        // Choose the candidate within range that has the lowest ratio (closest to min) and earliest model order
+                        within.sort((a,b) => {
+                            if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                            return a.index - b.index;
+                        });
+                        chosenModel = within[0].model;
+                        chosenUnits = within[0].units;
+                        break outerAirLoop;
                     }
+                    if (overs.length > 0) {
+                        // Oversize combinations exist for this unit count; choose the one with minimal excess above the max
+                        overs.sort((a,b) => {
+                            const diffA = a.ratio - maxRatio;
+                            const diffB = b.ratio - maxRatio;
+                            if (diffA !== diffB) return diffA - diffB;
+                            if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                            return a.index - b.index;
+                        });
+                        chosenModel = overs[0].model;
+                        chosenUnits = overs[0].units;
+                        break outerAirLoop;
+                    }
+                    // If neither within nor overs combos exist for this unit count, try the next n
+                }
+                // If no suitable combination found across all unit counts, select the combination with the highest ratio
+                if (!chosenModel) {
+                    let best = null;
+                    models.forEach((m, idx) => {
+                        const cap = caps[m] || 0;
+                        for (let n = 1; n <= maxUnits; n++) {
+                            const ratio = (cap * n) / totalLoss;
+                            if (!best || ratio > best.ratio || (ratio === best.ratio && n < best.units)) {
+                                best = { model: m, units: n, ratio: ratio, index: idx };
+                            }
+                        }
+                    });
+                    if (best) {
+                        chosenModel = best.model;
+                        chosenUnits = best.units;
+                    }
+                }
+                if (chosenModel && !airEauManuallySelected) {
+                    modelSelect.value = chosenModel;
+                    document.getElementById('airEauUnits').value = chosenUnits.toString();
                 }
             } else if (tech === 'airextr') {
                 const modelSelect = document.getElementById('airExtrModel');
