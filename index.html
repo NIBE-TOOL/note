@@ -1749,6 +1749,43 @@
                     renewalDiv.classList.remove('hidden');
                 }
             }
+            // If air/eau technology is selected and a zone uses 65°C heating, F2050 and AMS models are not permitted.
+            // If the user currently has one of these models selected, automatically switch to an appropriate S2125 model.
+            if (tech === 'aireau') {
+                const heatingMaxForCheck = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+                const currentModel = document.getElementById('airEauModel').value || '';
+                const isDisallowed = currentModel.startsWith('F2050') || currentModel.startsWith('AMS');
+                if (heatingMaxForCheck >= 65 && isDisallowed) {
+                    // Use a guard to prevent recursion when selectDefaultModel calls computeTechnology again
+                    if (!window._disallowGuard) {
+                        window._disallowGuard = true;
+                        // Reset manual selection flag to allow default selection override
+                        airEauManuallySelected = false;
+                        // Reload models to reflect 65°C restriction (filters out F2050/AMS)
+                        loadAirEauModels();
+                        // Select appropriate S2125 combination
+                        selectDefaultModel('aireau');
+                        window._disallowGuard = false;
+                        return;
+                    }
+                }
+            }
+            // Prevent Air Extrait technology when a zone has 65°C heating.  If selected, reset technology.
+            if (tech === 'airextr') {
+                const heatingMaxCheck = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+                if (heatingMaxCheck >= 65) {
+                    if (!window._disallowGuard) {
+                        window._disallowGuard = true;
+                        alert("La technologie Air Extrait n'est pas disponible pour une température de fonctionnement de 65°C.");
+                        document.getElementById('technologySelect').value = '';
+                        // Hide Air extract specific options
+                        document.getElementById('airExtrOptions').classList.add('hidden');
+                        document.getElementById('techSummary').classList.add('hidden');
+                        window._disallowGuard = false;
+                        return;
+                    }
+                }
+            }
             const ratio = totalLoss > 0 ? (capacity / totalLoss * 100) : 0;
             let backup = totalLoss - capacity;
             if (backup < 0) backup = 0;
