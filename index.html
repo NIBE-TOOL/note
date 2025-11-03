@@ -1754,7 +1754,21 @@
             if (backup < 0) backup = 0;
             document.getElementById('summaryLoss').textContent = totalLoss.toFixed(2);
             document.getElementById('pacPower').textContent = capacity.toFixed(2);
-            document.getElementById('powerRatio').textContent = ratio.toFixed(1);
+            const ratioSpan = document.getElementById('powerRatio');
+            // Set the ratio text and apply a colour based on the ratio thresholds:
+            // <60%: red; 60-70%: orange (yellow); 70-120%: green; >120%: orange.
+            ratioSpan.textContent = ratio.toFixed(1);
+            let ratioColour = '';
+            if (ratio < 60) {
+                ratioColour = 'red';
+            } else if (ratio < 70) {
+                ratioColour = 'orange';
+            } else if (ratio <= 120) {
+                ratioColour = 'green';
+            } else {
+                ratioColour = 'orange';
+            }
+            ratioSpan.style.color = ratioColour;
             document.getElementById('backupPower').textContent = backup.toFixed(2);
             document.getElementById('techSummary').classList.remove('hidden');
 
@@ -2186,7 +2200,23 @@
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Pompe à chaleur</th></tr>
                         <tr><td><strong style="color:#d62728;">Modèle choisi</strong></td><td><strong style="color:#d62728;">${pacDesc}</strong></td></tr>
                         <tr><td style="font-weight:bold;">Puissance PAC à ${finalBaseTemp}&nbsp;°C</td><td style="font-weight:bold;">${pac.capacity.toFixed(2)} kW</td></tr>
-                        <tr><td>Puissance/Déperditions</td><td>${pac.ratio.toFixed(1)} %</td></tr>
+                        <!-- Colour-code the Puissance/Déperditions ratio.  Below 60 % = red; 60–70 % = orange; 70–120 % = green; above 120 % = orange -->
+                        <tr><td>Puissance/Déperditions</td><td>
+                            ${(() => {
+                                const r = pac.ratio;
+                                let colour = '';
+                                if (r < 60) {
+                                    colour = 'red';
+                                } else if (r < 70) {
+                                    colour = 'orange';
+                                } else if (r <= 120) {
+                                    colour = 'green';
+                                } else {
+                                    colour = 'orange';
+                                }
+                                return `<span style=\"color:${colour}; font-weight:bold;\">${r.toFixed(1)} %</span>`;
+                            })()}
+                        </td></tr>
                         <tr><td>Puissance d'appoint recommandée</td><td>${pac.backup.toFixed(2)} kW</td></tr>
                         <tr><td>Modèle et classe du régulateur</td><td>${regulatorClass}</td></tr>
                         <!-- Insert additional geothermal/aquathermal information when applicable -->
