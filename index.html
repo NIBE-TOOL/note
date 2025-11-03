@@ -331,9 +331,21 @@
                 font-size: 11px;
             }
             @page {
-                /* Set custom margins: no top/bottom margin, larger left/right margins for a compact layout */
+                /* Remove browser-added headers/footers */
                 size: A4 portrait;
-                margin: 0mm 20mm;
+                margin: 0;
+            }
+            /* Apply margins for the final report content */
+            #finalReport {
+                margin-left: 12mm;
+                margin-right: 12mm;
+                /* Reduce the top margin slightly to around 1 cm as requested */
+                margin-top: 10mm;
+                margin-bottom: 0;
+            }
+            /* Ensure the header itself has no bottom margin so spacing is controlled via spacer */
+            #finalReport .report-header {
+                margin-bottom: 0;
             }
             /* Hide navigation and intermediate steps when printing */
             .navigation, .step:not(.final-step) {
@@ -354,6 +366,18 @@
             /* Hide the print button in the final report */
             .final-step button {
                 display: none !important;
+            }
+
+            /* Display the spacer between the header and the first table when printing */
+            .print-spacer {
+                /* Hide spacer in print; we will control spacing via the first table margin */
+                display: none;
+                height: 0;
+            }
+
+            /* Add space (1 cm) before the first table to separate it from the header */
+            #finalReport table:first-of-type {
+                margin-top: 10mm;
             }
         }
 
@@ -436,6 +460,16 @@
         .zone-row {
             /* Align fields to the top of the row for consistent vertical alignment */
             align-items: flex-start !important;
+        }
+
+        /* General margin for report header (screen view).  Print styles override this. */
+        .report-header {
+            margin-bottom: 12px;
+        }
+
+        /* Spacer used only in print to separate the report header from the first table */
+        .print-spacer {
+            display: none;
         }
         /* Stylish add-zone button */
         .add-zone button {
@@ -1879,7 +1913,7 @@
                 });
                 const bounds = getRatioBounds('geothermie');
                 const combos = [];
-                // Generate combinations of 1..limit units for all models, computing ratio >= 0
+                // Generate combinations of 1..limit units for all models
                 models.forEach((m, idx) => {
                     const cap = caps[m] || 0;
                     for (let n = 1; n <= bounds.limit; n++) {
@@ -1887,14 +1921,14 @@
                         combos.push({ model: m, units: n, ratio: ratio, index: idx });
                     }
                 });
-                // Partition combos into covering (ratio >= min) and undersized (ratio < min)
-                const covering = combos.filter(c => c.ratio >= bounds.min);
-                // Among covering combos, find those within range (ratio <= max)
-                const within = covering.filter(c => c.ratio <= bounds.max);
+                // Partition combos by ratio relative to bounds
+                const within = combos.filter(c => c.ratio >= bounds.min && c.ratio <= bounds.max);
+                const overs = combos.filter(c => c.ratio > bounds.max);
+                const unders = combos.filter(c => c.ratio < bounds.min);
                 let chosenModel = null;
                 let chosenUnits = 1;
                 if (within.length > 0) {
-                    // Sort within-range combos by units ascending, then ratio ascending, then original model order
+                    // Prefer combinations within range with the fewest units; tie-break on ratio and model order
                     within.sort((a,b) => {
                         if (a.units !== b.units) return a.units - b.units;
                         if (a.ratio !== b.ratio) return a.ratio - b.ratio;
@@ -1902,28 +1936,33 @@
                     });
                     chosenModel = within[0].model;
                     chosenUnits = within[0].units;
-                } else if (covering.length > 0) {
-                    // No combos within upper bound; choose smallest oversize (ratio > max) by units then ratio then order
-                    covering.sort((a,b) => {
+                } else if (overs.length > 0) {
+                    // No combo within range; choose oversize combo with fewest units and ratio just above the max
+                    overs.sort((a,b) => {
                         if (a.units !== b.units) return a.units - b.units;
-                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                        // Compare how much each ratio exceeds the max bound
+                        const diffA = a.ratio - bounds.max;
+                        const diffB = b.ratio - bounds.max;
+                        if (diffA !== diffB) return diffA - diffB;
                         return a.index - b.index;
                     });
-                    chosenModel = covering[0].model;
-                    chosenUnits = covering[0].units;
-                } else {
-                    // All combos undersized (ratio < min). Choose combination with highest ratio (closest to min) using minimal units if tie
-                    const undersized = combos;
-                    undersized.sort((a,b) => {
+                    chosenModel = overs[0].model;
+                    chosenUnits = overs[0].units;
+                } else if (unders.length > 0) {
+                    // All combos undersized; choose the one closest to min with fewest units
+                    unders.sort((a,b) => {
+                        // Higher ratio (closer to min) preferred
                         if (b.ratio !== a.ratio) return b.ratio - a.ratio;
                         if (a.units !== b.units) return a.units - b.units;
                         return a.index - b.index;
                     });
-                    chosenModel = undersized[0].model;
-                    chosenUnits = undersized[0].units;
+                    chosenModel = unders[0].model;
+                    chosenUnits = unders[0].units;
                 }
-                modelSelect.value = chosenModel;
-                document.getElementById('geoUnits').value = chosenUnits.toString();
+                if (chosenModel) {
+                    modelSelect.value = chosenModel;
+                    document.getElementById('geoUnits').value = chosenUnits.toString();
+                }
             } else if (tech === 'aireau') {
                 const modelSelect = document.getElementById('airEauModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
@@ -1949,11 +1988,14 @@
                         combos.push({ model: m, units: n, ratio: ratio, index: idx });
                     }
                 });
-                const covering = combos.filter(c => c.ratio >= bounds.min);
-                const within = covering.filter(c => c.ratio <= bounds.max);
+                // Partition combos by ratio relative to bounds
+                const within = combos.filter(c => c.ratio >= bounds.min && c.ratio <= bounds.max);
+                const overs = combos.filter(c => c.ratio > bounds.max);
+                const unders = combos.filter(c => c.ratio < bounds.min);
                 let chosenModel = null;
                 let chosenUnits = 1;
                 if (within.length > 0) {
+                    // Select the combo within range that has the fewest units; tie-break on ratio then order
                     within.sort((a,b) => {
                         if (a.units !== b.units) return a.units - b.units;
                         if (a.ratio !== b.ratio) return a.ratio - b.ratio;
@@ -1961,26 +2003,31 @@
                     });
                     chosenModel = within[0].model;
                     chosenUnits = within[0].units;
-                } else if (covering.length > 0) {
-                    covering.sort((a,b) => {
+                } else if (overs.length > 0) {
+                    // Choose oversize combo with fewest units and minimal excess above the max bound
+                    overs.sort((a,b) => {
                         if (a.units !== b.units) return a.units - b.units;
-                        if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                        const diffA = a.ratio - bounds.max;
+                        const diffB = b.ratio - bounds.max;
+                        if (diffA !== diffB) return diffA - diffB;
                         return a.index - b.index;
                     });
-                    chosenModel = covering[0].model;
-                    chosenUnits = covering[0].units;
-                } else {
-                    // All combos undersized. Choose combination with highest ratio using minimal units if tie
-                    combos.sort((a,b) => {
+                    chosenModel = overs[0].model;
+                    chosenUnits = overs[0].units;
+                } else if (unders.length > 0) {
+                    // All combos undersized; choose the one closest to min bound with fewest units
+                    unders.sort((a,b) => {
                         if (b.ratio !== a.ratio) return b.ratio - a.ratio;
                         if (a.units !== b.units) return a.units - b.units;
                         return a.index - b.index;
                     });
-                    chosenModel = combos[0].model;
-                    chosenUnits = combos[0].units;
+                    chosenModel = unders[0].model;
+                    chosenUnits = unders[0].units;
                 }
-                modelSelect.value = chosenModel;
-                document.getElementById('airEauUnits').value = chosenUnits.toString();
+                if (chosenModel) {
+                    modelSelect.value = chosenModel;
+                    document.getElementById('airEauUnits').value = chosenUnits.toString();
+                }
             } else if (tech === 'airextr') {
                 const modelSelect = document.getElementById('airExtrModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
@@ -2047,10 +2094,14 @@
             // Build HTML
             const logoUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s';
             let html = '';
-            html += `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            // The report header container will have its margin controlled via CSS rather than inline style.  The
+            // margin-bottom property in inline style is removed so that print styles can override it.
+            html += `<div class="report-header" style="display:flex; align-items:center; justify-content:space-between;">
                         <img src="${logoUrl}" alt="logo" style="height:20px; max-width:80px; width:auto;">
                         <div style="flex:1; text-align:center; font-weight:bold; font-size:20px;">NOTE DE DIMENSIONNEMENT</div>
                     </div>`;
+            // Add a spacer after the header to separate the title from the tables (used only in print)
+            html += `<div class="print-spacer"></div>`;
             html += `<table style="width:100%; margin-bottom:8px;">
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Installateur</th></tr>
                         <tr><td>Entreprise</td><td>${companyName}</td></tr>
