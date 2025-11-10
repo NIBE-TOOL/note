@@ -2258,9 +2258,9 @@
             const isSeriesS = sSeriesPrefixes.some(prefix => modelUpper.startsWith(prefix)) || modelUpper.startsWith('F2050');
             const isSeriesF = modelUpper.startsWith('F1153') || modelUpper.startsWith('F1253') || modelUpper.startsWith('F1345') || modelUpper.startsWith('F1355') || modelUpper.startsWith('AMS');
             if (isSeriesS) {
-                regulatorClass = 'NIBE Série S / Classe VI';
+                regulatorClass = 'NIBE Série S / Classe VI – inclus sonde d’ambiance RTS 40';
             } else if (isSeriesF) {
-                regulatorClass = 'NIBE Série F / Classe VI';
+                regulatorClass = 'NIBE Série F / Classe VI – inclus sonde d’ambiance RTS 40';
             }
             // Build PAC description and power rows
             html += `<table style="width:100%; margin-bottom:8px;">
@@ -2289,8 +2289,8 @@
                         <!-- Insert additional geothermal/aquathermal information when applicable -->
                         ${pac.extra && pac.extra.type === 'sonde' ? `<tr><td>Longueur de sondes géothermiques estimée</td><td>${pac.extra.value}</td></tr>` : ''}
                         ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>${pac.extra.isTotal ? 'Débit total d\u2019eau de nappe' : 'Débit d\u2019eau de nappe'}</td><td>${pac.extra.isTotal ? pac.extra.total : pac.extra.base} m³/h</td></tr>` : ''}
-                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS 35°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${pac.etas35} %</strong></td></tr>
-                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS 55°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${pac.etas55} %</strong></td></tr>
+                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS (PAC) 35°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${(pac.etas35 - 4)} %</strong></td></tr>
+                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS (PAC) 55°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${(pac.etas55 - 4)} %</strong></td></tr>
                         <tr><td>60% des déperditions</td><td>${(parseFloat(totalLoss)*0.60).toFixed(2)} kW</td></tr>
                         <tr><td>130% des déperditions</td><td>${(parseFloat(totalLoss)*1.30).toFixed(2)} kW</td></tr>
                         <tr><td>Température d'arrêt PAC NIBE</td><td>`;
