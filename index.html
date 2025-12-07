@@ -23,15 +23,16 @@
         /* Header styling: logo on the left and title centered. Align items to the top so the logo and text start at the same vertical position */
         .header {
             display: flex;
-            align-items: flex-start;
-            margin-bottom: 12px;
+            align-items: center !important;
+            margin-bottom: 12px !important;
             gap: 8px;
         }
         .header .logo {
-            /* Reduce the logo size and adjust top margin to align the first letter with the title text */
-            height: 24px;
-            width: auto;
-            margin-top: 2px;
+            /* Keep logo proportions by specifying only a maximum height. Let width scale automatically. */
+            max-height: 28px !important;
+            height: auto !important;
+            width: auto !important;
+            margin-top: 0 !important;
         }
         .header h1 {
             margin: 0;
@@ -73,26 +74,34 @@
             table th, table td {
                 font-size: 0.8em;
             }
+            .summary-item {
+                flex: 1 0 45%;
+            }
+            .zone-row {
+                grid-template-columns: 1fr;
+            }
+            .zone-row .field,
+            .zone-row .loss-display,
+            .zone-row .remove-zone-btn {
+                margin-bottom: 8px;
+            }
+            .zone-row input,
+            .zone-row select {
+                width: 100%;
+            }
         }
         h1, h2, h3 {
             margin-top: 0;
         }
-        .step {
-            display: none;
-        }
-        .step.active {
-            display: block;
-        }
+
         .navigation {
             margin-top: 20px;
-            /* Restrict navigation width to align with the forms (600px) and center it in the page */
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
             text-align: left;
         }
         .navigation button {
-            /* Uniform button appearance matching the "Ajouter une zone" style */
             padding: 8px 16px;
             font-size: 15px;
             margin: 0 8px 0 0;
@@ -109,10 +118,12 @@
             background-color: #aaa;
             cursor: default;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
+            table-layout: fixed;
         }
         table th, table td {
             border: 1px solid #ccc;
@@ -120,14 +131,17 @@
             text-align: left;
             font-size: 15px;
         }
+        table td:first-child, table th:first-child {
+            width: 40%;
+        }
+        table td:last-child, table th:last-child {
+            width: 60%;
+        }
 
-        /* Add some space above the first table in the final report
-           so that there's a white space between the title and the first table */
         .final-step table:first-of-type {
             margin-top: 12px;
         }
 
-        /* Table used in technology summary */
         .tech-summary-table {
             width: 100%;
             border-collapse: collapse;
@@ -141,6 +155,7 @@
             font-size: 14px;
             width: 25%;
         }
+
         .zone {
             border: 1px solid #d0dfe8;
             padding: 12px;
@@ -151,327 +166,11 @@
         .zone h4 {
             margin-top: 0;
         }
+
         .add-zone {
             margin-top: 10px;
             text-align: left;
         }
-        .add-zone button {
-            /* Modern styling for add-zone button */
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            padding: 8px 14px;
-            font-size: 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-        }
-        .add-zone button:hover {
-            background-color: #218838;
-        }
-        .remove-zone-btn {
-            /* Uniform button styling consistent with other buttons */
-            background-color: #d62728;
-            color: #ffffff;
-            border: none;
-            padding: 8px 16px;
-            font-size: 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            /* Reserve consistent width for remove buttons so all zone rows align */
-            min-width: 90px;
-        }
-        .result {
-            background-color: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #ddd;
-            margin-top: 20px;
-        }
-        .hidden {
-            display: none;
-        }
-
-        /* General form layout */
-        #step1 label, #step2 label {
-            display: block;
-            /* Further reduce spacing between inputs for a more compact layout */
-            margin-bottom: 8px;
-            width: 100%;
-        }
-        #step1 input, #step1 select,
-        #step2 input, #step2 select {
-            width: 100%;
-        }
-        #step1, #step2 {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        /* Modern form styling */
-        input[type="text"], input[type="number"], select, textarea {
-            /* Light blue background with subtle border to improve aesthetics */
-            background-color: #f2f7ff;
-            border: 1px solid #c2d6ec;
-            border-radius: 4px;
-            padding: 8px;
-            font-size: 15px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        label {
-            font-size: 15px;
-            color: #333;
-        }
-        /* Zone row grid for horizontal alignment of fields */
-        .zone-row {
-            display: grid;
-            /* Use proportional column widths to better align fields: surface slightly narrower */
-            grid-template-columns: 1fr 0.8fr 1fr 1fr 1fr 1fr auto;
-            gap: 8px;
-            align-items: center;
-        }
-        .zone-row .field {
-            display: flex;
-            flex-direction: column;
-            /* Align labels and inputs at the top for uniform vertical alignment */
-            justify-content: flex-start;
-        }
-        .zone-row .field span {
-            font-size: 14px;
-            margin-bottom: 2px;
-        }
-        .loss-display {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-        }
-        .manual-input {
-            margin-top: 8px;
-        }
-        /* Ensure zone inputs and selects are uniform in height for proper vertical alignment */
-        .zone-row input, .zone-row select {
-            height: 36px;
-        }
-        /* Align the 'Bord de mer' checkbox next to its label */
-        .bordmer-label {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 8px;
-            /* Override default label width so checkbox appears next to its text */
-            width: auto !important;
-        }
-
-        /* Container for Bord de mer checkbox and label */
-        .bordmer-container {
-            display: flex;
-            align-items: center;
-            /* Reduce spacing between checkbox and label for a more compact look */
-            gap: 2px;
-            margin-bottom: 6px;
-            white-space: nowrap;
-        }
-        .bordmer-container label {
-            margin: 0;
-            width: auto !important;
-            display: inline;
-        }
-
-        /* Altitude row groups the altitude select and bord de mer checkbox on a single line */
-        .altitude-row {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            /* Reduce the gap to tighten spacing between altitude and bord de mer */
-            gap: 6px;
-            margin-bottom: 6px;
-        }
-        .altitude-field label {
-            margin-bottom: 4px;
-        }
-        .altitude-field select {
-            width: auto;
-            min-width: 160px;
-        }
-        /* Align table columns consistently across all tables */
-        table {
-            width: 100%;
-            table-layout: fixed;
-        }
-        table td:first-child {
-            width: 40%;
-        }
-        table td:last-child {
-            width: 60%;
-        }
-        /* Ensure column widths are consistent in header rows as well */
-        table th:first-child {
-            width: 40%;
-        }
-        table th:last-child {
-            width: 60%;
-        }
-
-        /* Bigger fonts for technology selection */
-        #step4 label {
-            font-size: 16px;
-        }
-        #step4 select {
-            font-size: 16px;
-            padding: 8px;
-        }
-        /* Print styles */
-        @media print {
-            body {
-                margin: 0;
-                font-size: 11px;
-            }
-            @page {
-                /* Remove browser-added headers/footers */
-                size: A4 portrait;
-                margin: 0;
-            }
-            /* Apply margins for the final report content */
-            #finalReport {
-                margin-left: 12mm;
-                margin-right: 12mm;
-                /* Reduce the top margin slightly to around 1 cm as requested */
-                margin-top: 10mm;
-                margin-bottom: 0;
-            }
-            /* Ensure the header itself has no bottom margin so spacing is controlled via spacer */
-            #finalReport .report-header {
-                margin-bottom: 0;
-            }
-            /* Hide navigation and intermediate steps when printing */
-            .navigation, .step:not(.final-step) {
-                display: none !important;
-            }
-            .final-step {
-                display: block !important;
-            }
-            /* Reduce font sizes for tables and headings to fit A4 */
-            table th, table td {
-                font-size: 10px;
-                padding: 3px;
-            }
-            h2, h3 {
-                font-size: 12px;
-            }
-
-            /* Hide the print button in the final report */
-            .final-step button {
-                display: none !important;
-            }
-
-            /* Display the spacer between the header and the first table when printing */
-            .print-spacer {
-                /* Hide spacer in print; we will control spacing via the first table margin */
-                display: none;
-                height: 0;
-            }
-
-            /* Add space (1 cm) before the first table to separate it from the header */
-            #finalReport table:first-of-type {
-                margin-top: 10mm;
-            }
-        }
-
-        /* Style the print button in the final step to match other navigation buttons */
-        .final-step button {
-            padding: 8px 16px;
-            font-size: 15px;
-            margin: 0 8px 0 0;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-    
-        /* Overrides to improve spacing and alignment */
-        #step1 label, #step2 label {
-            margin-bottom: 4px !important;
-        }
-        .altitude-row {
-            gap: 8px !important;
-        }
-        .bordmer-container {
-            gap: 4px !important;
-        }
-        .header {
-            /* Align logo and title better: center alignment vertically and add extra space below */
-            align-items: center !important;
-            margin-bottom: 12px !important;
-        }
-        .header .logo {
-            /* Keep logo proportions by specifying only a maximum height. Let width scale automatically. */
-            max-height: 28px !important;
-            height: auto !important;
-            width: auto !important;
-            margin-top: 0 !important;
-        }
-        .zone-row .field span {
-            white-space: nowrap;
-        }
-        .summary-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .summary-item {
-            flex: 1 0 22%;
-            background-color: #f8fbff;
-            border: 1px solid #d0dfe8;
-            border-radius: 4px;
-            padding: 6px;
-            text-align: center;
-            font-size: 14px;
-        }
-        @media (max-width: 600px) {
-            .summary-item {
-                flex: 1 0 45%;
-            }
-        }
-
-        /* On small screens, stack fields vertically within each zone and adjust spacing to prevent horizontal overflow */
-        @media (max-width: 600px) {
-            .zone-row {
-                grid-template-columns: 1fr;
-            }
-            .zone-row .field,
-            .zone-row .loss-display,
-            .zone-row .remove-zone-btn {
-                margin-bottom: 8px;
-            }
-            .zone-row input,
-            .zone-row select {
-                width: 100%;
-            }
-        }
-        .zone-row {
-            /* Align fields to the top of the row for consistent vertical alignment */
-            align-items: flex-start !important;
-        }
-
-        /* General margin for report header (screen view).  Print styles override this. */
-        .report-header {
-            margin-bottom: 12px;
-        }
-
-        /* Spacer used only in print to separate the report header from the first table */
-        .print-spacer {
-            display: none;
-        }
-        /* Stylish add-zone button */
         .add-zone button {
             background-color: #007bff !important;
             color: #ffffff;
@@ -487,25 +186,263 @@
         .add-zone button:hover {
             background-color: #0056b3 !important;
         }
+
+        .remove-zone-btn {
+            background-color: #d62728;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            font-size: 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 90px;
+        }
+
+        .result {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+
+        #step1 label, #step2 label {
+            display: block;
+            margin-bottom: 4px !important;
+            width: 100%;
+        }
+        #step1 input, #step1 select,
+        #step2 input, #step2 select {
+            width: 100%;
+        }
+        #step1, #step2 {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            background-color: #f2f7ff;
+            border: 1px solid #c2d6ec;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        label {
+            font-size: 15px;
+            color: #333;
+        }
+
+        .zone-row {
+            display: grid;
+            grid-template-columns: 1fr 0.8fr 1fr 1fr 1fr 1fr auto;
+            gap: 8px;
+            align-items: flex-start !important;
+        }
+        .zone-row .field {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .zone-row .field span {
+            font-size: 14px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+        .loss-display {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        .manual-input {
+            margin-top: 8px;
+        }
+
+        .zone-row input, .zone-row select {
+            height: 36px;
+        }
+
+        .bordmer-container {
+            display: flex;
+            align-items: center;
+            gap: 4px !important;
+            margin-bottom: 6px;
+            white-space: nowrap;
+        }
+        .bordmer-container label {
+            margin: 0;
+            width: auto !important;
+            display: inline;
+        }
+
+        .altitude-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px !important;
+            margin-bottom: 6px;
+        }
+        .altitude-field label {
+            margin-bottom: 4px;
+        }
+        .altitude-field select {
+            width: auto;
+            min-width: 160px;
+        }
+
+        #step4 label {
+            font-size: 16px;
+        }
+        #step4 select {
+            font-size: 16px;
+            padding: 8px;
+        }
+
+        .summary-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .summary-item {
+            flex: 1 0 22%;
+            background-color: #f8fbff;
+            border: 1px solid #d0dfe8;
+            border-radius: 4px;
+            padding: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .report-header {
+            margin-bottom: 12px;
+        }
+        .print-spacer {
+            display: none;
+        }
+
+        .final-step button {
+            padding: 8px 16px;
+            font-size: 15px;
+            margin: 0 8px 0 0;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .final-buttons {
+            margin-top: 12px;
+        }
+
+        /* Guide VMC (air extrait uniquement) */
+        .vmc-guide {
+            margin-top: 16px;
+            border: 1px solid #d0dfe8;
+            border-radius: 8px;
+            padding: 12px;
+            background-color: #f9fbff;
+        }
+        .vmc-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .vmc-input-group {
+            flex: 1 1 140px;
+        }
+        .vmc-actions {
+            margin-top: 6px;
+        }
+        .vmc-actions button {
+            padding: 6px 14px;
+            font-size: 14px;
+        }
+        .vmc-result {
+            margin-top: 8px;
+            background: #ffffff;
+            border: 1px solid #d0dfe8;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .vmc-result-line {
+            margin-bottom: 4px;
+        }
+        .vmc-note {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                font-size: 11px;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            #finalReport {
+                margin-left: 12mm;
+                margin-right: 12mm;
+                margin-top: 10mm;
+                margin-bottom: 0;
+            }
+            #finalReport .report-header {
+                margin-bottom: 0;
+            }
+            .navigation, .step:not(.final-step) {
+                display: none !important;
+            }
+            .final-step {
+                display: block !important;
+            }
+            table th, table td {
+                font-size: 10px;
+                padding: 3px;
+            }
+            h2, h3 {
+                font-size: 12px;
+            }
+            .final-step button {
+                display: none !important;
+            }
+            #finalReport table:first-of-type {
+                margin-top: 10mm;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header with logo and title. The logo is kept small and aligned to the left for a discrete presence on all pages -->
+        <!-- Header with logo and title -->
         <div class="header">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s" alt="logo" class="logo" />
             <h1 id="title">NOTE DE DIMENSIONNEMENT</h1>
         </div>
+
         <!-- Step 1 -->
         <div id="step1" class="step active">
-            <!-- removed title for installateur -->
             <label>Nom de l'installateur&nbsp;:<input type="text" id="companyName" placeholder="Nom de l'installateur"></label>
             <label>Adresse de l'installateur&nbsp;:<input type="text" id="companyAddress" placeholder="Adresse"></label>
             <label>Numéro de SIRET&nbsp;:<input type="text" id="companySiret" placeholder="Numéro de SIRET"></label>
         </div>
+
         <!-- Step 2 -->
         <div id="step2" class="step">
-            <!-- removed title for bénéficiaire -->
             <label>Prénom du bénéficiaire&nbsp;:<input type="text" id="beneficiaryFirstName" placeholder="Prénom"></label>
             <label>Nom du bénéficiaire&nbsp;:<input type="text" id="beneficiaryLastName" placeholder="Nom"></label>
             <label>Adresse du bénéficiaire&nbsp;:<input type="text" id="beneficiaryAddress" placeholder="Adresse"></label>
@@ -531,20 +468,18 @@
                 </div>
                 <div class="bordmer-container">
                     <input type="checkbox" id="bordDeMer">
-                    <span>Bord de mer</span>
+                    <span>Bord de mer (&lt;25 km)</span>
                 </div>
             </div>
             <div id="baseTempResult">Température de base&nbsp;: <span id="baseTempValue">--</span> °C</div>
         </div>
+
         <!-- Step 3 -->
         <div id="step3" class="step">
-            <!-- removed title for project zones -->
             <div id="zonesContainer"></div>
             <div class="add-zone"><button type="button" onclick="addZone()">+ Ajouter une zone</button></div>
-            <!-- A simple summary showing only the total heat losses. Other details (surfaces, hauteurs, etc.) are computed but hidden to keep the interface clean. -->
             <div id="projectSummary" class="result hidden">
                 <div style="font-weight:bold;">Total des déperditions&nbsp;: <span id="totalLoss"></span> kW</div>
-                <!-- Hidden elements for final report calculations -->
                 <div id="surfacesContainer" class="hidden">
                     <ul id="surfacesByTemp"></ul>
                 </div>
@@ -553,9 +488,10 @@
                 <span id="maxHeating" class="hidden"></span>
             </div>
         </div>
+
         <!-- Step 4 -->
         <div id="step4" class="step">
-        <h2>Sélection PAC</h2>
+            <h2>Sélection PAC</h2>
             <label>Technologie:
                 <select id="technologySelect" onchange="onTechnologyChange()">
                     <option value="">-- Choisir --</option>
@@ -564,12 +500,13 @@
                     <option value="airextr">Pompe à chaleur sur Air extrait</option>
                 </select>
             </label><br>
+
             <div id="geoOptions" class="hidden">
                 <label>Type:
                     <select id="geoType">
-                <option value="0">Géothermie 0°C</option>
-                <option value="5">Géothermie 5°C</option>
-                <option value="10">Aquathermie 10°C</option>
+                        <option value="0">Géothermie 0°C</option>
+                        <option value="5">Géothermie 5°C</option>
+                        <option value="10">Aquathermie 10°C</option>
                     </select>
                 </label><br>
                 <label>Modèle:
@@ -577,12 +514,14 @@
                 </label><br>
                 <label>Nombre d'unités:<input type="number" id="geoUnits" min="1" max="9" value="1"></label>
             </div>
+
             <div id="airEauOptions" class="hidden">
                 <label>Modèle:
                     <select id="airEauModel"></select>
                 </label><br>
                 <label>Nombre d'unités:<input type="number" id="airEauUnits" min="1" max="8" value="1"></label>
             </div>
+
             <div id="airExtrOptions" class="hidden">
                 <label>Modèle:
                     <select id="airExtrModel"></select>
@@ -592,32 +531,67 @@
                 </label><br>
                 <!-- No units input because single unit for air extract -->
             </div>
-        <div id="techSummary" class="result hidden">
-            <h3>Résultat sélection PAC</h3>
-            <div class="summary-grid">
-                <div class="summary-item"><strong>Déperditions totales</strong><br><span id="summaryLoss"></span> kW</div>
-                <div class="summary-item"><strong>Puissance PAC</strong><br><span id="pacPower"></span> kW</div>
-                <div class="summary-item"><strong>Puissance/Déperditions</strong><br><span id="powerRatio"></span> %</div>
-                <div class="summary-item"><strong>Appoint recommandé</strong><br><span id="backupPower"></span> kW</div>
+
+            <!-- Guide VMC – visible uniquement pour PAC sur air extrait -->
+            <div id="vmcGuide" class="vmc-guide hidden">
+                <h3>Guide VMC (débit réglementaire indicatif)</h3>
+                <div class="vmc-inputs">
+                    <div class="vmc-input-group">
+                        <label for="vmcBedrooms">Nombre de chambres</label>
+                        <input type="number" id="vmcBedrooms" min="1" max="7" value="3">
+                    </div>
+                    <div class="vmc-input-group">
+                        <label for="vmcBathrooms">Salles de bain</label>
+                        <input type="number" id="vmcBathrooms" min="0" max="6" value="1">
+                    </div>
+                    <div class="vmc-input-group">
+                        <label for="vmcWc">WC</label>
+                        <input type="number" id="vmcWc" min="0" max="4" value="1">
+                    </div>
+                    <div class="vmc-input-group">
+                        <label for="vmcOther">Autres pièces d'eau</label>
+                        <input type="number" id="vmcOther" min="0" max="4" value="0">
+                    </div>
+                </div>
+                <div class="vmc-actions">
+                    <button type="button" onclick="computeVmcReglementaire()">Calculer le débit réglementaire</button>
+                </div>
+                <div id="vmcResult" class="vmc-result hidden"></div>
+                <p class="vmc-note">
+                    Ce guide VMC est fourni à titre purement indicatif et ne remplace pas une étude réglementaire complète ni un dimensionnement détaillé de réseau.
+                </p>
             </div>
-            <!-- Additional information for geothermal and aquathermal selections will be inserted here.  -->
-            <div id="extraInfo" class="summary-item hidden" style="margin-top:8px;"></div>
-            <!-- Renewal rate information for air extract selections; shown only on step 4 and not included in the final report -->
-            <div id="renewalInfo" class="summary-item hidden" style="margin-top:8px;"></div>
+
+            <div id="techSummary" class="result hidden">
+                <h3>Résultat sélection PAC</h3>
+                <div class="summary-grid">
+                    <div class="summary-item"><strong>Déperditions totales</strong><br><span id="summaryLoss"></span> kW</div>
+                    <div class="summary-item"><strong>Puissance PAC</strong><br><span id="pacPower"></span> kW</div>
+                    <div class="summary-item"><strong>Puissance/Déperditions</strong><br><span id="powerRatio"></span> %</div>
+                    <div class="summary-item"><strong>Appoint recommandé</strong><br><span id="backupPower"></span> kW</div>
+                </div>
+                <div id="extraInfo" class="summary-item hidden" style="margin-top:8px;"></div>
+                <div id="renewalInfo" class="summary-item hidden" style="margin-top:8px;"></div>
+            </div>
         </div>
-        </div>
+
         <!-- Step 5 (Final) -->
         <div id="step5" class="step final-step">
-            <!-- The title is generated in the report; hide the internal heading to avoid duplication -->
             <div id="finalReport"></div>
-            <button type="button" onclick="window.print()">Imprimer</button>
+            <div class="final-buttons">
+                <button type="button" onclick="window.print()">Imprimer la note</button>
+                <button type="button" onclick="openTechSheet()">Fiche technique</button>
+                <button type="button" onclick="openInstallManual()">Notice d'installation</button>
+            </div>
         </div>
+
         <!-- Navigation buttons -->
         <div class="navigation">
             <button id="prevBtn" onclick="prevStep()">Précédent</button>
             <button id="nextBtn" onclick="nextStep()">Suivant</button>
         </div>
     </div>
+
     <script>
         // Flags to track whether the user has manually selected model or units
         let geoManuallySelected = false;
@@ -676,6 +650,7 @@
                 '1001-1200': -24,'1201-1400': -25,'1401-1600': -25,'1601-1800': -25,'1801-2000': -25,'2001-2200': -25
             }
         };
+
         const gCoefficients = [
             { label: 'véranda récente', value: 2.00 },
             { label: 'pas isolé, pas d’inertie', value: 1.60 },
@@ -693,7 +668,8 @@
             { label: 'isolation norme RE2020', value: 0.40 },
             { label: 'saisie manuelle', value: null }
         ];
-        // Geothermal/Aquathermal capacities (kW). Keys: model -> glycol temp -> heating temp
+
+        // Geothermal/Aquathermal capacities (kW)
         const geoData = {
             'F1253-4': {
                 '0': { '35': 4.5, '45': 4.5, '55': 4.1 },
@@ -776,7 +752,8 @@
             'F1355-28-10': { '10': { '35': 35, '45': 35, '55': 33 } },
             'F1355-43-10': { '10': { '35': 58, '45': 58, '55': 52 } }
         };
-        /* Air/Eau capacities (kW). Each model has array of objects with ext temp and capacities at 35/45/55. */
+
+        /* Air/Eau capacities (kW) */
         const airEauData = {
             'S2125-8': [
                 { ext: 7, '35': 6.4, '45': 6.2, '55': 6.0 },
@@ -1045,13 +1022,13 @@
                 { ext: -24,'35': 5.50,'45': 4.60,'55': 4.60 },
                 { ext: -25,'35': 5.30,'45': 4.20,'55': 4.20 }
             ],
-            'AMS 20-6': [] /* Same as F2050-6; will copy in code */,
-            'AMS 20-10': [] /* Same as F2050-10; will copy in code */
+            'AMS 20-6': [],
+            'AMS 20-10': []
         };
-        // Copy F2050-6 and F2050-10 data into AMS models
         airEauData['AMS 20-6'] = airEauData['F2050-6'];
         airEauData['AMS 20-10'] = airEauData['F2050-10'];
-        /* Air Extract capacities (kW) by model -> flow -> heating temp */
+
+        /* Air Extract capacities (kW) */
         const airExtractData = {
             'S735-4': {
                 '60':  { '35': 1.3,  '45': 1.4,  '55': 1.5 },
@@ -1125,7 +1102,8 @@
                 '390': { '35': 6.4,  '45': 6.42,'55': 6.52 }
             }
         };
-        // ETAS values (percentage) at 35 and 55. Use 55 for 65.
+
+        // ETAS values
         const etasMap = {
             'S735-4': { '35': 191, '55': 147 },
             'S735-7': { '35': 181, '55': 148 },
@@ -1160,7 +1138,6 @@
             'F1355-43':{ '35': 194, '55': 154 },
             // Aquathermie
             'F1353-4':{ '35': 272, '55': 210 },
-            // Ajout de l'ETAS pour le modèle F1153-4 à 10°C conformément aux spécifications utilisateur
             'F1153-4-10':{ '35': 272, '55': 210 },
             'F1153-6-10':{ '35': 270, '55': 214 },
             'F1253-4-10':{ '35': 272, '55': 210 },
@@ -1180,9 +1157,6 @@
             'F1355-43-10':{ '35': 246, '55': 196 }
         };
 
-        // Water flow rates for aquathermal models (m³/h).  These values are used when the technology is
-        // "Géothermie / Aquathermie" and the type selected is Aquathermie 10°C.  The keys correspond to
-        // the base model names (without any "-10" suffix) and the values are the required water flow rates.
         const aquathermFlowMap = {
             'F1153-4': 1.0,
             'F1253-4': 1.0,
@@ -1206,74 +1180,55 @@
         // Application state
         let currentStep = 1;
         let zones = [];
-        // Flag to indicate whether the user has manually selected an air-extract flow rate.  When false, a
-        // default flow will be selected based on 0.5 volume/hour of the total heated volume.  This flag
-        // is reset whenever new flows are loaded or when returning to the air-extract selection step.
         let airExtrFlowManuallySelected = false;
         let finalBaseTemp = null;
+        let finalPac = null; // stocke les infos PAC pour les liens doc
 
         function showStep(step) {
             const steps = document.querySelectorAll('.step');
             steps.forEach((s, idx) => {
                 const currentIndex = idx + 1;
                 if (currentIndex === step) {
-                    // Show the target step and start transition
                     s.style.display = 'block';
-                    // Use a short timeout to trigger CSS transition
                     setTimeout(() => s.classList.add('active'), 10);
                 } else {
-                    // Hide previous steps after fade out
                     s.classList.remove('active');
-                    // Delay hiding until after transition
                     setTimeout(() => { s.style.display = 'none'; }, 400);
                 }
             });
-            // Update navigation buttons
             document.getElementById('prevBtn').style.display = (step === 1) ? 'none' : 'inline-block';
             document.getElementById('nextBtn').style.display = (step === 5) ? 'none' : 'inline-block';
 
-            // Hide the global header when on the final report step to avoid duplication
             const headerElem = document.querySelector('.header');
             if (headerElem) {
                 headerElem.style.display = (step === 5) ? 'none' : 'flex';
             }
-            // Whenever step 4 is displayed, recompute the technology summary
-            // This ensures that any changes made in the previous step (zones) are reflected immediately.
             if (step === 4) {
                 const techSel = document.getElementById('technologySelect').value;
-                // If air-extract technology is selected, reset the manual flow selection so the default can be recalculated
                 if (techSel === 'airextr') {
                     airExtrFlowManuallySelected = false;
                 }
                 computeTechnology();
             }
         }
+
         function nextStep() {
-            // Step 1: no mandatory fields – allow proceeding even if fields are empty.
-            if (currentStep === 1) {
-                // No validation needed for installer information.
-            }
-            // Step 2: ensure the beneficiary postal code is provided before moving forward
             if (currentStep === 2) {
                 const postal = document.getElementById('beneficiaryPostalCode').value.trim();
                 if (!postal) {
                     alert("Veuillez saisir le code postal du bénéficiaire.");
                     return;
                 }
-                // Compute the base temperature once a postal code is available
                 computeBaseTemp();
             }
-            // Step 3: require at least one zone with a non-empty, positive surface
             if (currentStep === 3) {
                 updateProjectSummary();
-                // A zone is considered valid if it has a positive surface area OR a manual heat loss value
                 const hasZone = zones.some(z => (parseFloat(z.area) > 0) || (z.manual && parseFloat(z.manualValue) > 0));
                 if (!hasZone) {
                     alert("Veuillez ajouter une zone avec une surface renseignée (supérieure à zéro) ou saisir manuellement les déperditions.");
                     return;
                 }
             }
-            // Step 4: require the user to select a technology (and implicitly a model)
             if (currentStep === 4) {
                 const techSel = document.getElementById('technologySelect').value;
                 if (!techSel) {
@@ -1286,79 +1241,94 @@
             if (currentStep < 5) currentStep++;
             showStep(currentStep);
         }
+
         function prevStep() {
             if (currentStep > 1) {
                 currentStep--;
                 showStep(currentStep);
             }
         }
+
         function computeBaseTemp() {
             const postal = document.getElementById('beneficiaryPostalCode').value.trim();
             let dept = postal.substring(0,2);
             if (dept === '97' || dept === '98') {
                 dept = postal.substring(0,3);
             }
-            let base = baseTempMapping[dept] !== undefined ? baseTempMapping[dept] : 0;
+            let rawBase = baseTempMapping[dept] !== undefined ? baseTempMapping[dept] : 0;
             const bord = document.getElementById('bordDeMer').checked;
+
+            // Ajustement spécifique bord de mer (<25 km)
+            let adjustedBase = rawBase;
             if (bord) {
-                base = -2;
+                const bordMap = {
+                    '-2': -2,
+                    '-4': -2,
+                    '-5': -4,
+                    '-6': -6,
+                    '-7': -7,
+                    '-8': -8,
+                    '-10': -10,
+                    '-12': -12,
+                    '-15': -15
+                };
+                const key = String(rawBase);
+                if (bordMap.hasOwnProperty(key)) {
+                    adjustedBase = bordMap[key];
+                }
             }
+
             const alt = document.getElementById('altitudeRange').value;
-            const baseKey = base.toString();
-            let finalBase = base;
+            const baseKey = adjustedBase.toString();
+            let finalBase = adjustedBase;
             if (altitudeMap[baseKey] && altitudeMap[baseKey][alt] !== undefined) {
                 finalBase = altitudeMap[baseKey][alt];
             }
             finalBaseTemp = finalBase;
             document.getElementById('baseTempValue').textContent = finalBase;
-            // Recompute PAC sizing if a technology is already selected, so that changes to base temperature
-            // immediately reflect in the technology summary and final report.
+
             const tech = document.getElementById('technologySelect').value;
             if (tech) {
                 computeTechnology();
             }
         }
+
         document.getElementById('beneficiaryPostalCode').addEventListener('blur', computeBaseTemp);
         document.getElementById('altitudeRange').addEventListener('change', computeBaseTemp);
         document.getElementById('bordDeMer').addEventListener('change', computeBaseTemp);
 
-        // Add zone function
         function addZone() {
             if (zones.length >= 20) return;
             const zone = {
                 area: 0,
                 height: 2.5,
-                // Set default insulation to "entre 1990-2000" and mark not manual
                 insulation: 'entre 1990-2000',
                 manual: false,
                 manualValue: 0,
                 ambient: 20,
-                // Set default temperature of operation to 45°C
                 heating: 45,
                 loss: 0
             };
             zones.push(zone);
             renderZones();
         }
-        // Remove zone
+
         function removeZone(i) {
             zones.splice(i,1);
             renderZones();
             updateProjectSummary();
         }
-        // Render zones UI
+
         function renderZones() {
             const container = document.getElementById('zonesContainer');
             container.innerHTML = '';
             zones.forEach((zone, i) => {
                 const div = document.createElement('div');
                 div.className = 'zone';
-                // Build options for insulation. Display the coefficient value and its description to satisfy the requirement
                 const insulationOptions = gCoefficients.map(gc => {
                     const display = gc.value !== null ? `${gc.value.toFixed(2)} – ${gc.label}` : gc.label;
                     return `<option value="${gc.label}" ${gc.label===zone.insulation?'selected':''}>${display}</option>`;
                 }).join('');
-                // Build HTML for this zone using a grid layout
                 div.innerHTML = `
                     <h4>Zone ${i+1}</h4>
                     <div class="zone-row">
@@ -1401,6 +1371,7 @@
                 container.appendChild(div);
             });
         }
+
         function updateZoneValue(index, field, value) {
             const zone = zones[index];
             if (field === 'area' || field === 'height' || field === 'ambient' || field === 'manualValue') {
@@ -1415,16 +1386,14 @@
             computeZoneLoss(index);
             updateProjectSummary();
             renderZones();
-            // Recompute the technology summary immediately if a technology is selected.  This ensures modifications on step 3
-            // (such as area, height, isolation, etc.) are reflected in the PAC selection (step 4) and final report without
-            // needing to switch pages.
             if (document.getElementById('technologySelect').value) {
                 computeTechnology();
             }
         }
+
         function computeZoneLoss(i) {
             const zone = zones[i];
-            if (!finalBaseTemp && finalBaseTemp !== 0) {
+            if (finalBaseTemp === null && finalBaseTemp !== 0) {
                 computeBaseTemp();
             }
             let loss = 0;
@@ -1437,11 +1406,12 @@
                 if (deltaT < 0) {
                     loss = 0;
                 } else {
-                    loss = (g * zone.area * zone.height * deltaT) / 1000; // kW
+                    loss = (g * zone.area * zone.height * deltaT) / 1000;
                 }
             }
             zone.loss = loss;
         }
+
         function updateProjectSummary() {
             if (zones.length === 0) {
                 document.getElementById('projectSummary').classList.add('hidden');
@@ -1464,7 +1434,7 @@
             document.getElementById('avgHeight').textContent = avgH.toFixed(2);
             document.getElementById('maxAmbient').textContent = maxAmbient;
             document.getElementById('maxHeating').textContent = maxHeating;
-            // surfaces list
+
             const list = document.getElementById('surfacesByTemp');
             list.innerHTML = '';
             Object.keys(surfacesByTemp).forEach(temp => {
@@ -1476,48 +1446,49 @@
             });
             document.getElementById('projectSummary').classList.remove('hidden');
         }
-        // Technology selection
+
         function onTechnologyChange() {
             const tech = document.getElementById('technologySelect').value;
             document.getElementById('geoOptions').classList.add('hidden');
             document.getElementById('airEauOptions').classList.add('hidden');
             document.getElementById('airExtrOptions').classList.add('hidden');
             document.getElementById('techSummary').classList.add('hidden');
+
+            const vmcBlock = document.getElementById('vmcGuide');
+            if (vmcBlock) {
+                vmcBlock.classList.add('hidden');
+            }
+
             if (tech === 'geothermie') {
-                // Show geothermie options and load models
-                // Always display geothermie options first so that default selection can be applied
                 document.getElementById('geoOptions').classList.remove('hidden');
                 loadGeoModels();
-                // Reset manual selection flag for geothermie
                 geoManuallySelected = false;
-                // Preselect defaults for geothermie (type, model, units) based on heat losses
                 selectDefaultModel('geothermie');
             } else if (tech === 'aireau') {
                 document.getElementById('airEauOptions').classList.remove('hidden');
                 loadAirEauModels();
-                // Reset manual selection flag for air/eau
                 airEauManuallySelected = false;
-                // Preselect defaults for air/eau based on heat losses and temperatures
                 selectDefaultModel('aireau');
             } else if (tech === 'airextr') {
                 document.getElementById('airExtrOptions').classList.remove('hidden');
                 loadAirExtrModels();
-                // Preselect defaults for air extract (model and flow) based on volume
                 selectDefaultModel('airextr');
+                if (vmcBlock) {
+                    vmcBlock.classList.remove('hidden');
+                }
             }
-            // After setting defaults for the selected technology, recompute the technology summary
+
             if (tech) {
                 computeTechnology();
             }
         }
+
         function loadGeoModels() {
             const select = document.getElementById('geoModel');
             select.innerHTML = '';
-            // Determine list of models based on selected temperature type
             const typeVal = document.getElementById('geoType').value;
             const list = [];
             if (typeVal === '0' || typeVal === '5') {
-                // Geothermal models use base names only.  Prefer F1253 over F1153 and S1256 over S1156.
                 list.push(
                     'F1253-4','F1153-4','F1253-6','F1153-6',
                     'S1256-8','S1156-8','S1256-13','S1156-13','S1256-18','S1156-18',
@@ -1525,7 +1496,6 @@
                     'F1345-24','F1345-30','F1345-40','F1345-60','F1355-28','F1355-43'
                 );
             } else if (typeVal === '10') {
-                // Aquathermal models: show base names without the -10 suffix. Prefer F1253 over F1153 and S1256 over S1156.
                 list.push(
                     'F1253-4','F1153-4','F1253-6','F1153-6',
                     'S1256-8','S1156-8','S1256-13','S1156-13','S1256-18','S1156-18',
@@ -1540,23 +1510,21 @@
                 select.appendChild(opt);
             });
         }
-        // When the geothermal type changes, reload available models, pick a new default based on the selected type, then recompute
+
         document.getElementById('geoType').addEventListener('change', function(){
             loadGeoModels();
-            // Re-select default model based on current type without forcing type change
             selectDefaultModel('geothermie', false);
             computeTechnology();
         });
+
         function loadAirEauModels() {
             const select = document.getElementById('airEauModel');
             select.innerHTML = '';
             const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
             const allowedModels = [];
-            // Determine if 65°C prohibits some models (F2050 and AMS)
             const allowHigh = heatingMax < 65;
             ['S2125-8','S2125-12','S2125-16','S2125-20','F2050-6','F2050-10','F2050-12','F2050-16','AMS 20-6','AMS 20-10'].forEach(m => {
                 if (!allowHigh && (m.startsWith('F2050') || m.startsWith('AMS'))) {
-                    // skip F2050 and AMS when 65°C present
                     return;
                 }
                 if (airEauData[m]) allowedModels.push(m);
@@ -1568,10 +1536,10 @@
                 select.appendChild(opt);
             });
         }
+
         function loadAirExtrModels() {
             const select = document.getElementById('airExtrModel');
             select.innerHTML = '';
-            // If any zone has 65°C heating, not allowed to select air extract
             const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
             if (heatingMax >= 65) {
                 alert("La technologie Air Extrait n'est pas disponible pour une température de fonctionnement de 65°C.");
@@ -1584,16 +1552,15 @@
                 opt.textContent = m;
                 select.appendChild(opt);
             });
-            // Populate flows based on selected model once model selected
             select.addEventListener('change', function(){ loadAirExtrFlows(); });
             loadAirExtrFlows();
         }
+
         function loadAirExtrFlows() {
             const model = document.getElementById('airExtrModel').value;
             const flowSelect = document.getElementById('airExtrFlow');
             flowSelect.innerHTML = '';
             if (!model) return;
-            // Sort flows numerically ascending
             const flows = Object.keys(airExtractData[model]).map(f => parseFloat(f)).sort((a,b) => a - b);
             flows.forEach(f => {
                 const opt = document.createElement('option');
@@ -1601,9 +1568,7 @@
                 opt.textContent = f.toString();
                 flowSelect.appendChild(opt);
             });
-            // Compute the total heated volume and select the nearest flow that achieves 0.5 volume/hour
             const totalVolume = zones.reduce((sum, z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
-            // Target flow is half the volume per hour
             const targetFlow = totalVolume * 0.5;
             let defaultFlow = flows[0];
             for (let i = 0; i < flows.length; i++) {
@@ -1612,30 +1577,31 @@
                     break;
                 }
             }
-            // Set the default flow if available
             flowSelect.value = defaultFlow.toString();
-            // Reset the manual selection flag so the default can be recomputed if volumes change
             airExtrFlowManuallySelected = false;
-            // Immediately compute technology summary to reflect the default flow
             computeTechnology();
         }
+
         function computeTechnology() {
             const tech = document.getElementById('technologySelect').value;
             if (!tech) return;
-            // ensure project summary is updated
             updateProjectSummary();
             const totalLoss = parseFloat(document.getElementById('totalLoss').textContent) || 0;
             let capacity = 0;
             let etas35 = 0;
             let etas55 = 0;
             let units = 1;
+            let selectedModelName = '';
+
             const heatingMax = zones.reduce((acc,z) => Math.max(acc,z.heating), 0);
             const heatingKey = (heatingMax >= 65) ? '55' : (heatingMax >= 55 ? '55' : (heatingMax >= 45 ? '45' : '35'));
+            let extraInfo = null;
+
             if (tech === 'geothermie') {
                 const typeVal = document.getElementById('geoType').value;
                 let model = document.getElementById('geoModel').value;
+                selectedModelName = model;
                 units = parseInt(document.getElementById('geoUnits').value);
-                // Determine key for geoData; for aquathermal we appended -10; but treat F1353 specially
                 let key = model;
                 if (typeVal === '10' && !model.includes('-10') && model !== 'F1353-4') {
                     key += '-10';
@@ -1650,36 +1616,44 @@
                     capacity = hTemps[heatingKey] || 0;
                 }
                 capacity *= units;
-                // ETAS lookup
-                // Prioritise the key (e.g. appended "-10" for aquathermie) over the base model name
-                const etasKey = model;
                 if (etasMap[key]) {
                     etas35 = etasMap[key]['35'];
                     etas55 = etasMap[key]['55'];
-                } else if (etasMap[etasKey]) {
-                    etas35 = etasMap[etasKey]['35'];
-                    etas55 = etasMap[etasKey]['55'];
+                } else if (etasMap[model]) {
+                    etas35 = etasMap[model]['35'];
+                    etas55 = etasMap[model]['55'];
                 }
-                // Special rule: if only one unit and model is F1153, F1253, S1156-8 or S1256-8 and capacity exceeds totalLoss, cap at totalLoss
                 const baseModel = model.split('-')[0];
                 if (units === 1 && (baseModel.startsWith('F1153') || baseModel.startsWith('F1253') || model.startsWith('S1156-8') || model.startsWith('S1256-8'))) {
                     if (capacity > totalLoss) {
                         capacity = totalLoss;
                     }
                 }
+                if (typeVal === '0' || typeVal === '5') {
+                    let lengthVal = totalLoss * 1000 * 0.014;
+                    if (lengthVal < 50) lengthVal = 50;
+                    extraInfo = { type: 'sonde', value: lengthVal.toFixed(0) + ' m' };
+                } else if (typeVal === '10') {
+                    const unitsValGeo = units || 1;
+                    if (aquathermFlowMap[model] !== undefined) {
+                        const baseFlow = aquathermFlowMap[model];
+                        const totalFlow = baseFlow * unitsValGeo;
+                        const isTotal = unitsValGeo > 1;
+                        extraInfo = { type: 'flow', base: baseFlow.toFixed(1), total: totalFlow.toFixed(1), units: unitsValGeo, isTotal: isTotal };
+                    }
+                }
             }
+
             if (tech === 'aireau') {
                 const model = document.getElementById('airEauModel').value;
+                selectedModelName = model;
                 units = parseInt(document.getElementById('airEauUnits').value);
                 const dataArr = airEauData[model];
-                // choose capacity for finalBaseTemp and heatingKey
                 const ext = finalBaseTemp;
                 let entry = null;
                 if (dataArr) {
-                    // find exact ext
                     entry = dataArr.find(e => e.ext === ext);
                     if (!entry) {
-                        // find nearest lower ext
                         dataArr.sort((a,b) => b.ext - a.ext);
                         for (let i=0;i<dataArr.length;i++) {
                             if (dataArr[i].ext <= ext) {
@@ -1697,11 +1671,12 @@
                     etas55 = etasMap[model]['55'];
                 }
             }
+
             if (tech === 'airextr') {
                 const model = document.getElementById('airExtrModel').value;
+                selectedModelName = model;
                 let flow = document.getElementById('airExtrFlow').value;
                 const data = airExtractData[model];
-                // If the user has not manually selected a flow, recompute the default based on 0.5 volume/hour
                 if (!airExtrFlowManuallySelected) {
                     const flowsSorted = Object.keys(data).map(f => parseFloat(f)).sort((a,b) => a - b);
                     const totalVolume = zones.reduce((sum,z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
@@ -1724,7 +1699,6 @@
                     etas35 = etasMap[model]['35'];
                     etas55 = etasMap[model]['55'];
                 }
-                // Compute the renewal rate (volumes/hour) and update the summary display
                 const renewalDiv = document.getElementById('renewalInfo');
                 if (renewalDiv) {
                     const totalVolume = zones.reduce((sum,z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
@@ -1733,8 +1707,6 @@
                     if (totalVolume > 0) {
                         renewal = flowVal / totalVolume;
                     }
-                    // Display the renewal rate with two decimal places and apply a colour based on quality thresholds.
-                    // colour coding: <0.3 -> red (qualité médiocre); 0.3-0.55 -> green (bonne); 0.55-0.70 -> orange (renouvellement élevé); >=0.70 -> red (surventilation)
                     let colour = '';
                     if (renewal < 0.30) {
                         colour = 'red';
@@ -1749,28 +1721,23 @@
                     renewalDiv.classList.remove('hidden');
                 }
             }
-            // If air/eau technology is selected and a zone uses 65°C heating, F2050 and AMS models are not permitted.
-            // If the user currently has one of these models selected, automatically switch to an appropriate S2125 model.
+
+            // Restrictions pour 65°C
             if (tech === 'aireau') {
                 const heatingMaxForCheck = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
                 const currentModel = document.getElementById('airEauModel').value || '';
                 const isDisallowed = currentModel.startsWith('F2050') || currentModel.startsWith('AMS');
                 if (heatingMaxForCheck >= 65 && isDisallowed) {
-                    // Use a guard to prevent recursion when selectDefaultModel calls computeTechnology again
                     if (!window._disallowGuard) {
                         window._disallowGuard = true;
-                        // Reset manual selection flag to allow default selection override
                         airEauManuallySelected = false;
-                        // Reload models to reflect 65°C restriction (filters out F2050/AMS)
                         loadAirEauModels();
-                        // Select appropriate S2125 combination
                         selectDefaultModel('aireau');
                         window._disallowGuard = false;
                         return;
                     }
                 }
             }
-            // Prevent Air Extrait technology when a zone has 65°C heating.  If selected, reset technology.
             if (tech === 'airextr') {
                 const heatingMaxCheck = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
                 if (heatingMaxCheck >= 65) {
@@ -1778,22 +1745,22 @@
                         window._disallowGuard = true;
                         alert("La technologie Air Extrait n'est pas disponible pour une température de fonctionnement de 65°C.");
                         document.getElementById('technologySelect').value = '';
-                        // Hide Air extract specific options
                         document.getElementById('airExtrOptions').classList.add('hidden');
                         document.getElementById('techSummary').classList.add('hidden');
+                        const vmcBlock = document.getElementById('vmcGuide');
+                        if (vmcBlock) vmcBlock.classList.add('hidden');
                         window._disallowGuard = false;
                         return;
                     }
                 }
             }
+
             const ratio = totalLoss > 0 ? (capacity / totalLoss * 100) : 0;
             let backup = totalLoss - capacity;
             if (backup < 0) backup = 0;
             document.getElementById('summaryLoss').textContent = totalLoss.toFixed(2);
             document.getElementById('pacPower').textContent = capacity.toFixed(2);
             const ratioSpan = document.getElementById('powerRatio');
-            // Set the ratio text and apply a colour based on the ratio thresholds:
-            // <60%: red; 60-70%: orange (yellow); 70-120%: green; >120%: orange.
             ratioSpan.textContent = ratio.toFixed(1);
             let ratioColour = '';
             if (ratio < 60) {
@@ -1809,11 +1776,7 @@
             document.getElementById('backupPower').textContent = backup.toFixed(2);
             document.getElementById('techSummary').classList.remove('hidden');
 
-            // If ratio is outside desired bounds, automatically re-select a more appropriate model/units combination.
-            // Skip this auto-selection if the user has manually chosen a model/units combination.
-            // Use a guard to avoid recursion if computeTechnology triggers another selection.
             if (!window._autoSelectGuard) {
-                // Determine ratio bounds: 65-75% for air/eau, 70-90% for geothermie
                 let minRatio = 0;
                 let maxRatio = Infinity;
                 if (tech === 'aireau') {
@@ -1836,37 +1799,13 @@
                     }
                 }
             }
-            // compute additional information for geothermal and aquathermal cases
-            let extraInfo = null;
-            if (tech === 'geothermie') {
-                const typeValGeo = document.getElementById('geoType').value;
-                if (typeValGeo === '0' || typeValGeo === '5') {
-                    // Estimate the length of geothermal probes: 0.014 m per watt (14 m per kW).  Minimum 50 m.
-                    let lengthVal = totalLoss * 1000 * 0.014;
-                    if (lengthVal < 50) lengthVal = 50;
-                    extraInfo = { type: 'sonde', value: lengthVal.toFixed(0) + ' m' };
-                } else if (typeValGeo === '10') {
-                    // Aquathermal case: compute flow rate.  Multiply base flow by the number of units.
-                    const modelValGeo = document.getElementById('geoModel').value;
-                    const unitsValGeo = parseInt(document.getElementById('geoUnits').value) || 1;
-                    if (aquathermFlowMap[modelValGeo] !== undefined) {
-                        const baseFlow = aquathermFlowMap[modelValGeo];
-                        const totalFlow = baseFlow * unitsValGeo;
-                        const isTotal = unitsValGeo > 1;
-                        // Store both base and total for use in summary and final report.
-                        extraInfo = { type: 'flow', base: baseFlow.toFixed(1), total: totalFlow.toFixed(1), units: unitsValGeo, isTotal: isTotal };
-                    }
-                }
-            }
-            // Update the extra info section in the technology summary (step 4)
+
             const extraDiv = document.getElementById('extraInfo');
             if (extraDiv) {
                 if (extraInfo) {
-                    // Prefix the label with a colon for clarity.  Display the value on the same line.
                     if (extraInfo.type === 'sonde') {
                         extraDiv.innerHTML = '<strong>Longueur de sondes géothermiques estimée :</strong> ' + extraInfo.value;
                     } else if (extraInfo.type === 'flow') {
-                        // For aquathermie, display total flow when multiple units are selected.  Otherwise display the per-unit flow.
                         if (extraInfo.isTotal) {
                             extraDiv.innerHTML = '<strong>Débit total d\u2019eau de nappe :</strong> ' + extraInfo.total + ' m³/h';
                         } else {
@@ -1879,7 +1818,6 @@
                     extraDiv.classList.add('hidden');
                 }
             }
-            // If the technology is not air extract, hide the renewal rate info
             if (tech !== 'airextr') {
                 const renewalDiv = document.getElementById('renewalInfo');
                 if (renewalDiv) {
@@ -1887,18 +1825,25 @@
                     renewalDiv.classList.add('hidden');
                 }
             }
-            // store for final report; include a flag if capacity has been limited to match total loss and attach the extra information
-            window.finalPac = { tech: tech, capacity: capacity, ratio: ratio, backup: backup, etas35: etas35, etas55: etas55, units: units, limited: (capacity === totalLoss && totalLoss > 0), extra: extraInfo };
+
+            finalPac = {
+                tech: tech,
+                model: selectedModelName,
+                capacity: capacity,
+                ratio: ratio,
+                backup: backup,
+                etas35: etas35,
+                etas55: etas55,
+                units: units,
+                limited: (capacity === totalLoss && totalLoss > 0),
+                extra: extraInfo
+            };
         }
 
-        // Helper to compute capacity for air/eau models.  Looks up the correct entry based on
-        // the exterior temperature and heating key, mirroring the logic in computeTechnology().
         function getAirEauCapacity(dataArr, ext, heatingKey) {
             if (!dataArr || dataArr.length === 0) return 0;
-            // Find exact match for exterior temperature
             let entry = dataArr.find(e => e.ext === ext);
             if (!entry) {
-                // Sort descending by ext so we can find nearest lower ext
                 const sorted = dataArr.slice().sort((a,b) => b.ext - a.ext);
                 for (let i=0; i<sorted.length; i++) {
                     if (sorted[i].ext <= ext) {
@@ -1913,50 +1858,35 @@
             return entry[heatingKey] || 0;
         }
 
-        // Select default model and unit count for the chosen technology based on the total heat loss and
-        // maximum heating temperature.  Applies special rules for air-eau 65°C, air-extract, and
-        // geothermie defaults.
         function selectDefaultModel(tech, overrideType = true) {
-            // Ensure the project summary is up to date so totalLoss is populated
             updateProjectSummary();
             const totalLoss = parseFloat(document.getElementById('totalLoss').textContent) || 0;
             if (!(totalLoss > 0)) {
-                // Without a computed heat loss, there is no sensible default
                 return;
             }
-            // Compute or update base temperature if not yet computed
             if (finalBaseTemp === null) {
                 computeBaseTemp();
             }
-            // Determine the maximum zone heating and corresponding heating key
             const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
             const heatingKey = (heatingMax >= 65) ? '55' : (heatingMax >= 55 ? '55' : (heatingMax >= 45 ? '45' : '35'));
 
-            // Helper to compute ratio bounds
             const getRatioBounds = (tech) => {
-                // Define the minimum and maximum ratio thresholds and the maximum number of units to check for each technology.
-                // Air/Eau: ratio should be between 65-75%; check combinations up to 9 units.
-                // Géothermie/Aquathermie: ratio should be between 70-90%; check combinations up to 8 units.
                 if (tech === 'aireau') {
                     return { min: 0.65, max: 0.75, limit: 9 };
                 }
-                // Default for geothermal and aquathermal
                 return { min: 0.70, max: 0.90, limit: 8 };
             };
 
             if (tech === 'geothermie') {
                 const geoTypeElem = document.getElementById('geoType');
-                // If overrideType is requested (initial load), force 5°C; otherwise use current selection
                 if (overrideType) {
                     geoTypeElem.value = '5';
                 }
-                // Load models for current type
                 loadGeoModels();
                 const typeVal = document.getElementById('geoType').value;
                 const modelSelect = document.getElementById('geoModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
                 if (models.length === 0) return;
-                // Build capacity map for each model based on the selected type and heatingKey
                 const caps = {};
                 models.forEach((m) => {
                     let key = m;
@@ -1980,10 +1910,9 @@
                 const maxUnits = bounds.limit;
                 let chosenModel = null;
                 let chosenUnits = 1;
-                // Iterate over unit counts from 1 up to the limit, finding the minimal n that satisfies ratio >= min
+
                 outerGeoLoop:
                 for (let n = 1; n <= maxUnits; n++) {
-                    // Collect candidates within range and oversize
                     const within = [];
                     const overs = [];
                     models.forEach((m, idx) => {
@@ -1998,7 +1927,6 @@
                         }
                     });
                     if (within.length > 0) {
-                        // Choose the candidate within range with the lowest ratio (closest to min) and earliest in the model order
                         within.sort((a, b) => {
                             if (a.ratio !== b.ratio) return a.ratio - b.ratio;
                             return a.index - b.index;
@@ -2008,12 +1936,10 @@
                         break outerGeoLoop;
                     }
                     if (overs.length > 0) {
-                        // No combos within range, but oversize combos exist. Choose the one with minimal oversize relative to the max.
                         overs.sort((a, b) => {
                             const diffA = a.ratio - maxRatio;
                             const diffB = b.ratio - maxRatio;
                             if (diffA !== diffB) return diffA - diffB;
-                            // If oversize difference is equal, choose the candidate with the smallest ratio (i.e., closest to max)
                             if (a.ratio !== b.ratio) return a.ratio - b.ratio;
                             return a.index - b.index;
                         });
@@ -2021,9 +1947,7 @@
                         chosenUnits = overs[0].units;
                         break outerGeoLoop;
                     }
-                    // Otherwise, continue to next n
                 }
-                // If no combination produced ratio >= min across all n, pick the combination with the highest ratio (closest to min) among all models and unit counts.
                 if (!chosenModel) {
                     let best = null;
                     models.forEach((m, idx) => {
@@ -2040,18 +1964,15 @@
                         chosenUnits = best.units;
                     }
                 }
-                if (chosenModel) {
-                    // Only update the model and units if the user has not manually selected their own combination.
-                    if (!geoManuallySelected) {
-                        modelSelect.value = chosenModel;
-                        document.getElementById('geoUnits').value = chosenUnits.toString();
-                    }
+                if (chosenModel && !geoManuallySelected) {
+                    modelSelect.value = chosenModel;
+                    document.getElementById('geoUnits').value = chosenUnits.toString();
                 }
+
             } else if (tech === 'aireau') {
                 const modelSelect = document.getElementById('airEauModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
                 if (models.length === 0) return;
-                // Build capacity map for each model for the selected heatingKey
                 const caps = {};
                 models.forEach(m => {
                     const dataArr = airEauData[m];
@@ -2059,14 +1980,13 @@
                     const cap = getAirEauCapacity(dataArr, finalBaseTemp, heatingKey);
                     caps[m] = cap;
                 });
-                // Determine ratio bounds and maximum number of units
                 const bounds = getRatioBounds('aireau');
                 const minRatio = bounds.min;
                 const maxRatio = bounds.max;
                 const maxUnits = bounds.limit;
                 let chosenModel = null;
                 let chosenUnits = 1;
-                // Iterate through unit counts from 1 to maxUnits to find a suitable combination
+
                 outerAirLoop:
                 for (let n = 1; n <= maxUnits; n++) {
                     const within = [];
@@ -2083,7 +2003,6 @@
                         }
                     });
                     if (within.length > 0) {
-                        // Choose the candidate within range that has the lowest ratio (closest to min) and earliest model order
                         within.sort((a,b) => {
                             if (a.ratio !== b.ratio) return a.ratio - b.ratio;
                             return a.index - b.index;
@@ -2093,7 +2012,6 @@
                         break outerAirLoop;
                     }
                     if (overs.length > 0) {
-                        // Oversize combinations exist for this unit count; choose the one with minimal excess above the max
                         overs.sort((a,b) => {
                             const diffA = a.ratio - maxRatio;
                             const diffB = b.ratio - maxRatio;
@@ -2105,9 +2023,7 @@
                         chosenUnits = overs[0].units;
                         break outerAirLoop;
                     }
-                    // If neither within nor overs combos exist for this unit count, try the next n
                 }
-                // If no suitable combination found across all unit counts, select the combination with the highest ratio
                 if (!chosenModel) {
                     let best = null;
                     models.forEach((m, idx) => {
@@ -2128,6 +2044,7 @@
                     modelSelect.value = chosenModel;
                     document.getElementById('airEauUnits').value = chosenUnits.toString();
                 }
+
             } else if (tech === 'airextr') {
                 const modelSelect = document.getElementById('airExtrModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
@@ -2167,54 +2084,46 @@
                 }
             }
         }
-        // Build final report
+
         function buildFinalReport() {
             const reportDiv = document.getElementById('finalReport');
             reportDiv.innerHTML = '';
-            // Company info
             const companyName = document.getElementById('companyName').value;
             const companyAddress = document.getElementById('companyAddress').value;
             const companySiret = document.getElementById('companySiret').value;
-            // Beneficiary info
             const benefFN = document.getElementById('beneficiaryFirstName').value;
             const benefLN = document.getElementById('beneficiaryLastName').value;
             const benefAddr = document.getElementById('beneficiaryAddress').value;
             const benefPC = document.getElementById('beneficiaryPostalCode').value;
             const benefCity = document.getElementById('beneficiaryCity').value;
             const year = document.getElementById('constructionYear').value;
-            // Surfaces by temp
             const surfacesLines = Array.from(document.getElementById('surfacesByTemp').children).map(li => li.textContent);
-            // Average height, ambient max, heating max
             const avgHeight = document.getElementById('avgHeight').textContent;
             const maxAmbient = document.getElementById('maxAmbient').textContent;
             const maxHeating = document.getElementById('maxHeating').textContent;
             const totalLoss = document.getElementById('totalLoss').textContent;
-            // Final PAC result
-            const pac = window.finalPac || {tech:'',capacity:0,ratio:0,backup:0,etas35:0,etas55:0, units:1};
-            // Build HTML
+            const pac = finalPac || {tech:'',model:'',capacity:0,ratio:0,backup:0,etas35:0,etas55:0,units:1};
+
             const logoUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s';
             let html = '';
-            // The report header container will have its margin controlled via CSS rather than inline style.  The
-            // margin-bottom property in inline style is removed so that print styles can override it.
             html += `<div class="report-header" style="display:flex; align-items:center; justify-content:space-between;">
                         <img src="${logoUrl}" alt="logo" style="height:20px; max-width:80px; width:auto;">
                         <div style="flex:1; text-align:center; font-weight:bold; font-size:20px;">NOTE DE DIMENSIONNEMENT</div>
                     </div>`;
-            // Add a spacer after the header to separate the title from the tables (used only in print)
             html += `<div class="print-spacer"></div>`;
-            html += `<table style="width:100%; margin-bottom:8px;">
+            html += `<table>
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Installateur</th></tr>
                         <tr><td>Entreprise</td><td>${companyName}</td></tr>
                         <tr><td>Adresse</td><td>${companyAddress}</td></tr>
                         <tr><td>SIRET</td><td>${companySiret}</td></tr>
                     </table>`;
-            html += `<table style="width:100%; margin-bottom:8px;">
+            html += `<table>
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Bénéficiaire</th></tr>
                         <tr><td>Nom</td><td>${benefFN} ${benefLN}</td></tr>
                         <tr><td>Adresse</td><td>${benefAddr}, ${benefPC} ${benefCity}</td></tr>
                         <tr><td>Année de construction</td><td>${year}</td></tr>
                     </table>`;
-            html += `<table style="width:100%; margin-bottom:8px;">
+            html += `<table>
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Données de base</th></tr>
                         <tr><td>Température extérieure de base</td><td>${finalBaseTemp} °C</td></tr>
                         <tr><td>Surface chauffée</td><td>${surfacesLines.join('<br>')}</td></tr>
@@ -2223,14 +2132,13 @@
                         <tr><td>Température de fonctionnement maximale</td><td>${maxHeating} °C${(parseInt(maxHeating)>=65?' (Haute température)':'')}</td></tr>
                         <tr><td style="font-weight:bold;">Déperditions calculées</td><td style="font-weight:bold;">${totalLoss} kW</td></tr>
                     </table>`;
-            // PAC selected
-            let pacDesc = '';
+
             const techSelect = document.getElementById('technologySelect').value;
+            let pacDesc = '';
             if (techSelect === 'geothermie') {
                 const typeVal = document.getElementById('geoType').value;
                 const model = document.getElementById('geoModel').value;
                 const unitsVal = document.getElementById('geoUnits').value;
-                // Display the glycol temperature in parentheses rather than prefaced with the word "Glycol"
                 pacDesc = `${model} (${unitsVal} unité${unitsVal>1?'s':''}) (${typeVal}°C)`;
             } else if (techSelect === 'aireau') {
                 const model = document.getElementById('airEauModel').value;
@@ -2242,19 +2150,22 @@
                 pacDesc = `${model} (débit ${flow} m³/h)`;
             }
 
-            // Determine the regulator class based on the selected model.  Models S1156, S1155, S1256, S2125, F2050 and S735 use the S series regulator; F1153, F1253, F1345, F1355 and AMS use the F series regulator.
             let selectedModelName = '';
-            if (techSelect === 'geothermie') {
-                selectedModelName = document.getElementById('geoModel').value;
-            } else if (techSelect === 'aireau') {
-                selectedModelName = document.getElementById('airEauModel').value;
-            } else if (techSelect === 'airextr') {
-                selectedModelName = document.getElementById('airExtrModel').value;
+            if (finalPac && finalPac.model) {
+                selectedModelName = finalPac.model;
+            } else {
+                if (techSelect === 'geothermie') {
+                    selectedModelName = document.getElementById('geoModel').value;
+                } else if (techSelect === 'aireau') {
+                    selectedModelName = document.getElementById('airEauModel').value;
+                } else if (techSelect === 'airextr') {
+                    selectedModelName = document.getElementById('airExtrModel').value;
+                }
             }
+
             let regulatorClass = '';
             const modelUpper = selectedModelName ? selectedModelName.toUpperCase() : '';
             const sSeriesPrefixes = ['S1156', 'S1155', 'S1256', 'S2125', 'S735'];
-            // F2050 is part of the S series regulator
             const isSeriesS = sSeriesPrefixes.some(prefix => modelUpper.startsWith(prefix)) || modelUpper.startsWith('F2050');
             const isSeriesF = modelUpper.startsWith('F1153') || modelUpper.startsWith('F1253') || modelUpper.startsWith('F1345') || modelUpper.startsWith('F1355') || modelUpper.startsWith('AMS');
             if (isSeriesS) {
@@ -2262,12 +2173,11 @@
             } else if (isSeriesF) {
                 regulatorClass = 'NIBE Série F / Classe VI – inclus sonde d’ambiance RTS 40';
             }
-            // Build PAC description and power rows
-            html += `<table style="width:100%; margin-bottom:8px;">
+
+            html += `<table>
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Pompe à chaleur</th></tr>
                         <tr><td><strong style="color:#d62728;">Modèle choisi</strong></td><td><strong style="color:#d62728;">${pacDesc}</strong></td></tr>
                         <tr><td style="font-weight:bold;">Puissance PAC à ${finalBaseTemp}&nbsp;°C</td><td style="font-weight:bold;">${pac.capacity.toFixed(2)} kW</td></tr>
-                        <!-- Colour-code the Puissance/Déperditions ratio.  Below 60 % = red; 60–70 % = orange; 70–120 % = green; above 120 % = orange -->
                         <tr><td>Puissance/Déperditions</td><td>
                             ${(() => {
                                 const r = pac.ratio;
@@ -2281,12 +2191,11 @@
                                 } else {
                                     colour = 'orange';
                                 }
-                                return `<span style=\"color:${colour}; font-weight:bold;\">${r.toFixed(1)} %</span>`;
+                                return `<span style="color:${colour}; font-weight:bold;">${r.toFixed(1)}&nbsp;%</span>`;
                             })()}
                         </td></tr>
                         <tr><td>Puissance d'appoint recommandée</td><td>${pac.backup.toFixed(2)} kW</td></tr>
                         <tr><td>Modèle et classe du régulateur</td><td>${regulatorClass}</td></tr>
-                        <!-- Insert additional geothermal/aquathermal information when applicable -->
                         ${pac.extra && pac.extra.type === 'sonde' ? `<tr><td>Longueur de sondes géothermiques estimée</td><td>${pac.extra.value}</td></tr>` : ''}
                         ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>${pac.extra.isTotal ? 'Débit total d\u2019eau de nappe' : 'Débit d\u2019eau de nappe'}</td><td>${pac.extra.isTotal ? pac.extra.total : pac.extra.base} m³/h</td></tr>` : ''}
                         <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS (PAC) 35°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${(pac.etas35 - 4)} %</strong></td></tr>
@@ -2294,56 +2203,194 @@
                         <tr><td>60% des déperditions</td><td>${(parseFloat(totalLoss)*0.60).toFixed(2)} kW</td></tr>
                         <tr><td>130% des déperditions</td><td>${(parseFloat(totalLoss)*1.30).toFixed(2)} kW</td></tr>
                         <tr><td>Température d'arrêt PAC NIBE</td><td>`;
-            // Determine cut-off: for models F2050-6, F2050-10, AMS 20-6 and AMS 20-10 it's -20°C, otherwise -25°C
-            let modelName = '';
-            if (techSelect === 'geothermie') {
-                modelName = document.getElementById('geoModel').value;
-            } else if (techSelect === 'aireau') {
-                modelName = document.getElementById('airEauModel').value;
-            } else if (techSelect === 'airextr') {
-                modelName = document.getElementById('airExtrModel').value;
-            }
+
+            let modelName = selectedModelName || '';
             let cutoff = '-25°C';
             if (modelName.startsWith('F2050') || modelName.startsWith('AMS 20')) {
                 cutoff = '-20°C';
             }
             html += `${cutoff}</td></tr>`;
             html += `</table>`;
+
             html += `<p style="font-size:8px;">Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.</p>`;
-            // Replace the generic informational disclaimer with a more comprehensive set of reserves, as requested.
             html += `<p style="font-size:8px;">Les informations et estimations fournies dans cette note de dimensionnement sont données à titre indicatif. Elles sont basées sur les renseignements communiqués et n’ont qu’une valeur approximative. Elles doivent être vérifiées et complétées en consultant les notices des fabricants, la réglementation en vigueur et les régimes de fonctionnement applicables. Un bureau d’étude ou un professionnel qualifié devra confirmer ces données, procéder aux ajustements nécessaires et émettre les réserves d’usage.</p>`;
-            // Remove the external URL footer in the final report
-            // html += `<p style="font-size:10px;">nibe.fr</p>`;
+
             reportDiv.innerHTML = html;
         }
-        // Initialize
-        addZone(); // start with one zone
+
+        // === Guide VMC (débit réglementaire indicatif pour PAC air extrait) ===
+        function titreLogementVmc(nb){
+            nb = Number(nb) || 0;
+            if (nb <= 1) return 'T2';
+            if (nb === 2) return 'T3';
+            if (nb === 3) return 'T4';
+            if (nb === 4) return 'T5';
+            if (nb === 5) return 'T6';
+            if (nb >= 7) return 'T7+';
+            return 'T7';
+        }
+        function cuisineDefaultsVmc(nb){
+            nb = Number(nb) || 0;
+            if (nb <= 1) return { mini: 30, grand: 90 };
+            if (nb === 2) return { mini: 45, grand: 105 };
+            if (nb === 3) return { mini: 45, grand: 120 };
+            return { mini: 45, grand: 135 };
+        }
+
+        function computeVmcReglementaire(){
+            const nbCh = parseInt(document.getElementById('vmcBedrooms').value,10) || 0;
+            const nbSdb = parseInt(document.getElementById('vmcBathrooms').value,10) || 0;
+            const nbWc = parseInt(document.getElementById('vmcWc').value,10) || 0;
+            const nbAut = parseInt(document.getElementById('vmcOther').value,10) || 0;
+
+            if (nbCh <= 0){
+                alert("Veuillez saisir au moins 1 chambre.");
+                return;
+            }
+
+            const typeLogement = titreLogementVmc(nbCh);
+            const cuisine = cuisineDefaultsVmc(nbCh);
+
+            const pieces = [];
+            for (let i=1;i<=nbSdb;i++){
+                pieces.push({ label: `Salle de bain ${i}`, type: 'sdb', flow: 30 });
+            }
+            for (let i=1;i<=nbWc;i++){
+                pieces.push({ label: `WC ${i}`, type: 'wc', flow: 15 });
+            }
+            for (let i=1;i<=nbAut;i++){
+                pieces.push({ label: `Autre pièce d'eau ${i}`, type: 'autre', flow: 15 });
+            }
+
+            // Règles WC
+            if (nbWc > 0){
+                if (typeLogement === 'T2' || typeLogement === 'T3'){
+                    pieces.forEach(p => {
+                        if (p.type === 'wc') p.flow = 15;
+                    });
+                } else {
+                    if (nbWc === 1){
+                        const firstWc = pieces.find(p => p.type === 'wc');
+                        if (firstWc) firstWc.flow = 30;
+                    } else {
+                        pieces.forEach(p => {
+                            if (p.type === 'wc') p.flow = 15;
+                        });
+                    }
+                }
+            }
+
+            // Règle T2 : si une seule pièce d’eau → 30 m³/h, si 2+ → 15 m³/h chacune
+            if (typeLogement === 'T2'){
+                const wetPieces = pieces;
+                if (wetPieces.length === 1){
+                    wetPieces[0].flow = 30;
+                } else if (wetPieces.length >= 2){
+                    wetPieces.forEach(p => { p.flow = 15; });
+                }
+            }
+
+            let totalWet = 0;
+            pieces.forEach(p => totalWet += p.flow);
+
+            const qMini = cuisine.mini + totalWet;
+            const qGrand = cuisine.grand + totalWet;
+
+            const resDiv = document.getElementById('vmcResult');
+            let html = '';
+            html += `<div class="vmc-result-line"><strong>Type de logement :</strong> ${typeLogement} — OK</div>`;
+            pieces.forEach(p => {
+                html += `<div class="vmc-result-line">${p.label} : ${p.flow.toFixed(0)} m³/h</div>`;
+            });
+            html += `<div class="vmc-result-line"><strong>Cuisine (mini / grand) :</strong> ${cuisine.mini} / ${cuisine.grand} m³/h — OK</div>`;
+            html += `<div class="vmc-result-line"><strong>Débit extrait réglementaire (mini / grand) :</strong> ${qMini.toFixed(0)} / ${qGrand.toFixed(0)} m³/h — OK</div>`;
+
+            resDiv.innerHTML = html;
+            resDiv.classList.remove('hidden');
+        }
+
+        // === Liens Fiche technique / Notice d'installation ===
+        function getTechSheetUrl(model){
+            if (!model) return null;
+            const m = model.toUpperCase();
+            if (m.startsWith('F2050')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/875864/storage/ODc1ODY0LzAvbWFzdGVy';
+            if (m.startsWith('S2125')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/906101/storage/OTA2MTAxLzAvbWFzdGVy';
+            if (m.startsWith('AMS')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/893145/storage/ODkzMTQ1LzAvbWFzdGVy';
+            if (m.startsWith('S735')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/881548/storage/ODgxNTQ4LzAvbWFzdGVy';
+            if (m.startsWith('F1153') || m.startsWith('F1253')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/899603/storage/ODk5NjAzLzAvbWFzdGVy';
+            if (m.startsWith('S1155')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/22598/storage/MDIyNTk4LzAvbWFzdGVy';
+            if (m.startsWith('S1156')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy';
+            if (m.startsWith('S1256')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy';
+            if (m.startsWith('F1355')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/22594/storage/MDIyNTk0LzAvbWFzdGVy';
+            if (m.startsWith('F1345')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/22593/storage/MDIyNTkzLzAvbWFzdGVy';
+            return null;
+        }
+
+        function getInstallManualUrl(model){
+            if (!model) return null;
+            const m = model.toUpperCase();
+            if (m.startsWith('F2050')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/886452/storage/ODg2NDUyLzAvbWFzdGVy';
+            if (m.startsWith('S2125')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/905850/storage/OTA1ODUwLzAvbWFzdGVy';
+            if (m.startsWith('AMS')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/892751/storage/ODkyNzUxLzAvbWFzdGVy';
+            if (m.startsWith('S735')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/893061/storage/ODkzMDYxLzAvbWFzdGVy';
+            if (m.startsWith('F1153')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/891120/storage/ODkxMTIwLzAvbWFzdGVy';
+            if (m.startsWith('F1253')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/891161/storage/ODkxMTYxLzAvbWFzdGVy';
+            if (m.startsWith('S1155')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/889934/storage/ODg5OTM0LzAvbWFzdGVy';
+            if (m.startsWith('S1156')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/909513/storage/OTA5NTEzLzAvbWFzdGVy';
+            if (m.startsWith('S1256')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/909583/storage/OTA5NTgzLzAvbWFzdGVy';
+            if (m.startsWith('F1355')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/891271/storage/ODkxMjcxLzAvbWFzdGVy';
+            if (m.startsWith('F1345')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/890055/storage/ODkwMDU1LzAvbWFzdGVy';
+            return null;
+        }
+
+        function openTechSheet(){
+            if (!finalPac || !finalPac.model){
+                alert("Veuillez d'abord sélectionner une pompe à chaleur et générer la note.");
+                return;
+            }
+            const url = getTechSheetUrl(finalPac.model);
+            if (!url){
+                alert("Aucune fiche technique disponible pour ce modèle.");
+                return;
+            }
+            window.open(url, '_blank');
+        }
+
+        function openInstallManual(){
+            if (!finalPac || !finalPac.model){
+                alert("Veuillez d'abord sélectionner une pompe à chaleur et générer la note.");
+                return;
+            }
+            const url = getInstallManualUrl(finalPac.model);
+            if (!url){
+                alert("Aucune notice d'installation disponible pour ce modèle.");
+                return;
+            }
+            window.open(url, '_blank');
+        }
+
+        // Initialisation
+        addZone();
         showStep(1);
 
-        // Attach listeners to update technology summary when selections change
         document.getElementById('geoModel').addEventListener('change', function(){
-            // Mark that the user manually changed the geothermal model
             geoManuallySelected = true;
             computeTechnology();
         });
         document.getElementById('geoUnits').addEventListener('input', function(){
-            // Mark that the user manually changed the geothermal unit count
             geoManuallySelected = true;
             computeTechnology();
         });
         document.getElementById('airEauModel').addEventListener('change', function(){
-            // Mark that the user manually changed the air/eau model
             airEauManuallySelected = true;
             computeTechnology();
         });
         document.getElementById('airEauUnits').addEventListener('input', function(){
-            // Mark that the user manually changed the air/eau unit count
             airEauManuallySelected = true;
             computeTechnology();
         });
         document.getElementById('airExtrModel').addEventListener('change', function(){ computeTechnology(); });
         document.getElementById('airExtrFlow').addEventListener('change', function(){
-            // Mark that the user has manually selected a flow, so subsequent volume changes won't override it
             airExtrFlowManuallySelected = true;
             computeTechnology();
         });
