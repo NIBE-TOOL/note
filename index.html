@@ -6,7 +6,6 @@
     <title>Note de dimensionnement</title>
     <style>
         body {
-            /* Use a friendly, modern font stack and slightly larger default text size */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #ffffff;
             margin: 0;
@@ -20,7 +19,6 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        /* Header styling: logo on the left and title centered. Align items to the top so the logo and text start at the same vertical position */
         .header {
             display: flex;
             align-items: center !important;
@@ -28,7 +26,6 @@
             gap: 8px;
         }
         .header .logo {
-            /* Keep logo proportions by specifying only a maximum height. Let width scale automatically. */
             max-height: 28px !important;
             height: auto !important;
             width: auto !important;
@@ -40,7 +37,6 @@
             flex: 1;
             text-align: center;
         }
-        /* Steps transitions: fade and slide for smoother navigation */
         .step {
             display: none;
             opacity: 0;
@@ -52,7 +48,6 @@
             opacity: 1;
             transform: translateX(0);
         }
-        /* Responsive adjustments for small screens */
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -60,7 +55,6 @@
             .header h1 {
                 font-size: 1.2em;
             }
-            /* Stack navigation buttons and add spacing for easier tapping on small screens */
             .navigation {
                 display: flex;
                 flex-direction: column;
@@ -93,7 +87,6 @@
         h1, h2, h3 {
             margin-top: 0;
         }
-
         .navigation {
             margin-top: 20px;
             max-width: 600px;
@@ -118,7 +111,6 @@
             background-color: #aaa;
             cursor: default;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -138,10 +130,20 @@
             width: 60%;
         }
 
+        /*
+         * Override global width rules for the quote/devis table.  Without this, the
+         * generic styles that assign 40% width to the first column and 60% to
+         * the last column can cause the 4‑column quote table to render with
+         * columns overlapped.  The .devis-table class is applied to the quote
+         * table generated in generateDevis().
+         */
+        .devis-table td:first-child, .devis-table th:first-child,
+        .devis-table td:last-child, .devis-table th:last-child {
+            width: auto;
+        }
         .final-step table:first-of-type {
             margin-top: 12px;
         }
-
         .tech-summary-table {
             width: 100%;
             border-collapse: collapse;
@@ -155,7 +157,6 @@
             font-size: 14px;
             width: 25%;
         }
-
         .zone {
             border: 1px solid #d0dfe8;
             padding: 12px;
@@ -166,7 +167,6 @@
         .zone h4 {
             margin-top: 0;
         }
-
         .add-zone {
             margin-top: 10px;
             text-align: left;
@@ -186,7 +186,6 @@
         .add-zone button:hover {
             background-color: #0056b3 !important;
         }
-
         .remove-zone-btn {
             background-color: #d62728;
             color: #ffffff;
@@ -201,7 +200,20 @@
             gap: 6px;
             min-width: 90px;
         }
-
+        .pool-remove-btn {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            font-size: 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 90px;
+        }
         .result {
             background-color: #f9f9f9;
             padding: 10px;
@@ -211,7 +223,6 @@
         .hidden {
             display: none;
         }
-
         #step1 label, #step2 label {
             display: block;
             margin-bottom: 4px !important;
@@ -225,7 +236,6 @@
             max-width: 600px;
             margin: 0 auto;
         }
-
         input[type="text"], input[type="number"], select, textarea {
             background-color: #f2f7ff;
             border: 1px solid #c2d6ec;
@@ -239,10 +249,9 @@
             font-size: 15px;
             color: #333;
         }
-
         .zone-row {
             display: grid;
-            grid-template-columns: 1fr 0.8fr 1fr 1fr 1fr 1fr auto;
+            grid-template-columns: 1.2fr 0.8fr 1.2fr 1.2fr 1fr 1.2fr auto;
             gap: 8px;
             align-items: flex-start !important;
         }
@@ -264,11 +273,9 @@
         .manual-input {
             margin-top: 8px;
         }
-
         .zone-row input, .zone-row select {
             height: 36px;
         }
-
         .bordmer-container {
             display: flex;
             align-items: center;
@@ -281,7 +288,6 @@
             width: auto !important;
             display: inline;
         }
-
         .altitude-row {
             display: flex;
             align-items: center;
@@ -296,7 +302,6 @@
             width: auto;
             min-width: 160px;
         }
-
         #step4 label {
             font-size: 16px;
         }
@@ -304,7 +309,6 @@
             font-size: 16px;
             padding: 8px;
         }
-
         .summary-grid {
             display: flex;
             flex-wrap: wrap;
@@ -320,14 +324,12 @@
             text-align: center;
             font-size: 14px;
         }
-
         .report-header {
             margin-bottom: 12px;
         }
         .print-spacer {
             display: none;
         }
-
         .final-step button {
             padding: 8px 16px;
             font-size: 15px;
@@ -344,8 +346,6 @@
         .final-buttons {
             margin-top: 12px;
         }
-
-        /* Guide VMC (air extrait uniquement) */
         .vmc-guide {
             margin-top: 16px;
             border: 1px solid #d0dfe8;
@@ -385,7 +385,6 @@
             font-size: 12px;
             color: #555;
         }
-
         @media print {
             body {
                 margin: 0;
@@ -477,7 +476,11 @@
         <!-- Step 3 -->
         <div id="step3" class="step">
             <div id="zonesContainer"></div>
-            <div class="add-zone"><button type="button" onclick="addZone()">+ Ajouter une zone</button></div>
+            <div class="add-zone">
+                <button type="button" onclick="addZone()">+ Ajouter une zone</button>
+                <button type="button" id="addPoolBtn" onclick="addPool()">+ Ajouter une piscine</button>
+            </div>
+            <div id="poolContainer"></div>
             <div id="projectSummary" class="result hidden">
                 <div style="font-weight:bold;">Total des déperditions&nbsp;: <span id="totalLoss"></span> kW</div>
                 <div id="surfacesContainer" class="hidden">
@@ -529,7 +532,6 @@
                 <label>Débit de ventilation (m³/h):
                     <select id="airExtrFlow"></select>
                 </label><br>
-                <!-- No units input because single unit for air extract -->
             </div>
 
             <!-- Guide VMC – visible uniquement pour PAC sur air extrait -->
@@ -578,12 +580,16 @@
         <!-- Step 5 (Final) -->
         <div id="step5" class="step final-step">
             <div id="finalReport"></div>
-            <div class="final-buttons">
-                <button type="button" onclick="window.print()">Imprimer la note</button>
-                <button type="button" onclick="openTechSheet()">Fiche technique</button>
-                <button type="button" onclick="openInstallManual()">Notice d'installation</button>
-            </div>
-        </div>
+            <!-- Actions spécifiques à la page de note : permettre de revenir à l'étape précédente ou de poursuivre vers le devis -->
+            <div id="noteActions" style="margin-top:20px; text-align:center;">
+                <button type="button" onclick="prevStep()" style="padding:8px 16px; margin-right:10px; background:#6c757d; color:#fff; border:none; border-radius:4px;">Précédent</button>
+                <button type="button" onclick="window.print()" style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px;">Imprimer</button>
+</div>
+
+        </div> <!-- fin de step5 -->
+
+
+        
 
         <!-- Navigation buttons -->
         <div class="navigation">
@@ -668,6 +674,811 @@
             { label: 'isolation norme RE2020', value: 0.40 },
             { label: 'saisie manuelle', value: null }
         ];
+
+        /* ============================================================
+           Section devis – données et fonctions
+
+           Ce bloc ajoute une fonctionnalité d'établissement de devis
+           simplifié pour certaines pompes à chaleur air/eau. Il repose
+           sur les règles fournies par NIBE et utilise les tarifs
+           publics issus du fichier tarif en vigueur (janv‑2026). Les
+           prix et éco‑participations sont inclus pour chaque référence.
+           La logique suivante est volontairement simplifiée afin de
+           fournir un devis estimatif : seules les gammes S2125 (8 à 20)
+           et F2050 (6 à 16) sont traitées. Les options ECS
+           intégrées/séparées sont proposées et les accessoires
+           hydrauliques de base sont ajoutés selon la puissance. Les
+           accessoires électriques et règles avancées (multi‑zones,
+           dimensionnement radiateurs/plancher, géothermie, etc.) ne
+           sont pas pris en compte ici pour des raisons de lisibilité.
+
+           Pour étendre cette logique à d'autres modèles (AMS, S735,
+           géothermie, etc.), il convient d'enrichir les objets
+           `productData`, `ecsIntegreeOptions` et `ecsSeparableOptions`,
+           ainsi que les règles dans generateDevis().
+        ============================================================ */
+
+        // Dictionnaire de tarifs par référence (tarif public HT) et éco‑participation
+        const tarifRef = {
+            // Pompes à chaleur air/eau série S2125 – désignations complètes
+            "N064220": { tarif: 10080, eco: 10.02, libelle: "NIBE S2125-8 1X230V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 8kW, 230V" },
+            "N064219": { tarif: 11047, eco: 10.02, libelle: "NIBE S2125-8 3X400V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 8kW, 400V" },
+            "N064218": { tarif: 11204, eco: 10.02, libelle: "NIBE S2125-12 1X230V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 12kW, 230V" },
+            "N064217": { tarif: 12244, eco: 10.02, libelle: "NIBE S2125-12 3X400V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 12kW, 400V" },
+            "N064216": { tarif: 13428, eco: 10.02, libelle: "NIBE S2125-16 1x230V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 16kW, 230V" },
+            "N064215": { tarif: 13428, eco: 10.02, libelle: "NIBE S2125-16 3x400V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 16kW, 400V" },
+            "N064214": { tarif: 15019, eco: 10.02, libelle: "NIBE S2125-20 1X230V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 20kW, 230V" },
+            "N064213": { tarif: 15019, eco: 10.02, libelle: "NIBE S2125-20 3X400V", designation: "PAC Air / Eau Monobloc R290 Hautes performances, 20kW, 400V" },
+            // Pompes à chaleur air/eau série F2050 – désignations complètes
+            "N064328": { tarif: 5326,  eco: 10.02, libelle: "NIBE F2050-6 1x230V", designation: "PAC Air / Eau Monobloc R32 Inverter Réversible 6kW, 230V" },
+            "N064318": { tarif: 6014,  eco: 10.02, libelle: "NIBE F2050-10 1x230V", designation: "PAC Air / Eau Monobloc R32 Inverter Réversible 10kW, 230V" },
+            "N064361": { tarif: 6309,  eco: 10.02, libelle: "NIBE F2050-12 1x230V", designation: "PAC Air / Eau Monobloc R32 Inverter Réversible 12kW, 230V" },
+            "N064362": { tarif: 7739,  eco: 10.02, libelle: "NIBE F2050-16 1x230V", designation: "PAC Air / Eau Monobloc R32 Inverter Réversible 16kW, 230V" },
+            // Unités extérieures AMS (split) – prix et éco-contributions
+            "N064235": { tarif: 2714, eco: 10.02, libelle: "NIBE AMS 20-6", designation: "Unité extérieure SPLIT 6 kW R32" },
+            "N064319": { tarif: 3552, eco: 10.02, libelle: "NIBE AMS 20-10", designation: "Unité extérieure SPLIT 10 kW R32" },
+            // Accessoires de base et ECS – désignations extraites du tarif officiel
+            "N067654": { tarif: 1463, eco: 0,    libelle: "NIBE SMO S40", designation: "Système de régulation pour PAC Air‑Eau, Série‑S" },
+            "N067321": { tarif: 398,  eco: 0.60, libelle: "NIBE CPD11-25/65", designation: "Circulateur électronique de charge" },
+            "N067320": { tarif: 436,  eco: 0.60, libelle: "NIBE CPD11-25/75", designation: "Circulateur électronique de charge" },
+            "N069252": { tarif: 725,  eco: 1.75, libelle: "ELK 9, 230/400V", designation: "Appoint électrique en ligne (4,5 à 9 kW)" },
+            "N088207": { tarif: 622,  eco: 0,    libelle: "NIBE UKV 100", designation: "Ballon tampon 100 L – 4 piquages, chaud/froid, classe C" },
+            "N080012": { tarif: 1098, eco: 0,    libelle: "NIBE UKV 20-220 CHAUD SEUL", designation: "Ballon tampon 200 L – 4 piquages, classe C" },
+            "N067761": { tarif: 96,   eco: 0,    libelle: "RACCORDS 22MM-1P X7 ET SONDES", designation: "Kit raccords hydrauliques 22 mm avec sondes" },
+            "N069198": { tarif: 5913, eco: 18,    libelle: "NIBE VVM S320 R 1x230V", designation: "Module hydraulique pour PAC Air / Eau Série‑S, 230V" },
+            "N069196": { tarif: 6054, eco: 18,    libelle: "NIBE VVM S320 R 400V", designation: "Module hydraulique pour PAC Air / Eau Série‑S, 400V" },
+            "N069277": { tarif: 8473, eco: 1.75,  libelle: "NIBE VVM S500 1x230V", designation: "Module hydraulique VVM S500, 230V" },
+            "N069276": { tarif: 8473, eco: 1.75,  libelle: "NIBE VVM S500 3x400V", designation: "Module hydraulique VVM S500, 400V" },
+            "N069430": { tarif: 7310, eco: 1.75,  libelle: "NIBE VVM 310", designation: "Module hydraulique VVM 310, 230/400V" },
+            "N069231": { tarif: 5149, eco: 18,    libelle: "NIBE VVM 225, 1X230V", designation: "Module hydraulique VVM 225, 230V" },
+            "N069229": { tarif: 5379, eco: 18,    libelle: "NIBE VVM 225, 400V", designation: "Module hydraulique VVM 225, 400V" },
+            "N081141": { tarif: 2328, eco: 18,    libelle: "NIBE VPB S200 R", designation: "Ballon ECS 200 L inox avec échangeur PAC" },
+            "N081143": { tarif: 3193, eco: 22,    libelle: "NIBE VPB S300 R", designation: "Ballon ECS 300 L inox avec échangeur PAC" },
+            "N082025": { tarif: 3059, eco: 22,    libelle: "NIBE VPA 300/200 E", designation: "Ballon ECS 487 L acier émaillé" },
+            "N082032": { tarif: 4648, eco: 22,    libelle: "NIBE VPA 450/300 E", designation: "Ballon ECS 737 L acier émaillé" },
+            "N089152": { tarif: 275,  eco: 0,    libelle: "NIBE VST 11", designation: "Vanne 3 voies ECS DN25" }
+    ,
+    // Kits de zones mélangées
+            "N067287": { tarif: 1204, eco: 0,    libelle: "NIBE ECS 40", designation: "Kit zone mélangée ECS40 incluant circulateur, vannes d’isolement, vanne 3 voies motorisée et carte de régulation" },
+    "N067288": { tarif: 1204, eco: 0,    libelle: "NIBE ECS 41", designation: "Kit zone mélangée ECS41 incluant circulateur, vannes d’isolement, vanne 3 voies motorisée et carte de régulation" },
+    "N067062": { tarif: 0, eco: 0,    libelle: "POOL 40", designation: "Kit piscine POOL 40" },
+    "N067247": { tarif: 0, eco: 0,    libelle: "POOL 310", designation: "Kit piscine POOL 310" },
+    "N067181": { tarif: 0, eco: 0,    libelle: "POOL 500", designation: "Kit piscine POOL 500" }
+            ,
+            // Modules hydrauliques BA‑SVM et SHB (pour AMS)
+            "N067944": { tarif: 4691, eco: 1.75, libelle: "NIBE SHB 20-6 EM", designation: "Module hydraulique BA‑SVM pour AMS 20‑6 (plancher chauffant)" },
+            "N067945": { tarif: 4840, eco: 1.75, libelle: "NIBE SHB 20-12 EM", designation: "Module hydraulique BA‑SVM pour AMS 20‑10 (plancher chauffant)" },
+            "N067953": { tarif: 5757, eco: 18,   libelle: "NIBE BA-SVM20-200/6E", designation: "Module hydraulique BA‑SVM 200/6E (intégrée)" },
+            "N067954": { tarif: 5907, eco: 18,   libelle: "NIBE BA-SVM20-200/12E", designation: "Module hydraulique BA‑SVM 200/12E (intégrée)" }
+
+            ,
+            // Accessoires piscine (échangeur, détecteur, relais) – prix et éco par défaut à 0 car non listés dans le tarif
+            "W49NT40": { tarif: 0, eco: 0, libelle: "Échangeur piscine", designation: "Échangeur piscine nu (sans régulation ni circulateur)" },
+            // Les références WSK02022 et ESB20-11N ne sont plus utilisées (détecteur de débit et relais inverseur)
+        };
+
+        // Définition des modèles pris en charge avec les phases disponibles et accessoires de base
+        const productData = {
+            "S2125-8": {
+                phases: ["Mono","Tri"],
+                refs: { "Mono": "N064220", "Tri": "N064219" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067321","N069252","N088207"],
+                    "ChauffageECS": ["N067654","N067321","N069252","N088207"]
+                }
+            },
+            "S2125-12": {
+                phases: ["Mono","Tri"],
+                refs: { "Mono": "N064218", "Tri": "N064217" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067321","N069252","N088207"],
+                    "ChauffageECS": ["N067654","N067321","N069252","N088207"]
+                }
+            },
+            "S2125-16": {
+                phases: ["Mono","Tri"],
+                refs: { "Mono": "N064216", "Tri": "N064215" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067320","N069252","N080012"],
+                    "ChauffageECS": ["N067654","N067320","N069252","N080012"]
+                }
+            },
+            "S2125-20": {
+                phases: ["Mono","Tri"],
+                refs: { "Mono": "N064214", "Tri": "N064213" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067320","N069252","N080012"],
+                    "ChauffageECS": ["N067654","N067320","N069252","N080012"]
+                }
+            },
+            "F2050-6": {
+                phases: ["Mono"],
+                refs: { "Mono": "N064328" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067321","N069252","N088207"],
+                    "ChauffageECS": ["N067654","N067321","N069252","N088207"]
+                }
+            },
+            "F2050-10": {
+                phases: ["Mono"],
+                refs: { "Mono": "N064318" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067321","N069252","N088207"],
+                    "ChauffageECS": ["N067654","N067321","N069252","N088207"]
+                }
+            },
+            "F2050-12": {
+                phases: ["Mono"],
+                refs: { "Mono": "N064361" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067321","N069252","N088207"],
+                    "ChauffageECS": ["N067654","N067321","N069252","N088207"]
+                }
+            },
+            "F2050-16": {
+                phases: ["Mono"],
+                refs: { "Mono": "N064362" },
+                baseAccessories: {
+                    "Chauffage": ["N067654","N067320","N069252","N080012"],
+                    "ChauffageECS": ["N067654","N067320","N069252","N080012"]
+                }
+            }
+            ,
+            // Gamme AMS (unité extérieure pour système Split) – les références sont identiques pour mono et tri
+            "AMS 20-6": {
+                phases: ["Mono","Tri"],
+                refs: { "Mono": "N064235", "Tri": "N064235" },
+                baseAccessories: {
+                    // Pour simplifier, nous reprenons les accessoires de base des modèles F2050 pour AMS
+                    "Chauffage": ["N067944","N067761"],
+                    "ChauffageECS": ["N067944","N067761"]
+                }
+            },
+            "AMS 20-10": {
+                phases: ["Mono","Tri"],
+                refs: { "Mono": "N064319", "Tri": "N064319" },
+                baseAccessories: {
+                    "Chauffage": ["N067945","N067761"],
+                    "ChauffageECS": ["N067945","N067761"]
+                }
+            }
+        };
+
+        // ECS intégrée : volumes proposés et références par phase. Lorsque plusieurs références existent,
+        // nous choisissons la version connectée (VVM S320) par défaut. D'autres versions (VVM 225)
+        // sont ignorées pour simplifier.
+        const ecsIntegreeOptions = {
+            // 207 L – VVM S320 (série S) : hauteur 1,80 m (module connecté)
+            "207s": {
+                "Mono": ["N069198","N067761"],
+                "Tri":  ["N069196","N067761"]
+            },
+            // 207 L – VVM 225 (série F) : hauteur 1,50 m (module non connecté)
+            "207f": {
+                "Mono": ["N069231","N067761"],
+                "Tri":  ["N069229","N067761"]
+            },
+            // 270 L – VVM 310 (même référence pour mono et tri)
+            "270": {
+                "Mono": ["N069430"],
+                "Tri":  ["N069430"]
+            },
+            // 390 L – VVM S500 (référence différente selon la tension)
+            "390": {
+                "Mono": ["N069277"],
+                "Tri":  ["N069276"]
+            }
+        };
+
+        // ECS séparée : volumes proposés et références associées. Chaque élément est un tableau
+        // de références (ballon et accessoires complémentaires). L'éco‑participation est appliquée
+        // à chaque référence.
+        const ecsSeparableOptions = {
+            "200": ["N081141","N089152","N067761"], // ballon 200 L INOX + accessoires
+            "300": ["N081143","N089152","N067761"], // ballon 300 L INOX + accessoires
+            "487": ["N082025","N089152"],           // ballon 487 L acier + accessoires
+            "737": ["N082032","N089152"]            // ballon 737 L acier + accessoires
+        };
+
+        // ECS séparée par produit : référence des ballons et accessoires selon le modèle
+        const ecsSeparableByProduct = {
+            "S2125-8": {
+                "200": ["N081141","N089152","N067761"],
+                "300": ["N081143","N089152","N067761"],
+                "487": ["N082025","N089152"],
+                "737": ["N082032","N089152"]
+            },
+            "S2125-12": {
+                "200": ["N081141","N089152","N067761"],
+                "300": ["N081143","N089152","N067761"],
+                "487": ["N082025","N089152"],
+                "737": ["N082032","N089152"]
+            },
+            "F2050-6": {
+                "200": ["N081141","N089152","N067761"],
+                "300": ["N081143","N089152","N067761"],
+                "487": ["N082025","N089152"],
+                "737": ["N082032","N089152"]
+            },
+            "F2050-10": {
+                "200": ["N081141","N089152","N067761"],
+                "300": ["N081143","N089152","N067761"],
+                "487": ["N082025","N089152"],
+                "737": ["N082032","N089152"]
+            },
+            "F2050-12": {
+                "200": ["N081141","N089152","N067761"],
+                "300": ["N081143","N089152","N067761"],
+                "487": ["N082025","N089152"],
+                "737": ["N082032","N089152"]
+            },
+            "S2125-16": {
+                "200": ["N081141","N089388","N067761"],
+                "300": ["N081143","N089388","N067761"],
+                "487": ["N082025","N089388"],
+                "737": ["N082032","N089388"]
+            },
+            "F2050-16": {
+                "487": ["N082025","N089388"],
+                "737": ["N082032","N089388"]
+            },
+            "S2125-20": {
+                "487": ["N082025","N089388"],
+                "737": ["N082032","N089388"]
+            }
+        };
+
+        /**
+         * Affiche la section devis et prépare la liste des phases selon le modèle.
+         */
+        function openDevis() {
+            // Stocker les informations finales de la PAC dans le localStorage pour les utiliser sur la page de devis
+            if (!finalPac || !finalPac.model) {
+                alert("Aucune pompe à chaleur n'a été sélectionnée pour établir un devis.");
+                return;
+            }
+            // Vérifier qu'une seule unité est préconisée (conformément aux règles du devis)
+            if (finalPac.units && finalPac.units > 1) {
+                alert("Le devis ne peut être généré que pour une installation avec une seule unité.");
+                return;
+            }
+            // Préparer la section devis dans la même page
+            // Afficher la section devis sans masquer le rapport final ni les boutons. Le devis s'affiche sous la note.
+            const devisSection = document.getElementById('devisSection');
+            if (devisSection) devisSection.style.display = 'block';
+            // Pré-renseigner le modèle sélectionné et masquer la liste déroulante
+            const productSelect = document.getElementById('devisProduct');
+            const productRow = document.getElementById('productRow');
+            const modelInfo = document.getElementById('selectedModelInfo');
+            const modelDisplay = document.getElementById('devisModelDisplay');
+            if (productSelect && finalPac.model) {
+                // Pré‑sélectionner le modèle trouvé lors du dimensionnement, mais laisser la liste visible pour permettre un changement éventuel.
+                productSelect.value = finalPac.model;
+                // Ne pas masquer la ligne de sélection du produit
+                if (modelInfo) {
+                    // Cacher l'affichage du modèle imposé car l'utilisateur peut choisir un autre modèle
+                    modelInfo.style.display = 'none';
+                }
+            }
+            // Mettre à jour les options de volumes selon le modèle et initialiser l'ECS
+            updateEcsVolumeOptions();
+            updateSepVolumeOptions();
+            toggleEcsOptions();
+            toggleEcsDetail();
+            // Générer le devis initial
+            generateDevis();
+        }
+
+        /**
+         * Met à jour la liste des phases en fonction du produit sélectionné. Si le
+         * produit n'a qu'une seule phase, la sélection est masquée.
+         */
+        function updatePhaseOptions() {
+            // Cette fonction est conservée pour compatibilité mais n'est plus utilisée.
+            // La sélection de phase se fait via le champ installPhaseRow (phase de l'installation).
+            const phaseRow = document.getElementById("phaseRow");
+            if (phaseRow) phaseRow.style.display = "none";
+        }
+
+        /**
+         * Met à jour la liste des volumes d'ECS intégrée en fonction du modèle sélectionné.
+         * Certains modèles n'acceptent pas tous les volumes de ballon. Cette fonction
+         * ajuste les options de volume disponibles dans le sélecteur ecsVolume.
+         */
+        function updateEcsVolumeOptions() {
+            const product = document.getElementById("devisProduct").value;
+            const volumeSelect = document.getElementById("ecsVolume");
+            if (!volumeSelect) return;
+            let options = [];
+            if (product === "S2125-8" || product === "S2125-12" || product === "S2125-16") {
+                // Ces modèles peuvent utiliser les deux variantes à 207 L (S320 et VVM 225) ainsi que 270 L et 390 L
+                options = ["207s","207f","270","390"];
+            } else if (product === "S2125-20") {
+                // S2125‑20 n'accepte que le volume 390 L
+                options = ["390"];
+            } else if (product.startsWith("F2050")) {
+                if (product === "F2050-16") {
+                    // F2050‑16 n'accepte que 270 L ou 390 L en intégré
+                    options = ["270","390"];
+                } else {
+                    // F2050‑6, 10, 12 : volumes intégrés 207 L (S320 ou VVM 225), 270 L et 390 L
+                    options = ["207s","207f","270","390"];
+                }
+            } else if (product.startsWith("AMS")) {
+                // AMS : un seul module intégré (BA‑SVM). On utilise par défaut la variante S320 207 L
+                options = ["207s"];
+            } else {
+                // Par défaut, proposer tous les volumes
+                options = ["207s","207f","270","390"];
+            }
+            // Mettre à jour les options du sélecteur
+            volumeSelect.innerHTML = "";
+            options.forEach(val => {
+                const opt = document.createElement("option");
+                opt.value = val;
+                let text = "";
+                if (val === "207s") text = "207 (S320 – 1,80 m)";
+                else if (val === "207f") text = "207 (VVM 225 – 1,50 m)";
+                else if (val === "270") text = "270 L";
+                else if (val === "390") text = "390 L";
+                else text = val;
+                opt.textContent = text;
+                volumeSelect.appendChild(opt);
+            });
+        }
+
+        /**
+         * Met à jour la liste des volumes pour l'ECS séparée en fonction du modèle sélectionné.
+         */
+        function updateSepVolumeOptions() {
+            const product = document.getElementById("devisProduct").value;
+            const sepSelect = document.getElementById("ecsSepVolume");
+            if (!sepSelect) return;
+            let options = [];
+            if (product === "S2125-20" || product === "F2050-16") {
+                // Ces modèles n'acceptent que les volumes 487 et 737 pour ECS séparée
+                options = ["487","737"];
+            } else {
+                // Tous les autres modèles acceptent les quatre volumes standard
+                options = ["200","300","487","737"];
+            }
+            // Mettre à jour les options du sélecteur
+            sepSelect.innerHTML = "";
+            options.forEach(val => {
+                let text = "";
+                if (val === "200") text = "200 L INOX";
+                else if (val === "300") text = "300 L INOX";
+                else if (val === "487") text = "487 L ACIER";
+                else if (val === "737") text = "737 L ACIER";
+                const opt = document.createElement("option");
+                opt.value = val;
+                opt.textContent = text;
+                sepSelect.appendChild(opt);
+            });
+        }
+
+        /**
+         * Affiche ou masque les options ECS selon l'usage. Si l'utilisateur
+         * choisit chauffage + ECS, on affiche les choix intégrée/séparée.
+         */
+        function toggleEcsOptions() {
+            const usage = document.querySelector("input[name='devisUsage']:checked").value;
+            const ecsOptionsDiv = document.getElementById("ecsOptions");
+            ecsOptionsDiv.style.display = usage === "ChauffageECS" ? "block" : "none";
+        }
+
+        /**
+         * Affiche les détails de l'ECS intégrée ou séparée selon le choix.
+         */
+        function toggleEcsDetail() {
+            const ecsType = document.querySelector("input[name='ecsType']:checked").value;
+            const integreeDiv = document.getElementById("ecsIntegreeDetails");
+            const separableDiv = document.getElementById("ecsSeparableDetails");
+            if (ecsType === "integree") {
+                integreeDiv.style.display = "block";
+                separableDiv.style.display = "none";
+                // afficher le choix de la phase pour module ECS intégrée
+                const phaseRow = document.getElementById("ecsPhaseRow");
+                if (phaseRow) phaseRow.style.display = "block";
+            } else {
+                integreeDiv.style.display = "none";
+                separableDiv.style.display = "block";
+                // masquer le choix de la phase pour module ECS séparée
+                const phaseRow = document.getElementById("ecsPhaseRow");
+                if (phaseRow) phaseRow.style.display = "none";
+            }
+        }
+
+        /**
+         * Affiche ou masque les options de piscine en fonction de la case à cocher.
+         */
+        function togglePoolOptions() {
+            const poolCheckbox = document.getElementById('hasPool');
+            const poolDetails = document.getElementById('poolDetails');
+            if (poolDetails) {
+                poolDetails.style.display = (poolCheckbox && poolCheckbox.checked) ? 'block' : 'none';
+            }
+        }
+
+        /**
+         * Ajoute une nouvelle zone mélangée dans l'interface devis. L'utilisateur peut
+         * saisir au maximum 7 zones. Chaque zone est représentée par une ligne
+         * contenant un sélecteur de surface. Une surface de 0‑80 m² génère un kit
+         * ECS 40 (référence N067287) et une surface de 80‑240 m² génère un kit
+         * ECS 41 (référence N067288). Si la limite de 7 zones est atteinte, le
+         * bouton d'ajout est désactivé et un avertissement apparaît.
+         */
+        function addMixedZone() {
+            const container = document.getElementById('mixedZonesContainer');
+            const warning = document.getElementById('mixedZoneLimitWarning');
+            if (!container) return;
+            // Vérifier la limite à 7 zones
+            if (container.children.length >= 7) {
+                // Afficher un message d'avertissement et ne pas ajouter de nouvelle zone
+                if (warning) warning.style.display = 'block';
+                return;
+            }
+            // Cacher l'avertissement si une zone est ajoutée
+            if (warning) warning.style.display = 'none';
+            // Créer la ligne de zone
+            const row = document.createElement('div');
+            row.className = 'mixed-zone-row';
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '8px';
+            // Libellé pour la zone (sera mis à jour par updateMixedZonesLabels)
+            const label = document.createElement('span');
+            label.className = 'mixed-zone-label';
+            label.textContent = 'Zone';
+            row.appendChild(label);
+            // Sélecteur de surface pour déterminer le kit
+            const select = document.createElement('select');
+            select.onchange = generateDevis;
+            const optSmall = document.createElement('option');
+            optSmall.value = 'small';
+            optSmall.textContent = '0 – 80 m²';
+            const optLarge = document.createElement('option');
+            optLarge.value = 'large';
+            optLarge.textContent = '80 – 240 m²';
+            select.appendChild(optSmall);
+            select.appendChild(optLarge);
+            row.appendChild(select);
+            // Bouton de suppression de la zone
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.textContent = '×';
+            delBtn.style.background = '#dc3545';
+            delBtn.style.color = '#fff';
+            delBtn.style.border = 'none';
+            delBtn.style.borderRadius = '50%';
+            delBtn.style.width = '24px';
+            delBtn.style.height = '24px';
+            delBtn.style.lineHeight = '20px';
+            delBtn.style.textAlign = 'center';
+            delBtn.style.cursor = 'pointer';
+            delBtn.onclick = function() {
+                container.removeChild(row);
+                updateMixedZonesLabels();
+                // Masquer l'avertissement et réactiver le bouton d'ajout le cas échéant
+                if (warning) warning.style.display = 'none';
+                const addBtn = document.getElementById('addMixedZoneBtn');
+                if (addBtn) addBtn.disabled = false;
+                generateDevis();
+            };
+            row.appendChild(delBtn);
+            container.appendChild(row);
+            // Mettre à jour les labels des zones
+            updateMixedZonesLabels();
+            // Générer un devis mis à jour
+            generateDevis();
+            // Désactiver le bouton d'ajout si on atteint 7 zones
+            const addBtn = document.getElementById('addMixedZoneBtn');
+            if (container.children.length >= 7 && addBtn) addBtn.disabled = true;
+        }
+
+        /**
+         * Met à jour les libellés des zones mélangées (Zone 1, Zone 2, …) à
+         * chaque ajout ou suppression pour conserver un ordonnancement clair.
+         */
+        function updateMixedZonesLabels() {
+            const container = document.getElementById('mixedZonesContainer');
+            if (!container) return;
+            Array.from(container.children).forEach((row, index) => {
+                const label = row.querySelector('.mixed-zone-label');
+                if (label) label.textContent = `Zone ${index + 1}`;
+            });
+        }
+
+        /**
+         * Génère le devis en fonction des choix effectués par l'utilisateur. La
+         * fonction assemble une liste d'articles (références) avec leur tarif
+         * public et éco‑participation, puis calcule le total. Une fois le devis
+         * généré, il est affiché dans la div #devisResult sous forme de table.
+         */
+        function generateDevis() {
+            const product = document.getElementById("devisProduct").value;
+            if (!product || !productData[product]) {
+                alert("Veuillez sélectionner un modèle de pompe à chaleur.");
+                return;
+            }
+            const usage = document.querySelector("input[name='devisUsage']:checked").value;
+            // Mettre à jour le résumé de la configuration choisie (affichage en haut du devis)
+            const summaryEl = document.getElementById('devisInfoSummary');
+            if (summaryEl) {
+                const installPhaseVal = document.getElementById('installPhase') ? document.getElementById('installPhase').value : 'Mono';
+                let summaryLines = [];
+                // Modèle
+                const modelLabel = document.getElementById('devisProduct').value;
+                if (modelLabel) summaryLines.push(`Modèle : ${modelLabel}`);
+                summaryLines.push(`Tension de l'installation : ${installPhaseVal}`);
+                if (usage === 'Chauffage') {
+                    summaryLines.push('Usage : Chauffage seul');
+                } else {
+                    const ecsType = document.querySelector("input[name='ecsType']:checked").value;
+                    if (ecsType === 'integree') {
+                        const volSelect = document.getElementById('ecsVolume');
+                        const volText = volSelect.options[volSelect.selectedIndex].text;
+                        summaryLines.push('Usage : Chauffage + ECS intégrée');
+                        summaryLines.push(`ECS intégrée : ${volText}`);
+                    } else {
+                        const sepVolSelect = document.getElementById('ecsSepVolume');
+                        const sepVolText = sepVolSelect.options[sepVolSelect.selectedIndex].text;
+                        summaryLines.push('Usage : Chauffage + ECS séparée');
+                        summaryLines.push(`Volume du ballon séparé : ${sepVolText}`);
+                    }
+                }
+                // Compter les zones mélangées ajoutées (0 à 7)
+                let nbZones = 0;
+                const mzContainer = document.getElementById('mixedZonesContainer');
+                if (mzContainer) nbZones = mzContainer.children.length;
+                summaryLines.push(`Zones mélangées : ${nbZones}`);
+                const hasPool = document.getElementById('hasPool').checked;
+                if (hasPool) {
+                    summaryLines.push('Piscine : oui');
+                }
+                // Joindre les lignes avec des sauts de ligne pour une meilleure lisibilité
+                summaryEl.innerHTML = summaryLines.map(l => `<div>${l}</div>`).join('');
+            }
+            // Lecture de la phase de l'installation (mono ou tri)
+            let installPhase = "Mono";
+            const installPhaseSelect = document.getElementById("installPhase");
+            if (installPhaseSelect) {
+                installPhase = installPhaseSelect.value;
+            }
+            // Déterminer la phase de la pompe : si le produit propose plusieurs phases, utiliser celle de l'installation si elle est disponible ; sinon prendre la première phase proposée
+            let phase = "Mono";
+            if (productData[product].phases && productData[product].phases.length > 1) {
+                if (productData[product].phases.includes(installPhase)) {
+                    phase = installPhase;
+                } else {
+                    phase = productData[product].phases[0];
+                }
+            } else {
+                phase = productData[product].phases[0];
+            }
+            // Préparation de la liste des articles (références)
+            let articleRefs = [];
+            // Référence de la pompe
+            const pumpRef = productData[product].refs[phase];
+            articleRefs.push(pumpRef);
+            // Déterminer les accessoires de base selon l'usage et l'intégration ECS.  
+            let baseAcc = [];
+            if (usage === "Chauffage") {
+                // chauffage seul : on prend toujours les accessoires de base
+                baseAcc = productData[product].baseAccessories["Chauffage"] || [];
+            } else if (usage === "ChauffageECS") {
+                const ecsType = document.querySelector("input[name='ecsType']:checked").value;
+                if (ecsType === "integree") {
+                    // ECS intégrée : pas d'accessoires de base (ils sont inclus dans le module)
+                    baseAcc = [];
+                } else {
+                    // ECS séparée : reprendre les accessoires de base pour le chauffage
+                    baseAcc = productData[product].baseAccessories["Chauffage"] || [];
+                }
+            }
+            articleRefs = articleRefs.concat(baseAcc);
+            // Si l'usage inclut ECS, ajouter les références intégrées ou séparées
+            let addedEcsRefs = [];
+            if (usage === "ChauffageECS") {
+                const ecsType = document.querySelector("input[name='ecsType']:checked").value;
+                if (ecsType === "integree") {
+                    // Volume intégré (207s, 207f, 270 ou 390)
+                    const volumeKey = document.getElementById("ecsVolume").value;
+                    // Le module ECS utilise la même tension que l'installation
+                    let modulePhase = installPhase;
+                    let ecsRefs = [];
+                    // Vérifier la disponibilité du volume pour le modèle et la phase
+                    if (ecsIntegreeOptions[volumeKey] && ecsIntegreeOptions[volumeKey][modulePhase]) {
+                        ecsRefs = ecsIntegreeOptions[volumeKey][modulePhase].slice();
+                    } else {
+                        alert("Volume intégré non disponible pour ce modèle");
+                        return;
+                    }
+                    // Ajout de références supplémentaires selon le modèle et le volume
+                    // VVM 225 (207f) : ajouter systématiquement le circulateur N088207
+                    if (volumeKey === "207f") {
+                        ecsRefs.push("N088207");
+                    } else if (volumeKey === "207s") {
+                        // VVM S320 (207s) : ajouter N088207 uniquement pour S2125‑8, S2125‑12 et F2050‑12
+                        if (product === "S2125-8" || product === "S2125-12" || product === "F2050-12") {
+                            ecsRefs.push("N088207");
+                        }
+                    }
+                    // S2125‑16 : ajouter N080012 pour toute ECS intégrée (207s ou 207f)
+                    if (product === "S2125-16" && (volumeKey === "207s" || volumeKey === "207f")) {
+                        ecsRefs.push("N080012");
+                    }
+                    // Restrictions sur volumes : S2125‑20 n'accepte que 390 L ; F2050‑16 n'accepte pas 207 L
+                    if (product === "S2125-20" && volumeKey !== "390") {
+                        alert("Volume intégré non disponible pour S2125‑20");
+                        return;
+                    }
+                    if (product === "F2050-16" && (volumeKey === "207s" || volumeKey === "207f")) {
+                        alert("Volume intégré non disponible pour F2050‑16");
+                        return;
+                    }
+                    articleRefs = articleRefs.concat(ecsRefs);
+                    addedEcsRefs = ecsRefs.slice();
+                } else {
+                    // ECS séparée : utiliser le volume sélectionné et les références par produit
+                    const sepVolume = document.getElementById("ecsSepVolume").value;
+                    let sepRefs = [];
+                    if (ecsSeparableByProduct[product] && ecsSeparableByProduct[product][sepVolume]) {
+                        sepRefs = ecsSeparableByProduct[product][sepVolume];
+                    } else {
+                        // fallback to default separate references
+                        sepRefs = ecsSeparableOptions[sepVolume] || [];
+                    }
+                    articleRefs = articleRefs.concat(sepRefs);
+                    addedEcsRefs = sepRefs.slice();
+                }
+            }
+            // Ajout de la ligne Pot à boue magnétique (sans tarif) dans tous les cas
+            const nonPricedLines = ["Pot à boue magnétique"];
+            // Indicateur d'accessoires piscine (échangeur, détecteur, relais) à ajouter dans les sections non chiffrées et protections
+            let addPoolAccessories = false;
+            // Ajout des kits de zones mélangées : chaque zone ajoutée via l'interface correspond
+            // à un kit ECS40 ou ECS41 selon sa surface (0‑80 m² → ECS40, 80‑240 m² → ECS41).
+            try {
+                const mixedContainer = document.getElementById('mixedZonesContainer');
+                if (mixedContainer && mixedContainer.children.length > 0) {
+                    Array.from(mixedContainer.children).forEach(row => {
+                        const sel = row.querySelector('select');
+                        if (sel) {
+                            const val = sel.value;
+                            // valeur 'small' pour 0‑80 m² → kit ECS40, sinon ECS41
+                            articleRefs.push(val === 'small' ? 'N067287' : 'N067288');
+                        }
+                    });
+                }
+            } catch (e) {
+                // ignore en cas d'erreur
+            }
+
+            // Ajout du kit piscine selon le module hydraulique et le produit sélectionné. Lorsqu'une piscine est sélectionnée,
+            // on détermine automatiquement le kit à utiliser :
+            // – POOL 310 (N067247) pour les modules intégrés VVM 310, VVM S320 ou VVM 225 (volumes 207s, 207f ou 270).
+            // – POOL 500 (N067181) pour VVM S500 (volume 390).
+            // – POOL 40 (N067062) pour les autres configurations, sauf pour les modèles F1345‑40, F1355‑43 et F1345‑60 où aucun kit n'est ajouté.
+            const poolCheckbox = document.getElementById('hasPool');
+            if (poolCheckbox && poolCheckbox.checked) {
+                let poolRef = null;
+                // Vérifier les exclusions (modèles de forte puissance géothermie)
+                if (product === 'F1345-40' || product === 'F1355-43' || product === 'F1345-60') {
+                    poolRef = null;
+                } else if (usage === 'ChauffageECS' && document.querySelector("input[name='ecsType']:checked").value === 'integree') {
+                    const volumeKey = document.getElementById('ecsVolume').value;
+                    if (volumeKey === '390') {
+                        poolRef = 'N067181'; // POOL 500
+                    } else {
+                        // 207s, 207f ou 270 → POOL 310
+                        poolRef = 'N067247';
+                    }
+                } else {
+                    // Chauffage seul ou ECS séparée
+                    poolRef = 'N067062'; // POOL 40
+                }
+                if (poolRef) {
+                    articleRefs.push(poolRef);
+                    // Marque que les accessoires piscine (échangeur, détecteur, relais) doivent être ajoutés
+                    addPoolAccessories = true;
+                }
+            }
+            // Établissement de la date du devis et de la validité (2 mois)
+            const today = new Date();
+            const validity = new Date(today);
+            validity.setMonth(validity.getMonth() + 2);
+            const formatDate = (dateObj) => {
+                return dateObj.toLocaleDateString('fr-FR');
+            };
+            // Calcul des totaux et préparation des articles avec catégories et désignations
+            let totalTarif = 0;
+            let totalEco = 0;
+            const ligneArticles = [];
+            articleRefs.forEach(ref => {
+                const info = tarifRef[ref];
+                if (!info) return;
+                // Toutes les références tarifées font partie de la fourniture NIB (PAC et accessoires). Une seule catégorie est utilisée.
+                const category = 'Fourniture NIB';
+                const designation = info.designation || ref;
+                // Utiliser l'éco‑participation du tarif si elle est définie ; sinon 0
+                const ecoPart = (info.eco !== undefined && info.eco !== null) ? info.eco : 0;
+                ligneArticles.push({ ref, designation, prix: info.tarif, eco: ecoPart, category });
+                totalTarif += info.tarif;
+                totalEco += ecoPart;
+            });
+            // Construction du HTML du devis
+            let html = '';
+            html += `<h3>Devis – établi le ${formatDate(today)} (valable jusqu'au ${formatDate(validity)})</h3>`;
+            // Construire la table en 5 colonnes : référence, libellé court, description longue, tarif HT et éco‑part.
+            // Les largeurs allouées assurent une bonne lisibilité même si des styles globaux imposent des tailles de colonnes.
+            html += '<table class="devis-table" style="width:100%; border-collapse:collapse; margin-bottom:12px;">';
+            html += '<colgroup><col style="width:20%;"><col style="width:25%;"><col style="width:35%;"><col style="width:10%;"><col style="width:10%;"></colgroup>';
+            html += '<thead><tr><th style="border:1px solid #ccc; padding:6px;">Référence</th><th style="border:1px solid #ccc; padding:6px;">Libellé</th><th style="border:1px solid #ccc; padding:6px;">Description</th><th style="border:1px solid #ccc; padding:6px; text-align:right;">Tarif&nbsp;HT&nbsp;(€)</th><th style="border:1px solid #ccc; padding:6px; text-align:right;">Éco‑part&nbsp;(€)</th></tr></thead>';
+            html += '<tbody>';
+            // Trier les articles par catégorie. Tous les articles tarifés appartiennent à la fourniture NIB.
+            const categoriesOrder = ['Fourniture NIB'];
+            categoriesOrder.forEach(cat => {
+                const itemsCat = ligneArticles.filter(item => item.category === cat);
+                if (itemsCat.length > 0) {
+                    html += `<tr><td style="border:1px solid #ccc; padding:4px; background:#f5f5f5;" colspan="5"><strong>${cat}</strong></td></tr>`;
+                    itemsCat.forEach(item => {
+                        const infoRow = tarifRef[item.ref] || {};
+                        const libelle = infoRow.libelle || '';
+                        html += `<tr><td style="border:1px solid #ccc; padding:4px;">${item.ref}</td><td style="border:1px solid #ccc; padding:4px;">${libelle}</td><td style="border:1px solid #ccc; padding:4px;">${item.designation}</td><td style="border:1px solid #ccc; padding:4px; text-align:right;">${item.prix.toFixed(2)}</td><td style="border:1px solid #ccc; padding:4px; text-align:right;">${item.eco.toFixed(2)}</td></tr>`;
+                    });
+                }
+            });
+            // Clôture du tableau principal
+            html += '</tbody>';
+            html += '<tfoot>';
+            html += `<tr>
+                <td style="border:1px solid #ccc; padding:4px;" colspan="3"><strong>Total hors taxes</strong></td>
+                <td style="border:1px solid #ccc; padding:4px; text-align:right;"><strong>${totalTarif.toFixed(2)}</strong></td>
+                <td style="border:1px solid #ccc; padding:4px; text-align:right;"><strong>${totalEco.toFixed(2)}</strong></td>
+            </tr>`;
+            html += '</tfoot>';
+            html += '</table>';
+            // Encarts non chiffrés : accessoires hydrauliques et protections électriques
+            if (nonPricedLines.length > 0) {
+                html += '<h4>Accessoires hydrauliques (non chiffrés)</h4><ul style="margin-top:4px; margin-bottom:12px;">';
+                nonPricedLines.forEach(txt => {
+                    html += `<li>${txt}</li>`;
+                });
+                html += '</ul>';
+            }
+            // Détermination des protections électriques à ajouter
+            const protectionLines = [];
+            protectionLines.push('Protection différentielle de tête (à prévoir)');
+            const circRefs = ['N088470','N088207','N085002','N080013','N080014','N080012'];
+            const hasCirc = articleRefs.some(r => circRefs.includes(r));
+            if (hasCirc) {
+                protectionLines.push('Disjoncteur C10 (monophasé) + câble 3G1,5 mm² pour alimentation du circulateur secondaire');
+            }
+            const regKeywords = ['Kit zone mélangée','ECS40','ECS41','AXC40','AXC50','POOL 40','POOL 310','POOL 500'];
+            const needReg = nonPricedLines.some(txt => regKeywords.some(k => txt.includes(k)));
+            if (needReg) {
+                protectionLines.push('Disjoncteur C10 (monophasé) + câble 3G1,5 mm² pour alimentation de la carte de régulation');
+            }
+            // Ajouter les accessoires piscine lorsque l'option piscine est sélectionnée
+            if (addPoolAccessories) {
+                // Seul l'échangeur piscine est ajouté comme accessoire hydraulique non chiffré.
+                // Le détecteur de débit et le relais inverseur ne sont pas affichés en références tarifées.
+                nonPricedLines.push('Échangeur piscine (réf W49NT40)');
+            }
+            if (protectionLines.length > 0) {
+                html += '<h4>Protections électriques (non chiffrées)</h4><ul style="margin-top:4px; margin-bottom:12px;">';
+                protectionLines.forEach(txt => {
+                    html += `<li>${txt}</li>`;
+                });
+                html += '</ul>';
+            }
+            html += '<p style="font-size:12px;">Ce devis est fourni à titre indicatif. Les prix publics HT et éco‑participations sont susceptibles d\'évoluer. Validité deux mois à compter de la date d\'édition.</p>';
+            html += '<p style="font-size:12px;">Les normes en vigueur (électriques et hydrauliques) doivent être respectées par l’installateur. La responsabilité de la conformité de l’installation lui incombe.</p>';
+            // Affichage
+            const devisDiv = document.getElementById("devisResult");
+            devisDiv.innerHTML = html;
+        }
 
         // Geothermal/Aquathermal capacities (kW)
         const geoData = {
@@ -1180,9 +1991,40 @@
         // Application state
         let currentStep = 1;
         let zones = [];
+        let pool = null; // piscine unique
         let airExtrFlowManuallySelected = false;
         let finalBaseTemp = null;
         let finalPac = null; // stocke les infos PAC pour les liens doc
+        let airExtrPoolWarned = false;
+
+        function getMaxHeating() {
+            let heatingMax = zones.reduce((acc, z) => Math.max(acc, z.heating), 0);
+            if (pool && pool.mode === 'toutesaison') {
+                heatingMax = Math.max(heatingMax, pool.localHeating);
+            }
+            return heatingMax;
+        }
+
+        function updateAirExtrAvailability() {
+            const techSelect = document.getElementById('technologySelect');
+            if (!techSelect) return;
+            const airExtrOption = Array.from(techSelect.options).find(o => o.value === 'airextr');
+            if (!airExtrOption) return;
+
+            if (pool) {
+                airExtrOption.disabled = true;
+                if (techSelect.value === 'airextr') {
+                    techSelect.value = '';
+                    document.getElementById('airExtrOptions').classList.add('hidden');
+                    const vmcBlock = document.getElementById('vmcGuide');
+                    if (vmcBlock) vmcBlock.classList.add('hidden');
+                    document.getElementById('techSummary').classList.add('hidden');
+                    alert("La technologie Air-Extrait ne permet pas de piloter une piscine.");
+                }
+            } else {
+                airExtrOption.disabled = false;
+            }
+        }
 
         function showStep(step) {
             const steps = document.querySelectorAll('.step');
@@ -1196,12 +2038,21 @@
                     setTimeout(() => { s.style.display = 'none'; }, 400);
                 }
             });
-            document.getElementById('prevBtn').style.display = (step === 1) ? 'none' : 'inline-block';
-            document.getElementById('nextBtn').style.display = (step === 5) ? 'none' : 'inline-block';
+            // Afficher/masquer les boutons de navigation selon l'étape courante.
+            // Sur les étapes de note (5) et de devis (6), nous masquons la navigation générale
+            // afin d'utiliser des boutons spécifiques placés dans ces sections.
+            if (step >= 5) {
+                document.getElementById('prevBtn').style.display = 'none';
+                document.getElementById('nextBtn').style.display = 'none';
+            } else {
+                document.getElementById('prevBtn').style.display = (step === 1) ? 'none' : 'inline-block';
+                document.getElementById('nextBtn').style.display = 'inline-block';
+            }
 
+            // Masquer l'en‑tête (logo et titre) sur les étapes finales (5 et 6) pour un rendu épuré.
             const headerElem = document.querySelector('.header');
             if (headerElem) {
-                headerElem.style.display = (step === 5) ? 'none' : 'flex';
+                headerElem.style.display = (step >= 5) ? 'none' : 'flex';
             }
             if (step === 4) {
                 const techSel = document.getElementById('technologySelect').value;
@@ -1223,7 +2074,10 @@
             }
             if (currentStep === 3) {
                 updateProjectSummary();
-                const hasZone = zones.some(z => (parseFloat(z.area) > 0) || (z.manual && parseFloat(z.manualValue) > 0));
+                let hasZone = zones.some(z => (parseFloat(z.area) > 0) || (z.manual && parseFloat(z.manualValue) > 0));
+                if (!hasZone && pool && pool.mode === 'toutesaison' && pool.localArea > 0) {
+                    hasZone = true;
+                }
                 if (!hasZone) {
                     alert("Veuillez ajouter une zone avec une surface renseignée (supérieure à zéro) ou saisir manuellement les déperditions.");
                     return;
@@ -1238,8 +2092,17 @@
                 computeTechnology();
                 buildFinalReport();
             }
+            // Sauvegarder l'étape courante pour savoir si l'on passe du rapport au devis
+            const prev = currentStep;
+            // Passer à l'étape suivante si elle existe (jusqu'à la page devis incluse)
             if (currentStep < 5) currentStep++;
             showStep(currentStep);
+            // Si l'on vient de quitter l'étape 5 (note) pour aller à l'étape 6, préparer le devis
+            if (prev === 5 && currentStep === 6) {
+                if (typeof goToDevis === 'function') {
+                    goToDevis();
+                }
+            }
         }
 
         function prevStep() {
@@ -1247,6 +2110,109 @@
                 currentStep--;
                 showStep(currentStep);
             }
+        }
+
+        // Masquer l'ancienne section de devis intégrée à l'étape 5 si elle est présente.
+        document.addEventListener('DOMContentLoaded', () => {
+            // Certaines versions du fichier contiennent une ancienne section de devis dans l'étape 5 (classée comme .devis-form).
+            // Nous parcourons les formulaires de devis présents dans l'étape 5 et les masquons afin que seul le véritable devis
+            // (étape 6) soit visible lorsqu'on y accède depuis la note. Cela évite que le devis apparaisse sous la note.
+            const step5 = document.getElementById('step5');
+            if (step5) {
+                const oldForms = step5.querySelectorAll('.devis-form');
+                oldForms.forEach(form => {
+                    const container = form.closest('div');
+                    if (container) {
+                        container.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        // Calcule les kits de zones mélangées à partir des zones définies et de la surface totale.
+        // Retourne un tableau de références (N067287 ou N067288) selon le nombre de kits nécessaires.
+        function computeZoneKits() {
+            const uniqueTemps = new Set();
+            let totalSurface = 0;
+            zones.forEach(z => {
+                const area = parseFloat(z.area) || 0;
+                const manualVal = z.manual ? parseFloat(z.manualValue) || 0 : 0;
+                const hasSurface = (area > 0) || (manualVal > 0);
+                if (hasSurface) {
+                    uniqueTemps.add(String(z.temperature || ''));
+                    totalSurface += area;
+                }
+            });
+            let kitCount = 0;
+            // Plusieurs températures différentes : un kit par température supplémentaire.
+            if (uniqueTemps.size > 1) {
+                kitCount = uniqueTemps.size - 1;
+            } else if (uniqueTemps.size === 1) {
+                // Une seule température : si 35 °C et surface importante, prévoir un kit.
+                const tempVal = Array.from(uniqueTemps)[0];
+                if (tempVal === '35' && totalSurface > 140) {
+                    kitCount = 1;
+                }
+            }
+            // Choisir le type de kit : ECS40 si surface ≤80 m², ECS41 sinon.
+            const kitRef = (totalSurface <= 80) ? 'N067287' : 'N067288';
+            const kits = [];
+            for (let i = 0; i < kitCount; i++) {
+                kits.push(kitRef);
+            }
+            return kits;
+        }
+
+        // Fonction appelée lors du clic sur le bouton Devis.
+        // Elle stocke les données pertinentes dans le localStorage et ouvre la page de devis.
+        function goToDevis() {
+            // S'assurer que la technologie est calculée pour remplir finalPac.
+            if (!finalPac || !finalPac.model) {
+                computeTechnology();
+            }
+            if (!finalPac || !finalPac.model) {
+                alert("Aucune pompe à chaleur n'est sélectionnée.");
+                return;
+            }
+            // Enregistrer le nom de l'installateur.
+            const instNameInput = document.getElementById('companyName');
+            if (instNameInput && instNameInput.value.trim()) {
+                localStorage.setItem('installerName', instNameInput.value.trim());
+            } else {
+                localStorage.removeItem('installerName');
+            }
+            // Calculer et enregistrer les kits de zones mélangées.
+            const kitRefs = computeZoneKits();
+            if (kitRefs && kitRefs.length > 0) {
+                localStorage.setItem('kitRefs', JSON.stringify(kitRefs));
+            } else {
+                localStorage.removeItem('kitRefs');
+            }
+            // Enregistrer l'information de piscine (mode) si existante.
+            if (pool) {
+                localStorage.setItem('poolMode', pool.mode || 'true');
+            } else {
+                localStorage.removeItem('poolMode');
+            }
+            // Enregistrer les informations de dimensionnement.
+            localStorage.setItem('finalPac', JSON.stringify(finalPac));
+            // Ouvrir la page de devis dans la même interface (étape 6).
+            // Pré-remplir le modèle de PAC sélectionné par la note et afficher l'étape devis.
+            showStep(6);
+            // Pré-sélectionner le modèle et mettre à jour les options après un court délai pour garantir le rendu.
+            setTimeout(() => {
+                const prodSelect = document.getElementById('devisProduct');
+                if (prodSelect) {
+                    prodSelect.value = finalPac && finalPac.model ? finalPac.model : '';
+                    if (typeof updateEcsVolumeOptions === 'function') updateEcsVolumeOptions();
+                    if (typeof updateSepVolumeOptions === 'function') updateSepVolumeOptions();
+                }
+                // Afficher ou masquer les sections ECS selon l'usage initial (chauffage seul par défaut)
+                if (typeof toggleEcsOptions === 'function') toggleEcsOptions();
+                if (typeof toggleEcsDetail === 'function') toggleEcsDetail();
+                // Générer le devis initial
+                if (typeof generateDevis === 'function') generateDevis();
+            }, 200);
         }
 
         function computeBaseTemp() {
@@ -1290,6 +2256,10 @@
             const tech = document.getElementById('technologySelect').value;
             if (tech) {
                 computeTechnology();
+            }
+            if (pool) {
+                computePoolLoss();
+                updateProjectSummary();
             }
         }
 
@@ -1359,7 +2329,7 @@
                             <span>Temp. ambiante (°C)</span>
                             <input type="number" min="5" max="30" step="0.5" value="${zone.ambient}" onchange="updateZoneValue(${i}, 'ambient', this.value)">
                         </div>
-                        <div class="loss-display"><span>Déperdition:&nbsp;<span id="zoneLoss${i}">${zone.loss.toFixed(2)}</span>&nbsp;kW</span></div>
+                        <div class="loss-display"><span>Déperdition&nbsp;:&nbsp;<span id="zoneLoss${i}">${zone.loss.toFixed(2)}</span>&nbsp;kW</span></div>
                         <div>
                             <button type="button" class="remove-zone-btn" onclick="removeZone(${i})" ${i===0 ? 'style="visibility:hidden"' : ''}>Supprimer</button>
                         </div>
@@ -1370,6 +2340,9 @@
                 `;
                 container.appendChild(div);
             });
+            if (pool) {
+                renderPool();
+            }
         }
 
         function updateZoneValue(index, field, value) {
@@ -1412,27 +2385,254 @@
             zone.loss = loss;
         }
 
+        // =========================
+        // PISCINE
+        // =========================
+        function addPool() {
+            if (pool) return;
+            pool = {
+                mode: 'estivale', // par défaut estivale
+                localArea: 0,
+                localHeight: 3,
+                localInsulation: 'entre 1990-2000',
+                localManual: false,
+                localManualLoss: 0,
+                localAmbient: 28,
+                localHeating: 35,
+                basinLength: 0,
+                basinWidth: 0,
+                basinDepth: 1.5,
+                basinTemp: 28,
+                totalLoss: 0
+            };
+            const btn = document.getElementById('addPoolBtn');
+            if (btn) btn.style.display = 'none';
+            renderPool();
+            computePoolLoss();
+            updateProjectSummary();
+            updateAirExtrAvailability();
+        }
+
+        function removePool() {
+            pool = null;
+            const poolContainer = document.getElementById('poolContainer');
+            if (poolContainer) poolContainer.innerHTML = '';
+            const btn = document.getElementById('addPoolBtn');
+            if (btn) btn.style.display = 'inline-flex';
+            updateProjectSummary();
+            updateAirExtrAvailability();
+        }
+
+        function renderPool() {
+            const container = document.getElementById('poolContainer');
+            if (!container || !pool) return;
+
+            const insulationOptions = gCoefficients.map(gc => {
+                const display = gc.value !== null ? `${gc.value.toFixed(2)} – ${gc.label}` : gc.label;
+                return `<option value="${gc.label}" ${gc.label===pool.localInsulation?'selected':''}>${display}</option>`;
+            }).join('');
+
+            const showLocal = (pool.mode === 'toutesaison');
+            const localManualVisible = showLocal && pool.localInsulation === 'saisie manuelle';
+
+            const volumeBassin = (pool.basinLength || 0) * (pool.basinWidth || 0) * (pool.basinDepth || 0);
+
+            container.innerHTML = `
+                <div class="zone">
+                    <h4>Piscine</h4>
+                    <div class="zone-row">
+                        <div class="field">
+                            <span>Type de piscine</span>
+                            <select onchange="updatePoolValue('mode', this.value)">
+                                <option value="toutesaison" ${pool.mode==='toutesaison'?'selected':''}>Toute saison</option>
+                                <option value="estivale" ${pool.mode==='estivale'?'selected':''}>Estivale</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="poolLocalBlock" class="${showLocal ? '' : 'hidden'}">
+                        <div class="zone-row">
+                            <div class="field">
+                                <span>Surface du local (m²)</span>
+                                <input type="number" min="0" step="0.1" value="${pool.localArea}" onchange="updatePoolValue('localArea', this.value)">
+                            </div>
+                            <div class="field">
+                                <span>Hauteur du local (m)</span>
+                                <input type="number" min="0" step="0.1" value="${pool.localHeight}" onchange="updatePoolValue('localHeight', this.value)">
+                            </div>
+                            <div class="field">
+                                <span>Isolation (Coeff. G)</span>
+                                <select onchange="updatePoolValue('localInsulation', this.value)">
+                                    ${insulationOptions}
+                                </select>
+                            </div>
+                            <div class="field">
+                                <span>Temp. fonctionnement (°C)</span>
+                                <select onchange="updatePoolValue('localHeating', this.value)">
+                                    <option value="35" ${pool.localHeating==35?'selected':''}>35°C</option>
+                                    <option value="45" ${pool.localHeating==45?'selected':''}>45°C</option>
+                                    <option value="55" ${pool.localHeating==55?'selected':''}>55°C</option>
+                                    <option value="65" ${pool.localHeating==65?'selected':''}>65°C</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <span>Temp. ambiante (°C)</span>
+                                <input type="number" min="5" max="30" step="0.5" value="${pool.localAmbient}" onchange="updatePoolValue('localAmbient', this.value)">
+                            </div>
+                        </div>
+                        <div id="poolLocalManual" class="${localManualVisible ? '' : 'hidden'} manual-input">
+                            <label>Déperdition saisie (kW)<br>
+                                <input type="number" min="0" step="0.1" value="${pool.localManualLoss}" onchange="updatePoolValue('localManualLoss', this.value)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="poolBasinBlock">
+                        <h5>Bassin</h5>
+                        <div class="zone-row">
+                            <div class="field">
+                                <span>Longueur bassin (m)</span>
+                                <input type="number" min="0" step="0.1" value="${pool.basinLength}" onchange="updatePoolValue('basinLength', this.value)">
+                            </div>
+                            <div class="field">
+                                <span>Largeur bassin (m)</span>
+                                <input type="number" min="0" step="0.1" value="${pool.basinWidth}" onchange="updatePoolValue('basinWidth', this.value)">
+                            </div>
+                            <div class="field">
+                                <span>Profondeur moyenne (m)</span>
+                                <input type="number" min="0" step="0.1" value="${pool.basinDepth}" onchange="updatePoolValue('basinDepth', this.value)">
+                            </div>
+                            <div class="field">
+                                <span>Température du bassin (°C)</span>
+                                <input type="number" min="5" max="40" step="0.5" value="${pool.basinTemp}" onchange="updatePoolValue('basinTemp', this.value)">
+                            </div>
+                        </div>
+                        <div class="loss-display" style="margin-top:8px;">
+                            Volume bassin :&nbsp;<span id="poolVolumeValue">${volumeBassin.toFixed(2)}</span> m³
+                        </div>
+                    </div>
+
+                    <div class="loss-display" style="margin-top:8px;">
+                        Déperdition piscine :&nbsp;<span id="poolLossValue">${pool.totalLoss.toFixed(2)}</span> kW
+                    </div>
+                    <div style="margin-top:8px;">
+                        <button type="button" class="remove-zone-btn" onclick="removePool()">Supprimer la piscine</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updatePoolValue(field, value) {
+            if (!pool) return;
+            if (field === 'mode') {
+                pool.mode = value === 'estivale' ? 'estivale' : 'toutesaison';
+                if (pool.mode === 'toutesaison' && (pool.localArea || 0) <= 0) pool.localArea = 1;
+            } else if (field === 'localArea') {
+                pool.localArea = parseFloat(value) || 0;
+                if (pool.mode === 'toutesaison' && pool.localArea <= 0) pool.localArea = 1;
+            } else if (['localArea','localHeight','localAmbient','localManualLoss','basinLength','basinWidth','basinDepth','basinTemp'].includes(field)) {
+                pool[field] = parseFloat(value) || 0;
+            } else if (field === 'localInsulation') {
+                pool.localInsulation = value;
+                pool.localManual = (value === 'saisie manuelle');
+            } else if (field === 'localHeating') {
+                pool.localHeating = parseInt(value);
+            }
+            computePoolLoss();
+            renderPool();
+            updateProjectSummary();
+            if (document.getElementById('technologySelect').value) {
+                computeTechnology();
+            }
+        }
+
+        function computePoolLoss() {
+            if (!pool) return;
+            if (finalBaseTemp === null && finalBaseTemp !== 0) {
+                computeBaseTemp();
+            }
+            let localLoss = 0;
+            let basinLoss = 0;
+
+            // Local uniquement en toute saison
+            if (pool.mode === 'toutesaison') {
+                if (pool.localManual) {
+                    localLoss = parseFloat(pool.localManualLoss) || 0;
+                } else {
+                    const gObj = gCoefficients.find(gc => gc.label === pool.localInsulation);
+                    const g = gObj ? gObj.value : 1;
+                    const deltaT = pool.localAmbient - finalBaseTemp;
+                    if (deltaT > 0 && pool.localArea > 0 && pool.localHeight > 0) {
+                        localLoss = (g * pool.localArea * pool.localHeight * deltaT) / 1000;
+                    }
+                }
+            }
+
+            // Bassin (volume * 71 W/m³ -> kW)
+            if (pool.basinLength > 0 && pool.basinWidth > 0 && pool.basinDepth > 0) {
+                const volume = pool.basinLength * pool.basinWidth * pool.basinDepth; // m³
+                basinLoss = 0.071 * volume; // kW
+            }
+
+            if (pool.mode === 'toutesaison') {
+                pool.totalLoss = localLoss + basinLoss;
+            } else {
+                pool.totalLoss = basinLoss;
+            }
+
+            const poolLossValue = document.getElementById('poolLossValue');
+            if (poolLossValue) {
+                poolLossValue.textContent = pool.totalLoss.toFixed(2);
+            }
+
+            const poolVolumeValue = document.getElementById('poolVolumeValue');
+            if (poolVolumeValue) {
+                const volumeBassin = (pool.basinLength || 0) * (pool.basinWidth || 0) * (pool.basinDepth || 0);
+                poolVolumeValue.textContent = volumeBassin.toFixed(2);
+            }
+        }
+
         function updateProjectSummary() {
-            if (zones.length === 0) {
+            if (zones.length === 0 && !pool) {
                 document.getElementById('projectSummary').classList.add('hidden');
                 return;
             }
             let totalLoss = 0;
             let surfacesByTemp = { '35':0, '45':0, '55':0, '65':0 };
             let sumHeights = 0;
-            let maxAmbient = 0;
+            let maxAmbientZone = 0;  // max ambiance habitation (sans local piscine)
             let maxHeating = 0;
+            let zoneCount = 0;
+
             zones.forEach(z => {
                 totalLoss += z.loss;
                 surfacesByTemp[z.heating] += z.area;
                 sumHeights += z.height;
-                if (z.ambient > maxAmbient) maxAmbient = z.ambient;
+                zoneCount++;
+                if (z.ambient > maxAmbientZone) maxAmbientZone = z.ambient;
                 if (z.heating > maxHeating) maxHeating = z.heating;
             });
-            const avgH = sumHeights / zones.length;
+
+            // Piscine
+            if (pool) {
+                computePoolLoss();
+                if (pool.mode === 'toutesaison') {
+                    totalLoss += pool.totalLoss;
+                    if (pool.localArea > 0) {
+                        surfacesByTemp[pool.localHeating] += pool.localArea;
+                        sumHeights += pool.localHeight;
+                        zoneCount++;
+                        // IMPORTANT : on n'ajoute PAS le local piscine au max ambiance de la note
+                        if (pool.localHeating > maxHeating) maxHeating = pool.localHeating;
+                    }
+                }
+            }
+
+            const avgH = zoneCount > 0 ? (sumHeights / zoneCount) : 0;
+
             document.getElementById('totalLoss').textContent = totalLoss.toFixed(2);
             document.getElementById('avgHeight').textContent = avgH.toFixed(2);
-            document.getElementById('maxAmbient').textContent = maxAmbient;
+            document.getElementById('maxAmbient').textContent = maxAmbientZone;  // uniquement habitation
             document.getElementById('maxHeating').textContent = maxHeating;
 
             const list = document.getElementById('surfacesByTemp');
@@ -1509,6 +2709,14 @@
                 opt.textContent = m;
                 select.appendChild(opt);
             });
+
+            // Par défaut, sélectionner la gamme S1256 (si disponible)
+            if (!geoManuallySelected) {
+                const preferred = Array.from(select.options).find(o => o.value.startsWith('S1256'));
+                if (preferred) {
+                    select.value = preferred.value;
+                }
+            }
         }
 
         document.getElementById('geoType').addEventListener('change', function(){
@@ -1520,7 +2728,7 @@
         function loadAirEauModels() {
             const select = document.getElementById('airEauModel');
             select.innerHTML = '';
-            const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+            const heatingMax = getMaxHeating();
             const allowedModels = [];
             const allowHigh = heatingMax < 65;
             ['S2125-8','S2125-12','S2125-16','S2125-20','F2050-6','F2050-10','F2050-12','F2050-16','AMS 20-6','AMS 20-10'].forEach(m => {
@@ -1535,12 +2743,20 @@
                 opt.textContent = m;
                 select.appendChild(opt);
             });
+
+            // Par défaut, sélectionner la gamme S2125 (si disponible)
+            if (!airEauManuallySelected) {
+                const preferred = Array.from(select.options).find(o => o.value.startsWith('S2125'));
+                if (preferred) {
+                    select.value = preferred.value;
+                }
+            }
         }
 
         function loadAirExtrModels() {
             const select = document.getElementById('airExtrModel');
             select.innerHTML = '';
-            const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+            const heatingMax = getMaxHeating();
             if (heatingMax >= 65) {
                 alert("La technologie Air Extrait n'est pas disponible pour une température de fonctionnement de 65°C.");
                 document.getElementById('technologySelect').value = '';
@@ -1593,7 +2809,7 @@
             let units = 1;
             let selectedModelName = '';
 
-            const heatingMax = zones.reduce((acc,z) => Math.max(acc,z.heating), 0);
+            const heatingMax = getMaxHeating();
             const heatingKey = (heatingMax >= 65) ? '55' : (heatingMax >= 55 ? '55' : (heatingMax >= 45 ? '45' : '35'));
             let extraInfo = null;
 
@@ -1632,6 +2848,13 @@
                 if (typeVal === '0' || typeVal === '5') {
                     let lengthVal = totalLoss * 1000 * 0.014;
                     if (lengthVal < 50) lengthVal = 50;
+
+                    // *** AJOUT : piscine estivale → longueur de sondes + 1 m par m³ de bassin ***
+                    if (pool && pool.mode === 'estivale' && pool.basinLength > 0 && pool.basinWidth > 0 && pool.basinDepth > 0) {
+                        const volumeBassin = pool.basinLength * pool.basinWidth * pool.basinDepth; // m³
+                        lengthVal += volumeBassin;
+                    }
+
                     extraInfo = { type: 'sonde', value: lengthVal.toFixed(0) + ' m' };
                 } else if (typeVal === '10') {
                     const unitsValGeo = units || 1;
@@ -1724,7 +2947,7 @@
 
             // Restrictions pour 65°C
             if (tech === 'aireau') {
-                const heatingMaxForCheck = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+                const heatingMaxForCheck = getMaxHeating();
                 const currentModel = document.getElementById('airEauModel').value || '';
                 const isDisallowed = currentModel.startsWith('F2050') || currentModel.startsWith('AMS');
                 if (heatingMaxForCheck >= 65 && isDisallowed) {
@@ -1739,7 +2962,7 @@
                 }
             }
             if (tech === 'airextr') {
-                const heatingMaxCheck = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+                const heatingMaxCheck = getMaxHeating();
                 if (heatingMaxCheck >= 65) {
                     if (!window._disallowGuard) {
                         window._disallowGuard = true;
@@ -1867,7 +3090,7 @@
             if (finalBaseTemp === null) {
                 computeBaseTemp();
             }
-            const heatingMax = zones.reduce((acc,z) => Math.max(acc, z.heating), 0);
+            const heatingMax = getMaxHeating();
             const heatingKey = (heatingMax >= 65) ? '55' : (heatingMax >= 55 ? '55' : (heatingMax >= 45 ? '45' : '35'));
 
             const getRatioBounds = (tech) => {
@@ -1964,6 +3187,49 @@
                         chosenUnits = best.units;
                     }
                 }
+
+                // Priorité à la gamme S1256 (si disponible et cohérente avec le dimensionnement)
+                if (!geoManuallySelected) {
+                    const modelIndexMap = {};
+                    models.forEach((m, i) => { modelIndexMap[m] = i; });
+                    const preferredModels = models.filter(m => m.startsWith('S1256'));
+                    if (preferredModels.length > 0) {
+                        const withinPref = [];
+                        const oversPref = [];
+                        preferredModels.forEach((m) => {
+                            const cap = caps[m] || 0;
+                            for (let n = 1; n <= maxUnits; n++) {
+                                const ratio = (cap * n) / totalLoss;
+                                if (ratio >= minRatio) {
+                                    if (ratio <= maxRatio) {
+                                        withinPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
+                                    } else {
+                                        oversPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
+                                    }
+                                }
+                            }
+                        });
+                        if (withinPref.length > 0) {
+                            withinPref.sort((a,b) => {
+                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                                return a.index - b.index;
+                            });
+                            chosenModel = withinPref[0].model;
+                            chosenUnits = withinPref[0].units;
+                        } else if (oversPref.length > 0) {
+                            oversPref.sort((a,b) => {
+                                const diffA = a.ratio - maxRatio;
+                                const diffB = b.ratio - maxRatio;
+                                if (diffA !== diffB) return diffA - diffB;
+                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                                return a.index - b.index;
+                            });
+                            chosenModel = oversPref[0].model;
+                            chosenUnits = oversPref[0].units;
+                        }
+                    }
+                }
+
                 if (chosenModel && !geoManuallySelected) {
                     modelSelect.value = chosenModel;
                     document.getElementById('geoUnits').value = chosenUnits.toString();
@@ -2040,6 +3306,49 @@
                         chosenUnits = best.units;
                     }
                 }
+
+                // Priorité à la gamme S2125 (si disponible et cohérente avec le dimensionnement)
+                if (!airEauManuallySelected) {
+                    const modelIndexMap = {};
+                    models.forEach((m, i) => { modelIndexMap[m] = i; });
+                    const preferredModels = models.filter(m => m.startsWith('S2125'));
+                    if (preferredModels.length > 0) {
+                        const withinPref = [];
+                        const oversPref = [];
+                        preferredModels.forEach((m) => {
+                            const cap = caps[m] || 0;
+                            for (let n = 1; n <= maxUnits; n++) {
+                                const ratio = (cap * n) / totalLoss;
+                                if (ratio >= minRatio) {
+                                    if (ratio <= maxRatio) {
+                                        withinPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
+                                    } else {
+                                        oversPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
+                                    }
+                                }
+                            }
+                        });
+                        if (withinPref.length > 0) {
+                            withinPref.sort((a,b) => {
+                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                                return a.index - b.index;
+                            });
+                            chosenModel = withinPref[0].model;
+                            chosenUnits = withinPref[0].units;
+                        } else if (oversPref.length > 0) {
+                            oversPref.sort((a,b) => {
+                                const diffA = a.ratio - maxRatio;
+                                const diffB = b.ratio - maxRatio;
+                                if (diffA !== diffB) return diffA - diffB;
+                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
+                                return a.index - b.index;
+                            });
+                            chosenModel = oversPref[0].model;
+                            chosenUnits = oversPref[0].units;
+                        }
+                    }
+                }
+
                 if (chosenModel && !airEauManuallySelected) {
                     modelSelect.value = chosenModel;
                     document.getElementById('airEauUnits').value = chosenUnits.toString();
@@ -2102,6 +3411,7 @@
             const maxAmbient = document.getElementById('maxAmbient').textContent;
             const maxHeating = document.getElementById('maxHeating').textContent;
             const totalLoss = document.getElementById('totalLoss').textContent;
+            if (pool) computePoolLoss();
             const pac = finalPac || {tech:'',model:'',capacity:0,ratio:0,backup:0,etas35:0,etas55:0,units:1};
 
             const logoUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s';
@@ -2313,14 +3623,14 @@
         function getTechSheetUrl(model){
             if (!model) return null;
             const m = model.toUpperCase();
-            if (m.startsWith('F2050')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/875864/storage/ODc1ODY0LzAvbWFzdGVy';
+            if (m.startsWith('F2050')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/875864/storage/ODc1ODY0LzAvbWFzdGVr';
             if (m.startsWith('S2125')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/906101/storage/OTA2MTAxLzAvbWFzdGVy';
             if (m.startsWith('AMS')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/893145/storage/ODkzMTQ1LzAvbWFzdGVy';
             if (m.startsWith('S735')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/881548/storage/ODgxNTQ4LzAvbWFzdGVy';
             if (m.startsWith('F1153') || m.startsWith('F1253')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/899603/storage/ODk5NjAzLzAvbWFzdGVy';
             if (m.startsWith('S1155')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/22598/storage/MDIyNTk4LzAvbWFzdGVy';
             if (m.startsWith('S1156')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy';
-            if (m.startsWith('S1256')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy';
+            if (m.startsWith('S1256')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVr';
             if (m.startsWith('F1355')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/22594/storage/MDIyNTk0LzAvbWFzdGVy';
             if (m.startsWith('F1345')) return 'https://assetstore.nibe.se/hcms/v2.3/entity/document/22593/storage/MDIyNTkzLzAvbWFzdGVy';
             return null;
@@ -2345,7 +3655,7 @@
 
         function openTechSheet(){
             if (!finalPac || !finalPac.model){
-                alert("Veuillez d'abord sélectionner une pompe à chaleur et générer la note.");
+                alert("Veuillez d'abord sélectionner une pompe à chaleur et générer le dimensionnement.");
                 return;
             }
             const url = getTechSheetUrl(finalPac.model);
@@ -2358,7 +3668,7 @@
 
         function openInstallManual(){
             if (!finalPac || !finalPac.model){
-                alert("Veuillez d'abord sélectionner une pompe à chaleur et générer la note.");
+                alert("Veuillez d'abord sélectionner une pompe à chaleur et générer le dimensionnement.");
                 return;
             }
             const url = getInstallManualUrl(finalPac.model);
@@ -2372,6 +3682,7 @@
         // Initialisation
         addZone();
         showStep(1);
+        updateAirExtrAvailability();
 
         document.getElementById('geoModel').addEventListener('change', function(){
             geoManuallySelected = true;
