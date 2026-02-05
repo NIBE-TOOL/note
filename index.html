@@ -582,6 +582,7 @@
             <div id="finalReport"></div>
             <!-- Actions spécifiques à la page de note : permettre de revenir à l'étape précédente ou de poursuivre vers le devis -->
             <div id="noteActions" style="margin-top:20px; text-align:center;">
+                <div id="preconisationButtons" class="final-buttons" style="margin-bottom:12px;"></div>
                 <button type="button" onclick="prevStep()" style="padding:8px 16px; margin-right:10px; background:#6c757d; color:#fff; border:none; border-radius:4px;">Précédent</button>
                 <button type="button" onclick="window.print()" style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px;">Imprimer</button>
 </div>
@@ -2064,10 +2065,27 @@
         }
 
         function nextStep() {
+            // Champs obligatoires
+            if (currentStep === 1) {
+                const inst = document.getElementById('companyName').value.trim();
+                if (!inst) {
+                    alert("Veuillez saisir le nom de l'installateur.");
+                    return;
+                }
+            }
             if (currentStep === 2) {
+                const benefNom = document.getElementById('beneficiaryLastName').value.trim();
+                if (!benefNom) {
+                    alert("Veuillez saisir le nom du bénéficiaire.");
+                    return;
+                }
                 const postal = document.getElementById('beneficiaryPostalCode').value.trim();
                 if (!postal) {
                     alert("Veuillez saisir le code postal du bénéficiaire.");
+                    return;
+                }
+                if (!/^\d{5}$/.test(postal)) {
+                    alert("Veuillez saisir un code postal valide (5 chiffres).");
                     return;
                 }
                 computeBaseTemp();
@@ -3526,6 +3544,8 @@
             html += `<p style="font-size:8px;">Les informations et estimations fournies dans cette note de dimensionnement sont données à titre indicatif. Elles sont basées sur les renseignements communiqués et n’ont qu’une valeur approximative. Elles doivent être vérifiées et complétées en consultant les notices des fabricants, la réglementation en vigueur et les régimes de fonctionnement applicables. Un bureau d’étude ou un professionnel qualifié devra confirmer ces données, procéder aux ajustements nécessaires et émettre les réserves d’usage.</p>`;
 
             reportDiv.innerHTML = html;
+            updatePreconisationButtons();
+            logUsageIfNeeded();
         }
 
         // === Guide VMC (débit réglementaire indicatif pour PAC air extrait) ===
@@ -3619,7 +3639,194 @@
             resDiv.classList.remove('hidden');
         }
 
-        // === Liens Fiche technique / Notice d'installation ===
+        
+        // === Liens Préconisations (schémas / accessoires) ===
+        const preconisationLinksByModel = {
+    "F1153-4": { preconisation: "https://drive.google.com/drive/folders/1Aseb0YuBKGghuKNfg97AEJTWLGSy4chg" },
+    "F1153-6": { preconisation: "https://drive.google.com/drive/folders/1Aseb0YuBKGghuKNfg97AEJTWLGSy4chg" },
+    "F1253-4": { preconisation: "https://drive.google.com/drive/folders/1tuFl6r4w1z0DdJOsH9w1Hl-av1DZIoQ7" },
+    "F1253-6": { preconisation: "https://drive.google.com/drive/folders/1tuFl6r4w1z0DdJOsH9w1Hl-av1DZIoQ7" },
+    "F2050-10": { preconisation: "https://drive.google.com/drive/folders/1gz2rOn9uOYJlI9G9YNY47CCXI_RjJ8eh" },
+    "F2050-12": { preconisation: "https://drive.google.com/drive/folders/1MbD3Wam5Hougg1JVgAFpqL_WaIwr0-sY" },
+    "F2050-16": { preconisation: "https://drive.google.com/drive/folders/1Q2eZgbTaIJoq4dM46hwHLQ6y-wxh0YMS" },
+    "F2050-6": { preconisation: "https://drive.google.com/drive/folders/1sLAJt9m8tbNjfTzyeJeFjIOgo5umbdNC" },
+    "S1155-25": { preconisation: "https://drive.google.com/drive/folders/1VUAVLLUv0ZDa0aqn95EYeZq2esIajsI0" },
+    "S1156-13": {
+        tri: "https://drive.google.com/drive/folders/1VUAVLLUv0ZDa0aqn95EYeZq2esIajsI0",
+        mono: "https://drive.google.com/drive/folders/1Aseb0YuBKGghuKNfg97AEJTWLGSy4chg"
+    },
+    "S1156-18": { preconisation: "https://drive.google.com/drive/folders/1VUAVLLUv0ZDa0aqn95EYeZq2esIajsI0" },
+    "S1156-8": {
+        tri: "https://drive.google.com/drive/folders/1VUAVLLUv0ZDa0aqn95EYeZq2esIajsI0",
+        mono: "https://drive.google.com/drive/folders/1Aseb0YuBKGghuKNfg97AEJTWLGSy4chg"
+    },
+    "S1256-13": {
+        tri: "https://drive.google.com/drive/folders/1RCNfydd5ZnMR2F7Hy3PgayBUnnUALQJh",
+        mono: "https://drive.google.com/drive/folders/1tuFl6r4w1z0DdJOsH9w1Hl-av1DZIoQ7"
+    },
+    "S1256-18": { preconisation: "https://drive.google.com/drive/folders/1RCNfydd5ZnMR2F7Hy3PgayBUnnUALQJh" },
+    "S1256-8": {
+        tri: "https://drive.google.com/drive/folders/1RCNfydd5ZnMR2F7Hy3PgayBUnnUALQJh",
+        mono: "https://drive.google.com/drive/folders/1tuFl6r4w1z0DdJOsH9w1Hl-av1DZIoQ7"
+    },
+    "S2125-12": {
+        tri: "https://drive.google.com/drive/folders/1asG6cdfYDHdtgfspWX93W8B0hmOsDUXk",
+        mono: "https://drive.google.com/drive/folders/1RQ3sI3PGfFLC7nZnasE00EkRKhyNwCvJ"
+    },
+    "S2125-16": {
+        tri: "https://drive.google.com/drive/folders/15e52mIHAeGuyYHPvqLUSO045BBkxNNed",
+        mono: "https://drive.google.com/drive/folders/1lQgfoTF5BDT9K20dCrYdBNLYwvqxb1Xi"
+    },
+    "S2125-20": {
+        tri: "https://drive.google.com/drive/folders/1OT-hcWkrWvELXH3a5s-TKtnunXssTR8Y",
+        mono: "https://drive.google.com/drive/folders/127lr9e9x0sUdo7hD5Qs-iT0YN5yPedNi"
+    },
+    "S2125-8": {
+        tri: "https://drive.google.com/drive/folders/16BcMX-LTTiSQB0O75TwjzgGscKB5WP6i",
+        mono: "https://drive.google.com/drive/folders/1BMwIwIc-aSefbk8v8MZici3Gz7-igK1W"
+    },
+    "S735-4": { preconisation: "https://drive.google.com/drive/folders/1wMxgVjpUPmGLklVs_e8vs7JGKVg4FqQu" },
+    "S735-7": { preconisation: "https://drive.google.com/drive/folders/1ycwyFvtKuk4TJa_NmxF4TjqZzEnS5EPc" }
+,"AMS 20-6": { preconisation: "https://drive.google.com/drive/folders/1sLAJt9m8tbNjfTzyeJeFjIOgo5umbdNC" }
+,"AMS 20-10": { preconisation: "https://drive.google.com/drive/folders/1gz2rOn9uOYJlI9G9YNY47CCXI_RjJ8eh" }
+};
+
+        
+        function normalizeModel(raw) {
+            if (!raw) return '';
+            let m = String(raw).trim();
+            // Remplacer tirets longs
+            m = m.replace(/[–—]/g, '-');
+            // Pour les modèles du type "AMS 20-6", conserver les 2 premiers tokens
+            const tokens = m.split(/\s+/);
+            if (tokens.length >= 2 && tokens[0].toUpperCase() === 'AMS') {
+                m = tokens[0] + ' ' + tokens[1];
+            } else {
+                // Sinon garder uniquement le 1er token (ex: "S1156-8 kW")
+                m = tokens[0];
+            }
+            // Supprimer espaces autour des tirets
+            m = m.replace(/\s*-\s*/g, '-');
+            // Normaliser les tailles avec zéro (ex: -08 -> -8)
+            m = m.replace(/-(0+)(\d)/g, '-$2');
+            return m.toUpperCase();
+        }
+
+function updatePreconisationButtons(){
+            const container = document.getElementById('preconisationButtons');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // Affichage uniquement si 1 machine sélectionnée (quantité = 1)
+            if (!finalPac || !finalPac.model || (finalPac.units && finalPac.units > 1)) {
+                return;
+            }
+
+            const model = normalizeModel(finalPac.model);
+            let conf = preconisationLinksByModel[model];
+            if (!conf) {
+                // Tentative sans normalisation (au cas où la clé serait déjà au format exact)
+                conf = preconisationLinksByModel[finalPac.model];
+            }
+            if (!conf) return;
+
+            const makeBtn = (label, url) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                // Même style que les boutons de la page note (Précédent / Imprimer)
+                btn.style.padding = '8px 16px';
+                btn.style.margin = '0 10px 10px 0';
+                btn.style.background = '#007bff';
+                btn.style.color = '#fff';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '4px';
+                btn.style.cursor = 'pointer';
+                btn.textContent = label;
+                btn.onclick = () => window.open(url, '_blank');
+                container.appendChild(btn);
+            };
+
+            if (conf.mono && conf.tri) {
+                makeBtn('Préconisation monophasé', conf.mono);
+                makeBtn('Préconisation triphasé', conf.tri);
+            } else if (conf.preconisation) {
+                makeBtn('Préconisation', conf.preconisation);
+            } else if (conf.mono) {
+                makeBtn('Préconisation monophasé', conf.mono);
+            } else if (conf.tri) {
+                makeBtn('Préconisation triphasé', conf.tri);
+            }
+        }
+
+
+        // === Tracking utilisation (envoi vers Google Sheet via Apps Script WebApp) ===
+        // ⚠️ Pour écrire dans un Google Sheet depuis une page web statique, il faut un endpoint (Apps Script).
+        // Renseigner l'URL du WebApp ci-dessous une fois déployé.
+        const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxayZrAajz96sTzw_QXUfscx5_qV9IxTYVdbLOfuZwJrbRwDM54QP4p17GfZgtTJY6i/exec"; // ex: https://script.google.com/macros/s/XXXX/exec
+        const GOOGLE_SHEET_SHARED_SECRET = "Lapienichehaut35";
+        let usageLogged = false;
+
+        function buildUsagePayload() {
+            const payload = {
+                _secret: GOOGLE_SHEET_SHARED_SECRET,
+                timestamp: new Date().toISOString(),
+                pageUrl: window.location.href,
+                referrer: document.referrer || "",
+                userAgent: navigator.userAgent || "",
+                // Installateur (entreprise)
+                installateur_nom: (document.getElementById('companyName')?.value || "").trim(),
+                installateur_adresse: (document.getElementById('companyAddress')?.value || "").trim(),
+                installateur_siret: (document.getElementById('companySiret')?.value || "").trim(),
+                // Bénéficiaire
+                beneficiaire_prenom: (document.getElementById('beneficiaryFirstName')?.value || "").trim(),
+                beneficiaire_nom: (document.getElementById('beneficiaryLastName')?.value || "").trim(),
+                beneficiaire_adresse: (document.getElementById('beneficiaryAddress')?.value || "").trim(),
+                beneficiaire_cp: (document.getElementById('beneficiaryPostalCode')?.value || "").trim(),
+                beneficiaire_ville: (document.getElementById('beneficiaryCity')?.value || "").trim(),
+                // Projet
+                modele_choisi: finalPac?.model || "",
+                nb_unites: (finalPac?.units ?? 1),
+                technologie: (document.getElementById('technologySelect')?.value || ""),
+                // Résultat (si disponible)
+                puissance_batiment_kw: (finalPac?.pRequired ?? null),
+                puissance_pac_kw: (finalPac?.pSelected ?? null),
+                bivalence: (finalPac?.bivalence ?? null)
+            };
+
+            return payload;
+        }
+
+        async function sendUsageToGoogleSheet(payload) {
+            if (!GOOGLE_SHEET_WEBAPP_URL) return; // pas configuré
+            try {
+                await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) {
+                // On ne bloque pas l'utilisateur si le tracking échoue
+                console.warn("Tracking Google Sheet: échec d'envoi", e);
+            }
+        }
+
+        function logUsageIfNeeded() {
+            if (usageLogged) return;
+            // On log uniquement quand on est sur la dernière page et qu'on a un résultat quelconque
+            if (!finalPac || !finalPac.model) return;
+
+            const payload = buildUsagePayload();
+
+            // Minimum requis : installateur, bénéficiaire, CP, modèle, unités
+            if (!payload.installateur_nom || !payload.beneficiaire_nom || !/^\d{5}$/.test(payload.beneficiaire_cp) || !payload.modele_choisi) {
+                return;
+            }
+
+            usageLogged = true;
+            sendUsageToGoogleSheet(payload);
+        }
+
+// === Liens Fiche technique / Notice d'installation ===
         function getTechSheetUrl(model){
             if (!model) return null;
             const m = model.toUpperCase();
