@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #ffffff;
+            background: #eaf2ff;
             margin: 0;
             padding: 0;
             font-size: 16px;
@@ -18,6 +18,9 @@
             margin: 0 auto;
             padding: 20px;
             box-sizing: border-box;
+                    background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.08);
         }
         .header {
             display: flex;
@@ -386,44 +389,214 @@
             color: #555;
         }
         @media print {
-            body {
-                margin: 0;
-                font-size: 11px;
-            }
             @page {
                 size: A4 portrait;
                 margin: 0;
             }
-            #finalReport {
-                margin-left: 12mm;
-                margin-right: 12mm;
-                margin-top: 10mm;
-                margin-bottom: 0;
+            body {
+                margin: 0;
+                font-size: 12px;          /* un peu plus grand pour mieux remplir la page */
+                line-height: 1.25;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background: #fff !important;
             }
-            #finalReport .report-header {
-                margin-bottom: 0;
-            }
+
+            /* On imprime uniquement la note finale */
             .navigation, .step:not(.final-step) {
                 display: none !important;
             }
             .final-step {
                 display: block !important;
             }
-            table th, table td {
-                font-size: 10px;
-                padding: 3px;
-            }
-            h2, h3 {
-                font-size: 12px;
-            }
-            .final-step button {
+            .final-step button, #noteActions {
                 display: none !important;
             }
-            #finalReport table:first-of-type {
+
+            /* Zone imprimée */
+            #finalReport {
+                margin-left: 12mm;
+                margin-right: 12mm;
                 margin-top: 10mm;
+                margin-bottom: 10mm;
+            }
+
+            /* Espacements plus “premium” */
+            #finalReport .report-header {
+                margin-bottom: 6mm !important;
+            }
+            .print-spacer {
+                display: block !important;
+                height: 4mm;
+            }
+
+            /* Tables et titres : un peu plus aérés */
+            table {
+                margin-bottom: 5mm !important;
+            }
+            table th, table td {
+                font-size: 10.5px;
+                padding: 4px 5px;
+            }
+            h2, h3 {
+                font-size: 13px;
+                margin: 4mm 0 2mm !important;
+            }
+
+            /* Légère séparation visuelle */
+            hr {
+                border: 0;
+                border-top: 1px solid #cfd9ea;
+                margin: 4mm 0;
+            }
+
+            /* Évite les césures moches / sauts inattendus */
+            table, tr, td, th {
+                break-inside: avoid;
+                page-break-inside: avoid;
             }
         }
-    </style>
+    .model-badges{
+    display:inline-flex;
+    gap:10px;
+    align-items:baseline;
+    margin-left:10px;
+    flex-wrap:wrap;
+    display: none;
+}
+.badge{
+    font-weight:700;
+    font-size:0.95em;
+    padding:2px 8px;
+    border-radius:999px;
+    border:1px solid rgba(0,0,0,0.15);
+    background:#f6f6f6;
+}
+.badge-green{ color:#006400; border-color:rgba(0,100,0,0.35); background:rgba(0,100,0,0.06); }
+.badge-blue{ color:#00008B; border-color:rgba(0,0,139,0.35); background:rgba(0,0,139,0.06); }
+.badge-orange{ color:#B45309; border-color:rgba(180,83,9,0.35); background:rgba(180,83,9,0.06); }
+.badge-muted{ color:#555; }
+
+        /* --- Sélecteur modèle "pro" (liste riche) --- */
+        .model-badges { display: none !important; } /* infos désormais dans la liste */
+        .rich-model-wrap { position: relative; width: 100%; max-width: none; }
+        .rich-model-select { display: none !important; } /* on garde le <select> pour la logique, mais UI custom */
+
+        /* Le bouton doit garder le style "d'origine" (fond bleu clair) */
+        .rich-model-btn{
+            width:100%;
+            background-color:#f2f7ff;
+            border:1px solid #c2d6ec;
+            border-radius:4px;
+            padding:8px 34px 8px 8px; /* padding-right pour la flèche comme un <select> */
+            font-size:15px;
+            font-family: inherit;
+            cursor:pointer;
+            text-align:left;
+            box-sizing:border-box;
+            display:block;
+            position:relative;
+            line-height:1.2;
+            height:41px; /* même hauteur visuelle que les champs */
+        }
+        .rich-model-btnlabel{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+        /* Flèche comme un select natif */
+        .rich-model-btn::after{ content:none !important; }
+
+
+        .rich-model-panel{
+            position:absolute;
+            left:0; right:0;
+            top:calc(100% + 6px);
+            z-index:999;
+            background:#ffffff;
+            border:1px solid #c2d6ec;
+            border-radius:10px;
+            box-shadow:0 10px 24px rgba(0,0,0,0.10);
+            max-height:320px;
+            overflow:auto;
+            display:none;
+            padding:6px;
+        }
+        .rich-model-panel.open{ display:block; }
+/* Responsive: réduire les colonnes sur petit écran */
+@media (max-width: 520px){
+    .rm-line{ grid-template-columns: 1fr 80px 120px 80px; gap:10px; }
+    .rich-model-btn{ font-size:14px; }
+}
+
+                /* Table pour alignement parfait: Modèle | Fluide | ETAS | dB(A) */
+        .rm-table{ width:100%; border-collapse:separate; border-spacing:0; }
+        .rm-table tr{ cursor:pointer; }
+        .rm-table tr:hover td{ background:#e9f1ff; }
+        .rm-table tr.selected td{ background:#dbeafe; }
+        .rm-table td{ padding:8px 10px; border-radius:0; }
+        .rm-table td:first-child{ border-top-left-radius:8px; border-bottom-left-radius:8px; }
+        .rm-table td:last-child{ border-top-right-radius:8px; border-bottom-right-radius:8px; }
+
+        .rm-td-model{ font-weight:600; text-align:left; }
+        .rm-td-meta{ font-weight:600; text-align:right; white-space:nowrap; }
+
+        .c-green{ color:#0b5d1e; }   /* vert foncé */
+        .c-blue{ color:#0b3d91; }    /* bleu foncé */
+        .c-orange{ color:#b45309; }  /* orange foncé */
+
+        @media (max-width: 520px){
+            .rm-td-meta{ font-size:14px; }
+            .rich-model-btn{ font-size:14px; }
+        }
+  /* orange foncé */
+        .rm-muted{ color:#666; font-weight:500; }
+
+        /* Responsive: on resserre les colonnes sur mobile */
+        @media (max-width: 520px){
+            .rm-line{
+                grid-template-columns: 1fr 74px 110px 80px;
+                gap:10px;
+            }
+        }
+}
+
+
+        /* Uniformiser la flèche + dimensions des champs (comme Technologie) */
+        :root{
+            --nibe-field-bg:#f2f7ff;
+            --nibe-field-border:#c2d6ec;
+            --nibe-field-radius:4px;
+            --nibe-field-height:41px;
+            --nibe-arrow-color:#334155;
+            --nibe-arrow-size:10px 6px;
+        }
+        select{
+            -webkit-appearance:none;
+            -moz-appearance:none;
+            appearance:none;
+            background-image:
+              linear-gradient(45deg, transparent 50%, var(--nibe-arrow-color) 50%),
+              linear-gradient(135deg, var(--nibe-arrow-color) 50%, transparent 50%);
+            background-position:
+              calc(100% - 16px) calc(50% - 1px),
+              calc(100% - 11px) calc(50% - 1px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat:no-repeat;
+            padding-right: 34px;
+            height: var(--nibe-field-height);
+            box-sizing:border-box;
+        }
+        .rich-model-btn{
+            height: var(--nibe-field-height);
+            background-image:
+              linear-gradient(45deg, transparent 50%, var(--nibe-arrow-color) 50%),
+              linear-gradient(135deg, var(--nibe-arrow-color) 50%, transparent 50%);
+            background-position:
+              calc(100% - 16px) calc(50% - 1px),
+              calc(100% - 11px) calc(50% - 1px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat:no-repeat;
+        }
+
+</style>
 </head>
 <body>
     <div class="container">
@@ -514,21 +687,36 @@
                 </label><br>
                 <label>Modèle:
                     <select id="geoModel"></select>
-                </label><br>
+                </label>
+                <span class="model-badges">
+                    <span id="geoRefrig" class="badge badge-muted"></span>
+                    <span id="geoEtas" class="badge badge-muted"></span>
+                    <span id="geoDb" class="badge badge-muted"></span>
+                </span><br>
                 <label>Nombre d'unités:<input type="number" id="geoUnits" min="1" max="9" value="1"></label>
             </div>
 
             <div id="airEauOptions" class="hidden">
                 <label>Modèle:
                     <select id="airEauModel"></select>
-                </label><br>
+                </label>
+                <span class="model-badges">
+                    <span id="airEauRefrig" class="badge badge-muted"></span>
+                    <span id="airEauEtas" class="badge badge-muted"></span>
+                    <span id="airEauDb" class="badge badge-muted"></span>
+                </span><br>
                 <label>Nombre d'unités:<input type="number" id="airEauUnits" min="1" max="8" value="1"></label>
             </div>
 
             <div id="airExtrOptions" class="hidden">
                 <label>Modèle:
                     <select id="airExtrModel"></select>
-                </label><br>
+                </label>
+                <span class="model-badges">
+                    <span id="airExtrRefrig" class="badge badge-muted"></span>
+                    <span id="airExtrEtas" class="badge badge-muted"></span>
+                    <span id="airExtrDb" class="badge badge-muted"></span>
+                </span><br>
                 <label>Débit de ventilation (m³/h):
                     <select id="airExtrFlow"></select>
                 </label><br>
@@ -584,7 +772,7 @@
             <div id="noteActions" style="margin-top:20px; text-align:center;">
                 <div id="preconisationButtons" class="final-buttons" style="margin-bottom:12px;"></div>
                 <button type="button" onclick="prevStep()" style="padding:8px 16px; margin-right:10px; background:#6c757d; color:#fff; border:none; border-radius:4px;">Précédent</button>
-                <button type="button" onclick="window.print()" style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px;">Imprimer</button>
+                <button type="button" onclick="printFinalReport()" style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px;">Imprimer</button>
 </div>
 
         </div> <!-- fin de step5 -->
@@ -1967,7 +2155,482 @@
             'F1345-60-10':{ '35': 212, '55': 166 },
             'F1355-28-10':{ '35': 244, '55': 190 },
             'F1355-43-10':{ '35': 246, '55': 196 }
-        };
+        };// Réfrigérants (affichage dans la ligne de sélection)
+const refrigerantMap = {
+    // Vert foncé
+    'S735': { label: 'R290', colorClass: 'badge-green' },
+    'S2125': { label: 'R290', colorClass: 'badge-green' },
+    'S1156': { label: 'R454B', colorClass: 'badge-green' },
+    'S1256': { label: 'R454B', colorClass: 'badge-green' },
+    // Bleu foncé
+    'F2050': { label: 'R32', colorClass: 'badge-blue' },
+    'AMS 20': { label: 'R32', colorClass: 'badge-blue' },
+    'F1153': { label: 'R407C', colorClass: 'badge-blue' },
+    'F1253': { label: 'R407C', colorClass: 'badge-blue' },
+    'F1355-28': { label: 'R407C', colorClass: 'badge-blue' },
+    'F1345-24': { label: 'R407C', colorClass: 'badge-blue' },
+    'F1345-30': { label: 'R407C', colorClass: 'badge-blue' },
+    'F1345-40': { label: 'R407C', colorClass: 'badge-blue' },
+    // Orange foncé
+    'S1155-25': { label: 'R410A', colorClass: 'badge-orange' },
+    'F1355-43': { label: 'R410A', colorClass: 'badge-orange' },
+    'F1345-60': { label: 'R410A', colorClass: 'badge-orange' }
+};
+
+// dB(A) – valeurs demandées (affichage indicatif)
+function getSoundDb(modelName) {
+    if (!modelName) return null;
+    const m = modelName.trim();
+    // Exact
+    const exact = {
+        'F1153-4': 36, 'F1253-4': 36,
+        'F1153-6': 36, 'F1253-6': 36,
+        'S2125-8': 49, 'S2125-12': 49,
+        'S2125-16': 55, 'S2125-20': 55,
+        'F2050-6': 53, 'F2050-10': 53,
+        'F2050-12': 60, 'F2050-16': 63,
+        'AMS 20-6': 54, 'AMS 20-10': 54,
+        'S735-4': 38, 'S735-7': 40, 'S735-7C': 40
+    };
+    if (exact[m] !== undefined) return exact[m];
+
+    // Familles
+    if (m.startsWith('S1155') || m.startsWith('S1156') || m.startsWith('S1256')) return 36;
+    if (m.startsWith('F1355') || m.startsWith('F1345')) return 47;
+
+    return null;
+}
+
+// Alias pour compatibilité
+function getDbValue(modelName){
+    return getSoundDb(modelName);
+}
+
+
+function getRefrigerantInfo(modelName) {
+    if (!modelName) return null;
+    const m = modelName.trim();
+
+    // Match précis d'abord
+    if (refrigerantMap[m]) return refrigerantMap[m];
+
+    // Match familles
+    const fams = [
+        'S735',
+        'S2125', 'F2050', 'AMS 20', 'S1156', 'S1256',
+        'F1153', 'F1253',
+        'F1355-28', 'F1345-24', 'F1345-30', 'F1345-40',
+        'S1155-25', 'F1355-43', 'F1345-60'
+    ];
+    for (const f of fams) {
+        if (m.startsWith(f)) return refrigerantMap[f] || null;
+    }
+    return null;
+}
+
+// Retourne un libellé lisible du réfrigérant (pour la note finale)
+function getRefrigerantLabel(modelName) {
+    if (!modelName) return '';
+    const m = modelName.trim();
+
+    // Cas particulier: F1355-43 existe en R407C et R410A
+    if (m.startsWith('F1355-43')) return 'R407C / R410A';
+
+    const info = getRefrigerantInfo(m);
+    if (!info) return '';
+    // info peut être {label,...} ou une string selon version
+    return (typeof info === 'string') ? info : (info.label || '');
+}
+
+function getZoneCountCurrent() {
+    let count = Array.isArray(zones) ? zones.length : 0;
+    if (typeof pool !== 'undefined' && pool && pool.mode === 'toutesaison' && pool.localArea > 0) {
+        count += 1;
+    }
+    return count;
+}
+
+// Règle ETAS: si 1 seule zone et uniquement 35°C -> ETAS 35°C, sinon ETAS 55°C
+function getEtasSelectionKey() {
+    const zoneCount = getZoneCountCurrent();
+    const maxHeating = getMaxHeating();
+    return (zoneCount === 1 && maxHeating === 35) ? '35' : '55';
+}
+
+
+// ETAS: en aquathermie (geoType=10), les valeurs sont stockées dans etasMap avec le suffixe "-10"
+function getEtasLookupModelName(modelName) {
+    const tech = (document.getElementById('technologySelect') || {}).value;
+    if (tech === 'geothermie') {
+        const gt = (document.getElementById('geoType') || {}).value;
+        const base = String(modelName || '');
+        if (String(gt) === '10' && base && !base.endsWith('-10') && !base.includes('-10')) {
+            const cand = base + '-10';
+            // N'ajouter -10 que si on a bien une entrée ETAS correspondante
+            if (typeof etasMap === 'object' && etasMap && etasMap[cand]) return cand;
+        }
+    }
+    return modelName;
+}
+
+function etasColorClass(etasValue, bestEtas) {
+    if (!etasValue || !bestEtas) return 'badge-muted';
+    const ratio = etasValue / bestEtas;
+    // Vert = proche du meilleur, Bleu = correct, Orange = moins performant
+    if (ratio >= 0.95) return 'badge-green';
+    if (ratio >= 0.85) return 'badge-blue';
+    return 'badge-orange';
+}
+
+function computeBestEtasForOptions(models, etasKey) {
+    let best = 0;
+    models.forEach(m => {
+        const lm = getEtasLookupModelName(m);
+        const e = etasMap[lm] ? etasMap[lm][etasKey] : 0;
+        if (e > best) best = e;
+    });
+    return best || 0;
+}
+
+// Couleur ETAS en impression: uniquement vert/bleu (sauf overrides gammes prioritaires)
+function getEtasColorHexForPrint(tech, modelName, etasKey, etasValue) {
+    const m = String(modelName || '').toUpperCase();
+
+    // Toujours vert foncé pour ces gammes (règle métier)
+    if (m.startsWith('S735') || m.startsWith('S2125') || m.startsWith('S1156') || m.startsWith('S1256')) return '#006400';
+
+    // Exception: à 35°C, F2050-6 et AMS 20-6 en vert foncé
+    if (String(etasKey) === '35' && (m.startsWith('F2050-6') || m.startsWith('AMS 20-6'))) return '#006400';
+
+    // Sinon: vert si proche du meilleur, bleu sinon
+    let candidates = [];
+    if (tech === 'aireau') {
+        candidates = ['S2125-8','S2125-12','S2125-16','S2125-20','F2050-6','F2050-10','F2050-12','F2050-16','AMS 20-6','AMS 20-10'];
+    } else if (tech === 'geothermie') {
+        candidates = ['S1156-8','S1156-10','S1156-13','S1156-18','S1155-25',
+                      'S1256-8','S1256-10','S1256-13','S1256-18',
+                      'F1153-4','F1153-6','F1253-4','F1253-6',
+                      'F1345-24','F1345-30','F1345-40','F1345-60',
+                      'F1355-28','F1355-43'];
+    } else if (tech === 'airextr') {
+        candidates = ['S735-4','S735-7','S735-7C'];
+    }
+
+    let best = 0;
+    candidates.forEach(c => {
+        const lm = getEtasLookupModelName(c);
+        const v = (etasMap[lm] && etasMap[lm][etasKey]) ? etasMap[lm][etasKey] : 0;
+        if (v > best) best = v;
+    });
+
+    if (!best || !etasValue) return '#00008B';
+    const ratio = etasValue / best;
+    return (ratio >= 0.95) ? '#006400' : '#00008B';
+}
+
+function colorEmojiFromBadgeClass(cls) {
+    if (cls === 'badge-green') return '🟢';
+    if (cls === 'badge-blue') return '🔵';
+    if (cls === 'badge-orange') return '🟠';
+    return '⚪';
+}
+
+function refrigerantEmoji(fluid) {
+    if (!fluid) return '⚪';
+    const f = fluid.toUpperCase().replace(/\s+/g,'');
+    if (f === 'R290') return '🟢';
+    if (f === 'R454B') return '🟢';
+    if (f === 'R32') return '🔵';
+    if (f === 'R407C') return '🔵';
+    if (f === 'R410A') return '🟠';
+    return '⚪';
+}
+
+function padNbsp(str, width) {
+    const s = String(str ?? '');
+    const pad = Math.max(0, width - s.length);
+    return (s + ' '.repeat(pad)).replace(/ /g, '\u00A0');
+}
+
+function formatModelOptionLine(modelName, bestEtas, etasKey) {
+    const etasModel = getEtasLookupModelName(modelName);
+    const etasVal = (etasMap[etasModel] && etasMap[etasModel][etasKey]) ? etasMap[etasModel][etasKey] : null;
+
+    // dB(A)
+    let db = null;
+    try {
+        db = (typeof getSoundDb === 'function') ? getSoundDb(modelName) : null;
+    } catch (e) {
+        db = null;
+    }
+
+    // Fluide frigorigène (getRefrigerantInfo retourne parfois un objet {label,colorClass})
+    let refrLabel = '';
+    try {
+        const refrInfo = (typeof getRefrigerantInfo === 'function') ? getRefrigerantInfo(modelName) : null;
+        if (typeof refrInfo === 'string') {
+            refrLabel = refrInfo;
+        } else if (refrInfo && typeof refrInfo === 'object' && typeof refrInfo.label === 'string') {
+            refrLabel = refrInfo.label;
+        } else {
+            refrLabel = '';
+        }
+    } catch (e) {
+        refrLabel = '';
+    }
+
+        const etasCls = etasColorClass(etasVal, bestEtas);
+
+    // Colonnes alignées (NBSP pour conserver les espaces dans <option>)
+    const colModel = padNbsp(modelName, 18);
+        const colRefr  = padNbsp(`${refrLabel || '—'}`, 10);
+        const colEtas  = padNbsp(`ETAS:${etasVal ? (etasVal + '%') : '—'}`, 16);
+    const colDb    = `${(db !== null && db !== undefined) ? (db + ' dB(A)') : '—'}`;
+
+    return `${colModel}${colRefr}${colEtas}${colDb}`;
+}
+
+
+/* --- UI: dropdown riche pour les modèles (colonnes + couleurs) --- */
+const __richModelUI = {}; // selectId -> {wrap, btn, panel}
+
+function refrigerantColorClass(refrLabel) {
+    const r = (refrLabel || '').toUpperCase();
+    if (r === 'R290') return 'c-green';
+    if (r === 'R454B') return 'c-green';
+    if (r === 'R32') return 'c-blue';
+    if (r === 'R407C') return 'c-blue';
+    if (r === 'R410A') return 'c-orange';
+    return 'rm-muted';
+}
+
+function etasTextColorClass(modelName, etasVal, bestEtas) {
+    // Objectif: inciter au plus performant
+    // - Vert foncé : meilleure valeur (≈best)
+    // - Bleu foncé : le reste (valeur valide)
+
+// Modèles à mettre TOUJOURS en vert foncé (demande)
+const m = (modelName || '').toUpperCase();
+if (m.startsWith('S735') || m.startsWith('S2125') || m.startsWith('S1156') || m.startsWith('S1256')) return 'c-green';
+    // Cas spécifique: à 35°C, F2050-6 et AMS 20-6 doivent être en vert foncé (ETAS élevé)
+    try {
+        const ek = (typeof getEtasSelectionKey === 'function') ? getEtasSelectionKey() : null;
+        if (ek === '35') {
+            const mm = (modelName || '').toUpperCase().replace(/\s+/g,'');
+            if (mm === 'F2050-6' || mm === 'AMS20-6') return 'c-green';
+        }
+    } catch(e) {}
+
+    if (etasVal == null || bestEtas == null) return 'rm-muted';
+    const v = Number(etasVal);
+    const b = Number(bestEtas);
+    if (!isFinite(v) || !isFinite(b) || b <= 0) return 'rm-muted';
+    if (v >= b - 0.001) return 'c-green';
+    return 'c-blue';
+}
+
+
+function getRefrigerantLabelSafe(modelName) {
+    try {
+        const info = (typeof getRefrigerantInfo === 'function') ? getRefrigerantInfo(modelName) : null;
+        if (typeof info === 'string') return info;
+        if (info && typeof info === 'object' && typeof info.label === 'string') return info.label;
+    } catch(e) {}
+    return '';
+}
+
+function ensureRichModelDropdown(selectId) {
+    if (__richModelUI[selectId]) return __richModelUI[selectId];
+
+    const select = document.getElementById(selectId);
+    if (!select) return null;
+
+    // Wrap
+    const wrap = document.createElement('div');
+    wrap.className = 'rich-model-wrap';
+
+    // Button
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rich-model-btn';
+    btn.innerHTML = '<span class=\"rich-model-btnlabel\">—</span>';
+
+    // Panel
+    const panel = document.createElement('div');
+    panel.className = 'rich-model-panel';
+
+    // Inject in DOM: place wrap where select is, then move select inside wrap
+    select.classList.add('rich-model-select');
+    const parent = select.parentNode;
+    parent.insertBefore(wrap, select);
+    wrap.appendChild(select);
+    wrap.appendChild(btn);
+    wrap.appendChild(panel);
+
+    function closePanel() { panel.classList.remove('open'); }
+    function openPanel() { panel.classList.add('open'); }
+
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        panel.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => closePanel());
+
+    __richModelUI[selectId] = { select, wrap, btn, panel, closePanel, openPanel };
+    return __richModelUI[selectId];
+}
+
+
+function updateRichModelButtonLabel(ui) {
+    if (!ui || !ui.select || !ui.btn) return;
+    const value = ui.select.value || '—';
+    const labelEl = ui.btn.querySelector('.rich-model-btnlabel');
+    if (labelEl) {
+        labelEl.textContent = value;
+    } else {
+        ui.btn.textContent = value;
+    }
+    ui.btn.title = value;
+}
+
+function renderRichModelOptions(selectId, modelList, bestEtas, etasKey) {
+    const ui = ensureRichModelDropdown(selectId);
+    if (!ui) return;
+
+    const { select, btn, panel } = ui;
+
+    // Clear panel
+    panel.innerHTML = '';
+
+    const selectedValue = select.value;
+
+    const table = document.createElement('table');
+    table.className = 'rm-table';
+
+    // Colgroup pour alignement stable (comme Air/Eau) + group à droite
+    const colgroup = document.createElement('colgroup');
+    colgroup.innerHTML = `
+      <col style="width:auto">
+      <col style="width:110px">
+      <col style="width:170px">
+      <col style="width:110px">
+    `;
+    table.appendChild(colgroup);
+
+    function buildRow(modelName) {
+        const etasModel = getEtasLookupModelName(modelName);
+        const etasVal = (etasMap[etasModel] && etasMap[etasModel][etasKey]) ? etasMap[etasModel][etasKey] : null;
+        const refr = getRefrigerantLabelSafe(modelName);
+        let db = null;
+        try { db = (typeof getSoundDb === 'function') ? getSoundDb(modelName) : null; } catch(e) { db = null; }
+
+        const tr = document.createElement('tr');
+        if (modelName === selectedValue) tr.classList.add('selected');
+
+        const tdModel = document.createElement('td');
+        tdModel.className = 'rm-td-model';
+        tdModel.textContent = modelName;
+
+        const tdRefr = document.createElement('td');
+        tdRefr.className = 'rm-td-meta ' + refrigerantColorClass(refr);
+        tdRefr.textContent = refr ? refr : '—';
+
+        const tdEtas = document.createElement('td');
+        tdEtas.className = 'rm-td-meta ' + etasTextColorClass(modelName, etasVal, bestEtas);
+        tdEtas.textContent = 'ETAS : ' + (etasVal ? (etasVal + '%') : '—');
+
+        const tdDb = document.createElement('td');
+        tdDb.className = 'rm-td-meta';
+        tdDb.textContent = (db !== null && db !== undefined) ? (db + ' dB(A)') : '—';
+
+        tr.appendChild(tdModel);
+        tr.appendChild(tdRefr);
+        tr.appendChild(tdEtas);
+        tr.appendChild(tdDb);
+
+        tr.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Mettre à jour la sélection visuelle tout de suite
+            try {
+                table.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+                tr.classList.add('selected');
+            } catch(err) {}
+            select.value = modelName;
+            // Trigger normal logic
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            panel.classList.remove('open');
+            updateRichModelButtonLabel(ui);
+        });
+
+        return tr;
+    }
+
+    modelList.forEach(modelName => {
+        table.appendChild(buildRow(modelName));
+    });
+
+    panel.appendChild(table);
+
+    // Update button label to current selected option
+    updateRichModelButtonLabel(ui);
+}
+
+function setBadge(el, text, cls) {
+    if (!el) return;
+    el.className = 'badge ' + (cls || 'badge-muted');
+    el.textContent = text || '';
+    if (!text) el.className = 'badge badge-muted';
+}
+
+function updateModelBadges(tech) {
+    const etasKey = getEtasSelectionKey();
+    if (tech === 'geothermie') {
+        const model = document.getElementById('geoModel').value;
+        const models = Array.from(document.getElementById('geoModel').options).map(o => o.value);
+        const best = computeBestEtasForOptions(models, etasKey);
+
+        const refr = getRefrigerantInfo(model);
+        setBadge(document.getElementById('geoRefrig'), refr ? refr.label : '—', refr ? refr.colorClass : 'badge-muted');
+
+        const eVal = etasMap[model] ? etasMap[model][etasKey] : null;
+        setBadge(document.getElementById('geoEtas'), eVal ? `ETAS ${etasKey}°C : ${eVal}%` : `ETAS ${etasKey}°C : —`, etasColorClass(eVal, best));
+
+        const db = getSoundDb(model);
+        setBadge(document.getElementById('geoDb'), db !== null ? `dB(A) : ${db}` : 'dB(A) : —', 'badge-muted');
+    }
+
+    if (tech === 'aireau') {
+        const model = document.getElementById('airEauModel').value;
+        const models = Array.from(document.getElementById('airEauModel').options).map(o => o.value);
+        const best = computeBestEtasForOptions(models, etasKey);
+
+        const refr = getRefrigerantInfo(model);
+        setBadge(document.getElementById('airEauRefrig'), refr ? refr.label : '—', refr ? refr.colorClass : 'badge-muted');
+
+        const eVal = etasMap[model] ? etasMap[model][etasKey] : null;
+        setBadge(document.getElementById('airEauEtas'), eVal ? `ETAS ${etasKey}°C : ${eVal}%` : `ETAS ${etasKey}°C : —`, etasColorClass(eVal, best));
+
+        const db = getSoundDb(model);
+        setBadge(document.getElementById('airEauDb'), db !== null ? `dB(A) : ${db}` : 'dB(A) : —', 'badge-muted');
+    }
+
+    if (tech === 'airextr') {
+        const model = document.getElementById('airExtrModel').value;
+        const models = Array.from(document.getElementById('airExtrModel').options).map(o => o.value);
+        const best = computeBestEtasForOptions(models, etasKey);
+
+        const refr = getRefrigerantInfo(model);
+        setBadge(document.getElementById('airExtrRefrig'), refr ? refr.label : '—', refr ? refr.colorClass : 'badge-muted');
+
+        const eVal = etasMap[model] ? etasMap[model][etasKey] : null;
+        setBadge(document.getElementById('airExtrEtas'), eVal ? `ETAS ${etasKey}°C : ${eVal}%` : `ETAS ${etasKey}°C : —`, etasColorClass(eVal, best));
+
+        const db = getSoundDb(model);
+        setBadge(document.getElementById('airExtrDb'), db !== null ? `dB(A) : ${db}` : 'dB(A) : —', 'badge-muted');
+    }
+}
 
         const aquathermFlowMap = {
             'F1153-4': 1.0,
@@ -2028,6 +2691,54 @@
         }
 
         function showStep(step) {
+
+// Si l'utilisateur revient sur "Sélection PAC", on conserve la technologie mais on ré-optimise la sélection
+// dès que les paramètres amont ont changé (puissance, zones, température de base...).
+if (step === 4) {
+    try {
+        const techSel = document.getElementById('technologySelect');
+        const savedTech = sessionStorage.getItem('selectedTech');
+        if (savedTech && techSel) {
+            techSel.value = savedTech;
+        }
+    } catch(e) {}
+
+    // Signature des entrées amont influençant le dimensionnement
+    const totalLossNow = (document.getElementById('totalLoss') ? document.getElementById('totalLoss').textContent : '') || '';
+    const maxHeatingNow = getMaxHeating();
+    const zonesNow = (typeof zones !== 'undefined' && Array.isArray(zones)) ? zones.map(z => `${z.area}|${z.loss}|${z.heating}|${z.ambient}|${z.height}`).join(';') : '';
+    const poolNow = (typeof pool !== 'undefined' && pool) ? JSON.stringify({mode:pool.mode, totalLoss:pool.totalLoss, localArea:pool.localArea, localHeating:pool.localHeating}) : '';
+    const baseTempNow = (finalBaseTemp !== null && finalBaseTemp !== undefined) ? String(finalBaseTemp) : '';
+    const sig = `loss=${totalLossNow}|maxH=${maxHeatingNow}|base=${baseTempNow}|zones=${zonesNow}|pool=${poolNow}`;
+
+    let oldSig = null;
+    try { oldSig = sessionStorage.getItem('pacInputSignature'); } catch(e) {}
+
+    const tech = document.getElementById('technologySelect').value;
+
+    // Si on détecte un changement, on force l'auto-sélection optimale (en gardant la techno)
+    if (!oldSig || oldSig !== sig) {
+        // reset des flags manuels pour autoriser la sélection optimale
+        geoManuallySelected = false;
+        geoUnitsManuallySelected = false;
+        airEauManuallySelected = false;
+        airEauUnitsManuallySelected = false;
+        airExtrModelManuallySelected = false;
+        airExtrFlowManuallySelected = false;
+
+        onTechnologyChange(); // (ré)affiche le bon bloc + charge les modèles
+        selectDefaultModel(tech, false);
+        computeTechnology();
+
+        try { sessionStorage.setItem('pacInputSignature', sig); } catch(e) {}
+    } else {
+        // Pas de changement amont: on met à jour simplement les badges/infos
+        onTechnologyChange();
+        updateModelBadges(tech);
+        computeTechnology();
+    }
+}
+
             const steps = document.querySelectorAll('.step');
             steps.forEach((s, idx) => {
                 const currentIndex = idx + 1;
@@ -2113,7 +2824,7 @@
             // Sauvegarder l'étape courante pour savoir si l'on passe du rapport au devis
             const prev = currentStep;
             // Passer à l'étape suivante si elle existe (jusqu'à la page devis incluse)
-            if (currentStep < 5) currentStep++;
+            if (currentStep < 6) currentStep++;
             showStep(currentStep);
             // Si l'on vient de quitter l'étape 5 (note) pour aller à l'étape 6, préparer le devis
             if (prev === 5 && currentStep === 6) {
@@ -2132,6 +2843,15 @@
 
         // Masquer l'ancienne section de devis intégrée à l'étape 5 si elle est présente.
         document.addEventListener('DOMContentLoaded', () => {
+
+// Restaure la technologie sélectionnée si l'utilisateur rafraîchit la page
+try {
+    const savedTech = sessionStorage.getItem('selectedTech');
+    if (savedTech && document.getElementById('technologySelect')) {
+        document.getElementById('technologySelect').value = savedTech;
+    }
+} catch(e) {}
+
             // Certaines versions du fichier contiennent une ancienne section de devis dans l'étape 5 (classée comme .devis-form).
             // Nous parcourons les formulaires de devis présents dans l'étape 5 et les masquons afin que seul le véritable devis
             // (étape 6) soit visible lorsqu'on y accède depuis la note. Cela évite que le devis apparaisse sous la note.
@@ -2294,7 +3014,7 @@
                 manual: false,
                 manualValue: 0,
                 ambient: 20,
-                heating: 45,
+                heating: 35,
                 loss: 0
             };
             zones.push(zone);
@@ -2667,6 +3387,7 @@
 
         function onTechnologyChange() {
             const tech = document.getElementById('technologySelect').value;
+            try { sessionStorage.setItem('selectedTech', tech); } catch(e) {}
             document.getElementById('geoOptions').classList.add('hidden');
             document.getElementById('airEauOptions').classList.add('hidden');
             document.getElementById('airExtrOptions').classList.add('hidden');
@@ -2721,11 +3442,19 @@
                     'F1345-24','F1345-30','F1345-40','F1345-60','F1355-28','F1355-43','F1353-4'
                 );
             }
+            const etasKey = getEtasSelectionKey();
+            let bestEtas = null;
+            try { bestEtas = computeBestEtasForOptions(list, etasKey); } catch(e) { console.error('computeBestEtasForOptions failed', e); bestEtas = null; }
             list.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m;
-                opt.textContent = m;
-                select.appendChild(opt);
+                try {
+                opt.textContent = formatModelOptionLine(m, bestEtas, etasKey);
+            } catch(e) {
+                console.error('formatModelOptionLine failed for', opt.value, e);
+                opt.textContent = opt.value;
+            }
+            select.appendChild(opt);
             });
 
             // Par défaut, sélectionner la gamme S1256 (si disponible)
@@ -2735,7 +3464,11 @@
                     select.value = preferred.value;
                 }
             }
-        }
+        
+            // UI riche (liste déroulante avec colonnes)
+            try { renderRichModelOptions('geoModel', list, bestEtas, etasKey); } catch(e) { console.error('renderRichModelOptions failed', e); }
+}
+            updateModelBadges('geothermie');
 
         document.getElementById('geoType').addEventListener('change', function(){
             loadGeoModels();
@@ -2755,11 +3488,19 @@
                 }
                 if (airEauData[m]) allowedModels.push(m);
             });
+            const etasKey = getEtasSelectionKey();
+            let bestEtas = null;
+            try { bestEtas = computeBestEtasForOptions(allowedModels, etasKey); } catch(e) { console.error('computeBestEtasForOptions failed', e); bestEtas = null; }
             allowedModels.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m;
-                opt.textContent = m;
-                select.appendChild(opt);
+                try {
+                opt.textContent = formatModelOptionLine(m, bestEtas, etasKey);
+            } catch(e) {
+                console.error('formatModelOptionLine failed for', opt.value, e);
+                opt.textContent = opt.value;
+            }
+            select.appendChild(opt);
             });
 
             // Par défaut, sélectionner la gamme S2125 (si disponible)
@@ -2769,7 +3510,11 @@
                     select.value = preferred.value;
                 }
             }
-        }
+            updateModelBadges('aireau');
+        
+            // UI riche (liste déroulante avec colonnes)
+            try { renderRichModelOptions('airEauModel', allowedModels, bestEtas, etasKey); } catch(e) { console.error('renderRichModelOptions failed', e); }
+}
 
         function loadAirExtrModels() {
             const select = document.getElementById('airExtrModel');
@@ -2780,15 +3525,26 @@
                 document.getElementById('technologySelect').value = '';
                 return;
             }
+            const etasKey = getEtasSelectionKey();
+            let bestEtas = null;
+            try { bestEtas = computeBestEtasForOptions(['S735-4','S735-7','S735-7C'], etasKey); } catch(e) { console.error('computeBestEtasForOptions failed', e); bestEtas = null; }
             ['S735-4','S735-7','S735-7C'].forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m;
-                opt.textContent = m;
-                select.appendChild(opt);
+                try {
+                opt.textContent = formatModelOptionLine(m, bestEtas, etasKey);
+            } catch(e) {
+                console.error('formatModelOptionLine failed for', opt.value, e);
+                opt.textContent = opt.value;
+            }
+            select.appendChild(opt);
             });
             select.addEventListener('change', function(){ loadAirExtrFlows(); });
             loadAirExtrFlows();
-        }
+        
+            // UI riche (liste déroulante avec colonnes)
+            try { renderRichModelOptions('airExtrModel', ['S735-4','S735-7','S735-7C'], bestEtas, etasKey); } catch(e) { console.error('renderRichModelOptions failed', e); }
+}
 
         function loadAirExtrFlows() {
             const model = document.getElementById('airExtrModel').value;
@@ -2836,6 +3592,14 @@
                 let model = document.getElementById('geoModel').value;
                 selectedModelName = model;
                 units = parseInt(document.getElementById('geoUnits').value);
+                // Clamp : 9 unités max en géothermie/aquathermie
+                {
+                    const uEl = document.getElementById('geoUnits');
+                    const uMax = parseInt(uEl.max) || 9;
+                    const uMin = parseInt(uEl.min) || 1;
+                    if (units > uMax) { units = uMax; uEl.value = String(uMax); }
+                    if (units < uMin) { units = uMin; uEl.value = String(uMin); }
+                }
                 let key = model;
                 if (typeVal === '10' && !model.includes('-10') && model !== 'F1353-4') {
                     key += '-10';
@@ -2889,6 +3653,14 @@
                 const model = document.getElementById('airEauModel').value;
                 selectedModelName = model;
                 units = parseInt(document.getElementById('airEauUnits').value);
+                // Clamp : 8 unités max en air/eau
+                {
+                    const uEl = document.getElementById('airEauUnits');
+                    const uMax = parseInt(uEl.max) || 8;
+                    const uMin = parseInt(uEl.min) || 1;
+                    if (units > uMax) { units = uMax; uEl.value = String(uMax); }
+                    if (units < uMin) { units = uMin; uEl.value = String(uMin); }
+                }
                 const dataArr = airEauData[model];
                 const ext = finalBaseTemp;
                 let entry = null;
@@ -3067,6 +3839,8 @@
                 }
             }
 
+            updateModelBadges(tech);
+
             finalPac = {
                 tech: tech,
                 model: selectedModelName,
@@ -3075,6 +3849,8 @@
                 backup: backup,
                 etas35: etas35,
                 etas55: etas55,
+                etasKey: getEtasSelectionKey(),
+                etasSelected: (getEtasSelectionKey()==='35' ? etas35 : etas55),
                 units: units,
                 limited: (capacity === totalLoss && totalLoss > 0),
                 extra: extraInfo
@@ -3112,10 +3888,12 @@
             const heatingKey = (heatingMax >= 65) ? '55' : (heatingMax >= 55 ? '55' : (heatingMax >= 45 ? '45' : '35'));
 
             const getRatioBounds = (tech) => {
+                // Règles 2026 : viser au minimum 70% de couverture et limiter le nombre d'unités.
                 if (tech === 'aireau') {
-                    return { min: 0.65, max: 0.75, limit: 9 };
+                    return { min: 0.70, max: Infinity, limit: 8 };
                 }
-                return { min: 0.70, max: 0.90, limit: 8 };
+                // Géothermie / Aquathermie
+                return { min: 0.70, max: Infinity, limit: 9 };
             };
 
             if (tech === 'geothermie') {
@@ -3154,38 +3932,29 @@
 
                 outerGeoLoop:
                 for (let n = 1; n <= maxUnits; n++) {
-                    const within = [];
-                    const overs = [];
-                    models.forEach((m, idx) => {
-                        const cap = caps[m] || 0;
-                        const ratio = (cap * n) / totalLoss;
-                        if (ratio >= minRatio) {
-                            if (ratio <= maxRatio) {
-                                within.push({ model: m, units: n, ratio: ratio, index: idx });
-                            } else {
-                                overs.push({ model: m, units: n, ratio: ratio, index: idx });
+                    const candidates = [];
+                    // Priorité au modèle S1256, mais sans jamais augmenter le nombre d'unités si une autre combinaison
+                    // couvre déjà le minimum (70%) avec moins d'unités.
+                    const preferred = models.filter(m => m.startsWith('S1256'));
+                    const consider = (arr) => {
+                        arr.forEach((m, idx) => {
+                            const cap = caps[m] || 0;
+                            const ratio = (cap * n) / totalLoss;
+                            if (ratio >= minRatio) {
+                                candidates.push({ model: m, units: n, ratio: ratio, index: idx });
                             }
-                        }
-                    });
-                    if (within.length > 0) {
-                        within.sort((a, b) => {
+                        });
+                    };
+                    if (preferred.length > 0) consider(preferred);
+                    if (candidates.length === 0) consider(models);
+
+                    if (candidates.length > 0) {
+                        candidates.sort((a, b) => {
                             if (a.ratio !== b.ratio) return a.ratio - b.ratio;
                             return a.index - b.index;
                         });
-                        chosenModel = within[0].model;
-                        chosenUnits = within[0].units;
-                        break outerGeoLoop;
-                    }
-                    if (overs.length > 0) {
-                        overs.sort((a, b) => {
-                            const diffA = a.ratio - maxRatio;
-                            const diffB = b.ratio - maxRatio;
-                            if (diffA !== diffB) return diffA - diffB;
-                            if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                            return a.index - b.index;
-                        });
-                        chosenModel = overs[0].model;
-                        chosenUnits = overs[0].units;
+                        chosenModel = candidates[0].model;
+                        chosenUnits = candidates[0].units;
                         break outerGeoLoop;
                     }
                 }
@@ -3203,48 +3972,6 @@
                     if (best) {
                         chosenModel = best.model;
                         chosenUnits = best.units;
-                    }
-                }
-
-                // Priorité à la gamme S1256 (si disponible et cohérente avec le dimensionnement)
-                if (!geoManuallySelected) {
-                    const modelIndexMap = {};
-                    models.forEach((m, i) => { modelIndexMap[m] = i; });
-                    const preferredModels = models.filter(m => m.startsWith('S1256'));
-                    if (preferredModels.length > 0) {
-                        const withinPref = [];
-                        const oversPref = [];
-                        preferredModels.forEach((m) => {
-                            const cap = caps[m] || 0;
-                            for (let n = 1; n <= maxUnits; n++) {
-                                const ratio = (cap * n) / totalLoss;
-                                if (ratio >= minRatio) {
-                                    if (ratio <= maxRatio) {
-                                        withinPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
-                                    } else {
-                                        oversPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
-                                    }
-                                }
-                            }
-                        });
-                        if (withinPref.length > 0) {
-                            withinPref.sort((a,b) => {
-                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                                return a.index - b.index;
-                            });
-                            chosenModel = withinPref[0].model;
-                            chosenUnits = withinPref[0].units;
-                        } else if (oversPref.length > 0) {
-                            oversPref.sort((a,b) => {
-                                const diffA = a.ratio - maxRatio;
-                                const diffB = b.ratio - maxRatio;
-                                if (diffA !== diffB) return diffA - diffB;
-                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                                return a.index - b.index;
-                            });
-                            chosenModel = oversPref[0].model;
-                            chosenUnits = oversPref[0].units;
-                        }
                     }
                 }
 
@@ -3273,38 +4000,29 @@
 
                 outerAirLoop:
                 for (let n = 1; n <= maxUnits; n++) {
-                    const within = [];
-                    const overs = [];
-                    models.forEach((m, idx) => {
-                        const cap = caps[m] || 0;
-                        const ratio = (cap * n) / totalLoss;
-                        if (ratio >= minRatio) {
-                            if (ratio <= maxRatio) {
-                                within.push({ model: m, units: n, ratio: ratio, index: idx });
-                            } else {
-                                overs.push({ model: m, units: n, ratio: ratio, index: idx });
+                    const candidates = [];
+                    // Priorité au modèle S2125, mais sans jamais augmenter le nombre d'unités si une autre combinaison
+                    // couvre déjà le minimum (70%) avec moins d'unités.
+                    const preferred = models.filter(m => m.startsWith('S2125'));
+                    const consider = (arr) => {
+                        arr.forEach((m, idx) => {
+                            const cap = caps[m] || 0;
+                            const ratio = (cap * n) / totalLoss;
+                            if (ratio >= minRatio) {
+                                candidates.push({ model: m, units: n, ratio: ratio, index: idx });
                             }
-                        }
-                    });
-                    if (within.length > 0) {
-                        within.sort((a,b) => {
+                        });
+                    };
+                    if (preferred.length > 0) consider(preferred);
+                    if (candidates.length === 0) consider(models);
+
+                    if (candidates.length > 0) {
+                        candidates.sort((a, b) => {
                             if (a.ratio !== b.ratio) return a.ratio - b.ratio;
                             return a.index - b.index;
                         });
-                        chosenModel = within[0].model;
-                        chosenUnits = within[0].units;
-                        break outerAirLoop;
-                    }
-                    if (overs.length > 0) {
-                        overs.sort((a,b) => {
-                            const diffA = a.ratio - maxRatio;
-                            const diffB = b.ratio - maxRatio;
-                            if (diffA !== diffB) return diffA - diffB;
-                            if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                            return a.index - b.index;
-                        });
-                        chosenModel = overs[0].model;
-                        chosenUnits = overs[0].units;
+                        chosenModel = candidates[0].model;
+                        chosenUnits = candidates[0].units;
                         break outerAirLoop;
                     }
                 }
@@ -3322,48 +4040,6 @@
                     if (best) {
                         chosenModel = best.model;
                         chosenUnits = best.units;
-                    }
-                }
-
-                // Priorité à la gamme S2125 (si disponible et cohérente avec le dimensionnement)
-                if (!airEauManuallySelected) {
-                    const modelIndexMap = {};
-                    models.forEach((m, i) => { modelIndexMap[m] = i; });
-                    const preferredModels = models.filter(m => m.startsWith('S2125'));
-                    if (preferredModels.length > 0) {
-                        const withinPref = [];
-                        const oversPref = [];
-                        preferredModels.forEach((m) => {
-                            const cap = caps[m] || 0;
-                            for (let n = 1; n <= maxUnits; n++) {
-                                const ratio = (cap * n) / totalLoss;
-                                if (ratio >= minRatio) {
-                                    if (ratio <= maxRatio) {
-                                        withinPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
-                                    } else {
-                                        oversPref.push({ model: m, units: n, ratio: ratio, index: modelIndexMap[m] });
-                                    }
-                                }
-                            }
-                        });
-                        if (withinPref.length > 0) {
-                            withinPref.sort((a,b) => {
-                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                                return a.index - b.index;
-                            });
-                            chosenModel = withinPref[0].model;
-                            chosenUnits = withinPref[0].units;
-                        } else if (oversPref.length > 0) {
-                            oversPref.sort((a,b) => {
-                                const diffA = a.ratio - maxRatio;
-                                const diffB = b.ratio - maxRatio;
-                                if (diffA !== diffB) return diffA - diffB;
-                                if (a.ratio !== b.ratio) return a.ratio - b.ratio;
-                                return a.index - b.index;
-                            });
-                            chosenModel = oversPref[0].model;
-                            chosenUnits = oversPref[0].units;
-                        }
                     }
                 }
 
@@ -3505,6 +4181,7 @@
             html += `<table>
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Pompe à chaleur</th></tr>
                         <tr><td><strong style="color:#d62728;">Modèle choisi</strong></td><td><strong style="color:#d62728;">${pacDesc}</strong></td></tr>
+                        <tr><td>Réfrigérant</td><td>${getRefrigerantLabel(pac.model)}</td></tr>
                         <tr><td style="font-weight:bold;">Puissance PAC à ${finalBaseTemp}&nbsp;°C</td><td style="font-weight:bold;">${pac.capacity.toFixed(2)} kW</td></tr>
                         <tr><td>Puissance/Déperditions</td><td>
                             ${(() => {
@@ -3526,8 +4203,32 @@
                         <tr><td>Modèle et classe du régulateur</td><td>${regulatorClass}</td></tr>
                         ${pac.extra && pac.extra.type === 'sonde' ? `<tr><td>Longueur de sondes géothermiques estimée</td><td>${pac.extra.value}</td></tr>` : ''}
                         ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>${pac.extra.isTotal ? 'Débit total d\u2019eau de nappe' : 'Débit d\u2019eau de nappe'}</td><td>${pac.extra.isTotal ? pac.extra.total : pac.extra.base} m³/h</td></tr>` : ''}
-                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS (PAC) 35°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${(pac.etas35 - 4)} %</strong></td></tr>
-                        <tr><td style="color:#006400; font-weight:bold;"><strong>ETAS (PAC) 55°C</strong></td><td style="color:#006400; font-weight:bold;"><strong>${(pac.etas55 - 4)} %</strong></td></tr>
+                        <tr>
+                            <td style="font-weight:bold; color:#0B5D1E;"><strong>ETAS (PAC) 35°C</strong></td>
+                            <td style="font-weight:bold;">
+                                <strong>
+                                    ${(() => {
+                                        const v = pac.etas35 || 0;
+                                        if (!v) return '—';
+                                        const col = getEtasColorHexForPrint(pac.tech, pac.model, '35', v);
+                                        return `<span style="color:#0B5D1E; font-weight:bold;">${(v - 4)} %</span>`;
+                                    })()}
+                                </strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:bold; color:#0B5D1E;"><strong>ETAS (PAC) 55°C</strong></td>
+                            <td style="font-weight:bold;">
+                                <strong>
+                                    ${(() => {
+                                        const v = pac.etas55 || 0;
+                                        if (!v) return '—';
+                                        const col = getEtasColorHexForPrint(pac.tech, pac.model, '55', v);
+                                        return `<span style="color:#0B5D1E; font-weight:bold;">${(v - 4)} %</span>`;
+                                    })()}
+                                </strong>
+                            </td>
+                        </tr>
                         <tr><td>60% des déperditions</td><td>${(parseFloat(totalLoss)*0.60).toFixed(2)} kW</td></tr>
                         <tr><td>130% des déperditions</td><td>${(parseFloat(totalLoss)*1.30).toFixed(2)} kW</td></tr>
                         <tr><td>Température d'arrêt PAC NIBE</td><td>`;
@@ -3741,7 +4442,7 @@ function updatePreconisationButtons(){
                 btn.style.border = 'none';
                 btn.style.borderRadius = '4px';
                 btn.style.cursor = 'pointer';
-                btn.textContent = label;
+                (btn.querySelector('.rich-model-btnlabel') ? (btn.querySelector('.rich-model-btnlabel').textContent = label) : (btn.textContent = label));
                 btn.onclick = () => window.open(url, '_blank');
                 container.appendChild(btn);
             };
@@ -3893,6 +4594,7 @@ function updatePreconisationButtons(){
         updateAirExtrAvailability();
 
         document.getElementById('geoModel').addEventListener('change', function(){
+            updateModelBadges('geothermie');
             geoManuallySelected = true;
             computeTechnology();
         });
@@ -3901,6 +4603,7 @@ function updatePreconisationButtons(){
             computeTechnology();
         });
         document.getElementById('airEauModel').addEventListener('change', function(){
+            updateModelBadges('aireau');
             airEauManuallySelected = true;
             computeTechnology();
         });
@@ -3908,11 +4611,81 @@ function updatePreconisationButtons(){
             airEauManuallySelected = true;
             computeTechnology();
         });
-        document.getElementById('airExtrModel').addEventListener('change', function(){ computeTechnology(); });
+        document.getElementById('airExtrModel').addEventListener('change', function(){
+            updateModelBadges('airextr'); computeTechnology(); });
         document.getElementById('airExtrFlow').addEventListener('change', function(){
             airExtrFlowManuallySelected = true;
             computeTechnology();
         });
-    </script>
+    
+        // Impression: fonctionne même si l'utilisateur n'est pas sur l'étape finale
+                // Impression PDF (Chrome friendly) via iframe - ne change pas l'étape courante
+        function printFinalReport() {
+            try {
+                // S'assurer que la note est à jour
+                if (typeof buildFinalReport === 'function') {
+                    buildFinalReport();
+                }
+            } catch (e) {
+                console.error('printFinalReport build failed', e);
+            }
+
+            const reportEl = document.getElementById('final-report') || document.getElementById('finalReport') || document.querySelector('.final-report');
+            if (!reportEl) {
+                alert("Impossible de trouver le contenu à imprimer.");
+                return;
+            }
+
+            // Récupérer styles inline existants (et feuilles si présentes)
+            const styleTags = Array.from(document.querySelectorAll('style')).map(s => `<style>${s.innerHTML}</style>`).join('\n');
+            const linkTags = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.outerHTML).join('\n');
+
+            // Créer un iframe invisible
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            iframe.style.opacity = '0';
+            iframe.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(iframe);
+
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(`<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Devis NIBE</title>
+${linkTags}
+${styleTags}
+</head>
+<body>
+${reportEl.outerHTML}
+</body>
+</html>`);
+            doc.close();
+
+            // Attendre un tick pour laisser le layout se stabiliser, puis imprimer
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } catch (e) {
+                    console.error('iframe print failed', e);
+                    alert("L'impression a échoué. Essayez à nouveau.");
+                } finally {
+                    // Nettoyage après un court délai (Chrome a parfois besoin d'un peu de temps)
+                    setTimeout(() => {
+                        try { document.body.removeChild(iframe); } catch(e) {}
+                    }, 800);
+                }
+            }, 200);
+        }
+
+</script>
 </body>
 </html>
