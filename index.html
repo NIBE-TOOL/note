@@ -596,6 +596,51 @@
             background-repeat:no-repeat;
         }
 
+
+/* --- Responsive mobile: menu Modèle plein écran et lisible --- */
+@media (max-width: 520px){
+  .rich-model-panel{
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    top: 86px !important; /* sous l'entête/stepper */
+    max-height: calc(100vh - 140px) !important;
+    overflow: auto !important;
+  }
+  /* Présentation en "cartes" 2 lignes pour éviter le scroll horizontal */
+  .rm-table{ width:100% !important; table-layout: fixed; }
+  .rm-table tbody tr{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: auto;
+    row-gap: 2px;
+    column-gap: 12px;
+    padding: 6px 2px;
+  }
+  .rm-table tbody td{ padding: 6px 8px !important; }
+  .rm-table tbody td:nth-child(1){
+    grid-column: 1 / 3;
+    font-weight: 700;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rm-table tbody td:nth-child(2){
+    grid-column: 1 / 2;
+    text-align: left !important;
+    white-space: nowrap;
+  }
+  .rm-table tbody td:nth-child(3){
+    grid-column: 2 / 3;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+  .rm-table tbody td:nth-child(4){
+    grid-column: 1 / 3;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+}
 </style>
 </head>
 <body>
@@ -2495,6 +2540,22 @@ function updateRichModelButtonLabel(ui) {
     ui.btn.title = value;
 }
 
+
+function syncRichModelUI(selectId) {
+    const ui = ensureRichModelDropdown(selectId);
+    if (!ui) return;
+    const { select, panel } = ui;
+    updateRichModelButtonLabel(ui);
+    try {
+        const val = select.value;
+        panel.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+        panel.querySelectorAll('tr').forEach(r => {
+            const first = r.querySelector('td.rm-td-model');
+            if (first && first.textContent === val) r.classList.add('selected');
+        });
+    } catch (e) {}
+}
+
 function renderRichModelOptions(selectId, modelList, bestEtas, etasKey) {
     const ui = ensureRichModelDropdown(selectId);
     if (!ui) return;
@@ -2735,6 +2796,11 @@ if (step === 4) {
         // Pas de changement amont: on met à jour simplement les badges/infos
         onTechnologyChange();
         updateModelBadges(tech);
+            // Synchroniser l'UI riche du menu "Modèle" après une sélection automatique
+            if (tech === 'geothermie') syncRichModelUI('geoModel');
+            if (tech === 'aireau') syncRichModelUI('airEauModel');
+            if (tech === 'airextr') syncRichModelUI('airExtrModel');
+
         computeTechnology();
     }
 }
@@ -3978,6 +4044,7 @@ try {
                 if (chosenModel && !geoManuallySelected) {
                     modelSelect.value = chosenModel;
                     document.getElementById('geoUnits').value = chosenUnits.toString();
+                    try { syncRichModelUI('geoModel'); } catch(e) {}
                 }
 
             } else if (tech === 'aireau') {
@@ -4046,12 +4113,22 @@ try {
                 if (chosenModel && !airEauManuallySelected) {
                     modelSelect.value = chosenModel;
                     document.getElementById('airEauUnits').value = chosenUnits.toString();
+                    try { syncRichModelUI('airEauModel'); } catch(e) {}
                 }
 
             } else if (tech === 'airextr') {
                 const modelSelect = document.getElementById('airExtrModel');
                 const models = Array.from(modelSelect.options).map(o => o.value);
-                let chosenModel = null;
+                
+                // Par défaut (air extrait) : pré-sélectionner S735-7 si disponible
+                // (sans écraser un choix manuel de l'utilisateur)
+                if (!airExtrModelManuallySelected && models.includes('S735-7')) {
+                    modelSelect.value = 'S735-7';
+                    try { syncRichModelUI('airExtrModel'); } catch(e) {}
+                    loadAirExtrFlows();
+                    return;
+                }
+let chosenModel = null;
                 let minDiff = Infinity;
                 const totalVolume = zones.reduce((sum,z) => sum + (parseFloat(z.area) || 0) * (parseFloat(z.height) || 0), 0);
                 const targetFlow = totalVolume * 0.5;
@@ -4083,6 +4160,7 @@ try {
                 }
                 if (chosenModel) {
                     modelSelect.value = chosenModel;
+                    try { syncRichModelUI('airExtrModel'); } catch(e) {}
                     loadAirExtrFlows();
                 }
             }
@@ -4612,7 +4690,12 @@ function updatePreconisationButtons(){
             computeTechnology();
         });
         document.getElementById('airExtrModel').addEventListener('change', function(){
-            updateModelBadges('airextr'); computeTechnology(); });
+            airExtrModelManuallySelected = true;
+            // Quand on change de modèle, on rechoisit le débit par défaut sauf si l'utilisateur l'a déjà fixé
+            airExtrFlowManuallySelected = false;
+            updateModelBadges('airextr');
+            computeTechnology();
+        });
         document.getElementById('airExtrFlow').addEventListener('change', function(){
             airExtrFlowManuallySelected = true;
             computeTechnology();
@@ -4637,7 +4720,52 @@ function updatePreconisationButtons(){
             }
 
             // Récupérer styles inline existants (et feuilles si présentes)
-            const styleTags = Array.from(document.querySelectorAll('style')).map(s => `<style>${s.innerHTML}</style>`).join('\n');
+            const styleTags = Array.from(document.querySelectorAll('style')).map(s => `<style>${s.innerHTML}
+/* --- Responsive mobile: menu Modèle plein écran et lisible --- */
+@media (max-width: 520px){
+  .rich-model-panel{
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    top: 86px !important; /* sous l'entête/stepper */
+    max-height: calc(100vh - 140px) !important;
+    overflow: auto !important;
+  }
+  /* Présentation en "cartes" 2 lignes pour éviter le scroll horizontal */
+  .rm-table{ width:100% !important; table-layout: fixed; }
+  .rm-table tbody tr{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: auto;
+    row-gap: 2px;
+    column-gap: 12px;
+    padding: 6px 2px;
+  }
+  .rm-table tbody td{ padding: 6px 8px !important; }
+  .rm-table tbody td:nth-child(1){
+    grid-column: 1 / 3;
+    font-weight: 700;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rm-table tbody td:nth-child(2){
+    grid-column: 1 / 2;
+    text-align: left !important;
+    white-space: nowrap;
+  }
+  .rm-table tbody td:nth-child(3){
+    grid-column: 2 / 3;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+  .rm-table tbody td:nth-child(4){
+    grid-column: 1 / 3;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+}
+</style>`).join('\n');
             const linkTags = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.outerHTML).join('\n');
 
             // Créer un iframe invisible
