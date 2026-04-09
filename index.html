@@ -641,6 +641,830 @@
     white-space: nowrap;
   }
 }
+
+
+    /* =============================
+       Chiffrage estimatif
+    ============================== */
+    .chiffrage-section {
+        margin-top: 18px;
+        padding-top: 12px;
+        border-top: 2px solid #0B3D91;
+    }
+    .chiffrage-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .chiffrage-title {
+        font-weight: bold;
+        font-size: 18px;
+        color: #0B3D91;
+        letter-spacing: 0.2px;
+    }
+    .chiffrage-meta {
+        font-size: 13px;
+        color: #222;
+        text-align: right;
+        display: grid;
+        gap: 2px;
+    }
+    .chiffrage-discount-box {
+        border: 1px solid #0B3D91;
+        background: #f3f6ff;
+        border-radius: 8px;
+        padding: 8px;
+        margin-top: 4px;
+    }
+    .chiffrage-discount-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .chiffrage-discount-row input {
+        width: 96px;
+        padding: 4px 6px;
+        font-size: 13px;
+        border-radius: 6px;
+        border: 1px solid #0B3D91;
+        text-align: right;
+        font-weight: 600;
+        background: #ffffff;
+    }
+    .chiffrage-discount-hint {
+        font-size: 11px;
+        color: #0B3D91;
+        margin-top: 2px;
+    }
+    .print-only { display: none; }
+    .chiffrage-context {
+        margin-top: 10px;
+        font-size: 13px;
+        display: grid;
+        gap: 4px;
+    }
+    .chiffrage-controls {
+        margin-top: 12px;
+        background: #f9fbff;
+        border: 1px solid #d0dfe8;
+        border-radius: 6px;
+        padding: 10px;
+    }
+    .chiffrage-controls-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .chiffrage-control {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 14px;
+    }
+    .chiffrage-control input[type="number"] {
+        max-width: 190px;
+        padding: 6px 8px;
+        font-size: 14px;
+    }
+    .chiffrage-control select {
+        max-width: 260px;
+        padding: 6px 8px;
+        font-size: 14px;
+    }
+    .chiffrage-select-wrap {
+        position: relative;
+        width: 100%;
+    }
+    .chiffrage-select-wrap::after {
+        content: "▾";
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #55708f;
+        font-size: 12px;
+        pointer-events: none;
+    }
+    .chiffrage-select-wrap select {
+        width: 100%;
+        max-width: none;
+        padding-right: 34px;
+    }
+    .chiffrage-actions {
+        margin-top: 12px;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .chiffrage-print-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+.chiffrage-print-btn.secondary {
+    background: #6b7280;
+}
+.chiffrage-print-btn.secondary:hover {
+    background: #4b5563;
+}
+
+    .chiffrage-hint {
+        font-size: 12px;
+        color: #555;
+    }
+    .chiffrage-dynamic-options {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 2px;
+    }
+    .chiffrage-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        min-height: 41px;
+    }
+    .chiffrage-checkbox input[type="checkbox"] {
+        width: auto;
+        height: auto;
+        margin: 0;
+    }
+    .chiffrage-zone-block {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid #d0dfe8;
+        border-radius: 6px;
+        background: #ffffff;
+    }
+    .chiffrage-zone-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .chiffrage-zone-title {
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .chiffrage-zone-add,
+    .chiffrage-zone-remove {
+        border: none;
+        border-radius: 20px;
+        padding: 8px 14px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .chiffrage-zone-add {
+        background: #007bff;
+        color: #fff;
+    }
+    .chiffrage-zone-remove {
+        background: #6c757d;
+        color: #fff;
+    }
+    .chiffrage-zone-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .chiffrage-zone-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .chiffrage-zone-row select {
+        max-width: 340px;
+    }
+    .chiffrage-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        table-layout: fixed;
+        background: #ffffff;
+        border: 1px solid #d9e3ef;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .chiffrage-table col.col-thumb { width: 5%; }
+    .chiffrage-table col.col-ref { width: 10%; }
+    .chiffrage-table col.col-designation { width: 55%; }
+    .chiffrage-table col.col-qty { width: 5%; }
+    .chiffrage-table col.col-unit { width: 14%; }
+    .chiffrage-table col.col-total { width: 11%; }
+    .chiffrage-table th, .chiffrage-table td {
+        border: 0;
+        border-bottom: 1px solid #e8eef6;
+        padding: 8px 9px;
+        font-size: 13px;
+        vertical-align: top;
+    }
+    .chiffrage-table th {
+        background: #eef4fb;
+        color: #0f3d91;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+    .chiffrage-table tbody tr:last-child td { border-bottom: 0; }
+    .chiffrage-table td:nth-child(1), .chiffrage-table th:nth-child(1) { text-align: center; }
+    .chiffrage-table td:nth-child(2), .chiffrage-table th:nth-child(2) { white-space: nowrap; font-weight: 600; }
+    .chiffrage-table td:nth-child(4), .chiffrage-table th:nth-child(4) { text-align: center; white-space: nowrap; }
+    .chiffrage-table td:nth-child(5), .chiffrage-table th:nth-child(5),
+    .chiffrage-table td:nth-child(6), .chiffrage-table th:nth-child(6) { text-align: right; white-space: nowrap; }
+    .chiffrage-table td:nth-child(3) { word-break: normal; overflow-wrap: anywhere; }
+    .chiffrage-thumb-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .chiffrage-thumb {
+        width: 28px;
+        height: 28px;
+        margin: 0 auto;
+        border-radius: 6px;
+        background: #ffffff;
+        border: 1px solid #d7e2ef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .chiffrage-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+    .chiffrage-thumb-empty {
+        border-color: transparent;
+        background: transparent;
+    }
+    .chiffrage-item-label {
+        font-weight: 600;
+        color: #111827;
+        line-height: 1.3;
+    }
+    .chiffrage-item-desc {
+        font-size: 11.5px;
+        color: #5b6472;
+        margin-top: 3px;
+        line-height: 1.35;
+    }
+    .chiffrage-eco-row td { font-style: italic; color: #444; background: #fafafa; }
+    .chiffrage-totals {
+        margin-top: 10px;
+        max-width: 420px;
+        margin-left: auto;
+        font-size: 13px;
+    }
+    .chiffrage-total-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 4px 0;
+    }
+    .chiffrage-grand-total {
+        border-top: 2px solid #0B3D91;
+        padding-top: 6px;
+        font-size: 14px;
+    }
+    .chiffrage-note {
+        margin-top: 8px;
+        font-size: 11px;
+        color: #555;
+    }
+    .chiffrage-unavailable {
+        margin-top: 18px;
+        padding: 12px;
+        border: 1px solid #ffc107;
+        background: #fff8e1;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .print-page-break { display: none; }
+
+    @media (max-width: 600px) {
+        .chiffrage-controls-grid,
+        .chiffrage-dynamic-options {
+            grid-template-columns: 1fr;
+        }
+        .chiffrage-meta { text-align: left; }
+    }
+    @media print {
+        .no-print { display: none !important; }
+        .print-only { display: inline !important; }
+        .print-page-break {
+            display: block !important;
+            page-break-before: always;
+        }
+        #chiffrageSection {
+            margin-left: 12mm;
+            margin-right: 12mm;
+            margin-top: 10mm;
+            margin-bottom: 0;
+        }
+    }
+
+
+        /* --- Chiffrage estimatif (step 4) --- */
+        .chiffrage-section {
+            margin-top: 18px;
+            padding: 20px;
+            border: 1px solid #d7e3ef;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #fbfdff 0%, #f4f9ff 100%);
+            box-shadow: 0 12px 28px rgba(16, 54, 108, 0.06);
+        }
+        .chiffrage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        .chiffrage-title-wrap {
+            display: grid;
+            gap: 5px;
+        }
+        .chiffrage-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: #0b3d91;
+            letter-spacing: -0.01em;
+        }
+        .chiffrage-subtitle {
+            font-size: 13px;
+            color: #536274;
+            max-width: 760px;
+        }
+        .chiffrage-selector-grid {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.15fr) minmax(160px, 0.9fr) minmax(280px, 1.45fr) minmax(130px, 0.65fr);
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .chiffrage-context-item,
+        .chiffrage-control {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            padding: 12px 14px;
+            border: 1px solid #d8e4f0;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(15, 61, 145, 0.04);
+            min-width: 0;
+        }
+        .chiffrage-context-item span,
+        .chiffrage-control > span {
+            display: block;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #708197;
+        }
+        .chiffrage-context-item strong {
+            font-size: 15px;
+            line-height: 1.25;
+            color: #223042;
+            min-height: 20px;
+        }
+        .chiffrage-control input[type="text"],
+        .chiffrage-control input[type="number"],
+        .chiffrage-control select {
+            width: 100%;
+            max-width: none;
+            min-height: 42px;
+            padding: 9px 12px;
+            font-size: 14px;
+            border-radius: 10px;
+            border: 1px solid #cfdceb;
+            background: #f7fbff;
+            box-sizing: border-box;
+        }
+        .chiffrage-select-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .chiffrage-select-wrap::after {
+            content: "▾";
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #55708f;
+            font-size: 12px;
+            pointer-events: none;
+        }
+        .chiffrage-select-wrap select {
+            width: 100%;
+            max-width: none;
+            padding-right: 34px;
+        }
+        .chiffrage-subcards {
+            display: grid;
+            grid-template-columns: minmax(260px, 0.92fr) minmax(340px, 1.08fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .chiffrage-subcard {
+            background: #ffffff;
+            border: 1px solid #d8e4f0;
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 6px 16px rgba(15, 61, 145, 0.04);
+        }
+        .chiffrage-subcard-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .chiffrage-subcard-head span {
+            font-weight: 700;
+            color: #223042;
+            font-size: 14px;
+        }
+        .chiffrage-row-add,
+        .chiffrage-row-remove {
+            border: none;
+            border-radius: 18px;
+            padding: 7px 12px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .chiffrage-row-add {
+            background: #0b66d1;
+            color: #fff;
+        }
+        .chiffrage-row-add[disabled] {
+            background: #9fb8d6;
+            cursor: default;
+        }
+        .chiffrage-row-remove {
+            background: #eef4fb;
+            color: #294867;
+        }
+        .chiffrage-zone-row,
+        .chiffrage-option-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 78px 104px;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: center;
+        }
+        .chiffrage-zone-row {
+            grid-template-columns: minmax(0, 1fr) 104px;
+        }
+        .chiffrage-option-qty {
+            width: 100%;
+            max-width: none;
+            min-width: 0;
+            text-align: center;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+        .chiffrage-warning {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border: 1px solid #f2c97b;
+            border-radius: 10px;
+            background: #fff7e6;
+            color: #8a5a00;
+            font-size: 13px;
+        }
+        .chiffrage-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            table-layout: fixed;
+            background: #fff;
+        }
+        .chiffrage-table th, .chiffrage-table td {
+            border: 1px solid #d9e3ef;
+            padding: 8px;
+            font-size: 13px;
+            vertical-align: top;
+        }
+        .chiffrage-table th {
+            background: #eef4fb;
+            color: #223042;
+        }
+        .chiffrage-table td:nth-child(1), .chiffrage-table th:nth-child(1) { width: 5%; }
+        .chiffrage-table td:nth-child(2), .chiffrage-table th:nth-child(2) { width: 10%; }
+        .chiffrage-table td:nth-child(3), .chiffrage-table th:nth-child(3) { width: 55%; }
+        .chiffrage-table td:nth-child(4), .chiffrage-table th:nth-child(4) { width: 5%; text-align: center; }
+        .chiffrage-table td:nth-child(5), .chiffrage-table th:nth-child(5) { width: 14%; text-align: right; }
+        .chiffrage-table td:nth-child(6), .chiffrage-table th:nth-child(6) { width: 11%; text-align: right; }
+        .chiffrage-item-label { font-weight: 600; }
+        .chiffrage-item-desc { font-size: 12px; color: #5e6a7d; margin-top: 2px; }
+        .chiffrage-eco-row td { background: #fafcff; color: #526173; }
+        .chiffrage-totals {
+            max-width: 440px;
+            margin-left: auto;
+            margin-top: 14px;
+            display: grid;
+            gap: 6px;
+        }
+        .chiffrage-total-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .chiffrage-grand-total {
+            padding-top: 8px;
+            border-top: 2px solid #0b3d91;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .chiffrage-note {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #5e6a7d;
+        }
+        .chiffrage-actions {
+            margin-top: 14px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .chiffrage-print-btn {
+            padding: 9px 16px;
+            font-size: 14px;
+            border: none;
+            background-color: #0b66d1;
+            color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 10px 18px rgba(11, 102, 209, 0.18);
+        }
+        .chiffrage-unavailable {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border: 1px solid #f0cf7a;
+            border-radius: 10px;
+            background: #fff8e6;
+            color: #8a5a00;
+        }
+        @media (max-width: 980px) {
+            .chiffrage-selector-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .chiffrage-subcards {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 700px) {
+            .chiffrage-header,
+            .chiffrage-selector-grid,
+            .chiffrage-subcards {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+            .chiffrage-header {
+                display: grid;
+            }
+            .chiffrage-zone-row,
+            .chiffrage-option-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- Responsive refinements (v20) --- */
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        .container {
+            width: min(100%, 900px);
+        }
+        #chiffrageTableContainer,
+        #finalReport,
+        #projectSummary,
+        #techSummary {
+            max-width: 100%;
+        }
+        #chiffrageTableContainer {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 14px;
+        }
+        .chiffrage-table {
+            min-width: 720px;
+        }
+        @media (max-width: 980px) {
+            .container {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            .header {
+                align-items: flex-start !important;
+            }
+            .header h1 {
+                text-align: left;
+            }
+            .chiffrage-section {
+                padding: 16px;
+            }
+            .chiffrage-subcard-head {
+                align-items: flex-start;
+            }
+        }
+        @media (max-width: 760px) {
+            .container {
+                padding: 12px;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .header {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                align-items: center !important;
+            }
+            .header h1 {
+                font-size: 1.1rem;
+                line-height: 1.2;
+            }
+            .summary-grid {
+                gap: 8px;
+            }
+            .summary-item {
+                flex: 1 0 calc(50% - 8px);
+            }
+            .chiffrage-section {
+                margin-top: 14px;
+                padding: 14px;
+                border-radius: 14px;
+            }
+            .chiffrage-title {
+                font-size: 17px;
+            }
+            .chiffrage-subtitle {
+                font-size: 12px;
+            }
+            .chiffrage-selector-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px;
+            }
+            .chiffrage-context-item strong {
+                min-height: 0;
+            }
+            .chiffrage-subcards {
+                grid-template-columns: 1fr !important;
+                gap: 10px;
+            }
+            .chiffrage-subcard {
+                padding: 12px;
+                border-radius: 12px;
+            }
+            .chiffrage-subcard-head {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+            .chiffrage-row-add,
+            .chiffrage-row-remove,
+            .chiffrage-print-btn,
+            #noteActions button,
+            .final-buttons a,
+            .final-buttons button {
+                width: 100%;
+                justify-content: center;
+            }
+            .chiffrage-zone-row {
+                grid-template-columns: 1fr;
+            }
+            .chiffrage-option-row {
+                grid-template-columns: minmax(0, 1fr) 74px 90px;
+            }
+            .chiffrage-option-row .chiffrage-select-wrap {
+                min-width: 0;
+            }
+            #chiffrageTableContainer {
+                margin-left: -2px;
+                margin-right: -2px;
+            }
+            .chiffrage-table {
+                min-width: 640px;
+            }
+            .chiffrage-table th,
+            .chiffrage-table td {
+                padding: 7px 6px;
+                font-size: 12px;
+            }
+            .chiffrage-thumb {
+                width: 30px;
+                height: 30px;
+            }
+            .chiffrage-item-desc {
+                font-size: 11px;
+            }
+            .chiffrage-totals {
+                max-width: none;
+                width: 100%;
+            }
+            .chiffrage-total-line {
+                font-size: 13px;
+            }
+            #finalReport {
+                overflow-x: hidden;
+            }
+            #finalReport table,
+            .tech-summary-table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                white-space: nowrap;
+            }
+            #finalReport table tbody,
+            #finalReport table thead,
+            #finalReport table tr,
+            .tech-summary-table tbody,
+            .tech-summary-table thead,
+            .tech-summary-table tr {
+                white-space: nowrap;
+            }
+            .navigation {
+                margin-top: 14px;
+            }
+            .navigation button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 480px) {
+            body {
+                font-size: 15px;
+            }
+            .container {
+                padding: 10px;
+            }
+            .header {
+                gap: 6px;
+            }
+            .header .logo {
+                max-height: 24px !important;
+            }
+            .header h1 {
+                font-size: 1rem;
+            }
+            .chiffrage-control input[type="text"],
+            .chiffrage-control input[type="number"],
+            .chiffrage-control select,
+            input[type="text"],
+            input[type="number"],
+            select,
+            textarea {
+                font-size: 16px;
+            }
+            .summary-item {
+                flex: 1 0 100%;
+            }
+            .chiffrage-option-row {
+                grid-template-columns: 1fr;
+            }
+            .chiffrage-option-qty {
+                max-width: none;
+            }
+            .chiffrage-table {
+                min-width: 600px;
+            }
+            .chiffrage-total-line {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 2px;
+            }
+            #noteActions {
+                text-align: stretch !important;
+            }
+            #noteActions button {
+                margin-right: 0 !important;
+                margin-bottom: 8px;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -808,16 +1632,82 @@
                 <div id="extraInfo" class="summary-item hidden" style="margin-top:8px;"></div>
                 <div id="renewalInfo" class="summary-item hidden" style="margin-top:8px;"></div>
             </div>
+
+            <div id="chiffrageSection" class="chiffrage-section" style="display:none;">
+                <div class="chiffrage-header">
+                    <div class="chiffrage-title-wrap">
+                        <div class="chiffrage-title">Chiffrage estimatif</div>
+                        <div class="chiffrage-subtitle">Choisis l’alimentation, la configuration et les options directement à partir de la machine sélectionnée.</div>
+                    </div>
+                </div>
+
+                <div class="chiffrage-selector-grid">
+                    <div class="chiffrage-context-item">
+                        <span>Machine sélectionnée</span>
+                        <strong id="chiffrageModel">—</strong>
+                    </div>
+                    <label class="chiffrage-control">
+                        <span>Alimentation</span>
+                        <div class="chiffrage-select-wrap">
+                            <select id="chiffragePhase"></select>
+                        </div>
+                    </label>
+                    <label class="chiffrage-control">
+                        <span>Configuration</span>
+                        <div class="chiffrage-select-wrap">
+                            <select id="chiffrageConfig"></select>
+                        </div>
+                    </label>
+                    <label class="chiffrage-control">
+                        <span>Remise %</span>
+                        <input type="text" id="chiffrageDiscountPct" value="0" placeholder="0" inputmode="decimal" autocomplete="off">
+                    </label>
+                </div>
+
+                <div class="chiffrage-subcards">
+                    <div class="chiffrage-subcard">
+                        <div class="chiffrage-subcard-head">
+                            <span>Zones mélangées</span>
+                            <button type="button" id="addChiffrageZoneBtn" class="chiffrage-row-add">Ajouter zone mélangée</button>
+                        </div>
+                        <div id="chiffrageZoneRows"></div>
+                    </div>
+
+                    <div class="chiffrage-subcard">
+                        <div class="chiffrage-subcard-head">
+                            <span>Options</span>
+                            <button type="button" id="addChiffrageOptionBtn" class="chiffrage-row-add">Ajouter une option</button>
+                        </div>
+                        <div id="chiffrageOptionRows"></div>
+                    </div>
+                </div>
+
+                <div id="chiffrageWarning" class="chiffrage-warning hidden"></div>
+                <div id="chiffrageTableContainer"></div>
+
+                <div class="chiffrage-totals">
+    <div class="chiffrage-total-line"><span>Montant HT</span><strong id="chiffrageAmountHT">0,00&nbsp;€</strong></div>
+    <div class="chiffrage-total-line"><span>Éco-contribution D3E</span><strong id="chiffrageEcoTotal">0,00&nbsp;€</strong></div>
+    <div class="chiffrage-total-line chiffrage-grand-total"><span>Total HT</span><strong id="chiffrageGrandTotal">0,00&nbsp;€</strong></div>
+</div>
+
+<div class="chiffrage-actions no-print">
+    <button type="button" class="chiffrage-print-btn" onclick="exportChiffragePdf()">Imprimer le devis</button>
+    <button type="button" class="chiffrage-print-btn secondary" onclick="goToNoteDimensionnement()">Imprimer la note de dimensionnement</button>
+</div>
+            </div>
+
+            <div id="chiffrageUnavailable" class="chiffrage-unavailable" style="display:none;"></div>
+
         </div>
 
         <!-- Step 5 (Final) -->
         <div id="step5" class="step final-step">
             <div id="finalReport"></div>
-            <!-- Actions spécifiques à la page de note : permettre de revenir à l'étape précédente ou de poursuivre vers le devis -->
             <div id="noteActions" style="margin-top:20px; text-align:center;">
                 <div id="preconisationButtons" class="final-buttons" style="margin-bottom:12px;"></div>
                 <button type="button" onclick="prevStep()" style="padding:8px 16px; margin-right:10px; background:#6c757d; color:#fff; border:none; border-radius:4px;">Précédent</button>
-                <button type="button" onclick="printFinalReport()" style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px;">Imprimer</button>
+                <button type="button" onclick="printFinalReport()" style="padding:8px 16px; background:#007bff; color:#fff; border:none; border-radius:4px;">Exporter la note en PDF</button>
 </div>
 
         </div> <!-- fin de step5 -->
@@ -1591,9 +2481,9 @@
 
             // Ajout du kit piscine selon le module hydraulique et le produit sélectionné. Lorsqu'une piscine est sélectionnée,
             // on détermine automatiquement le kit à utiliser :
-            // – POOL 310 (N067247) pour les modules intégrés VVM 310, VVM S320 ou VVM 225 (volumes 207s, 207f ou 270).
-            // – POOL 500 (N067181) pour VVM S500 (volume 390).
-            // – POOL 40 (N067062) pour les autres configurations, sauf pour les modèles F1345‑40, F1355‑43 et F1345‑60 où aucun kit n'est ajouté.
+            // – POOL 310 (N067247) pour les modules intégrés VVM S320, VVM 225 ou VVM 310.
+            // – POOL 500 (N067181) pour VVM S500.
+            // – POOL 40 (N067062) pour les autres configurations.
             const poolCheckbox = document.getElementById('hasPool');
             if (poolCheckbox && poolCheckbox.checked) {
                 let poolRef = null;
@@ -2890,7 +3780,7 @@ if (step === 4) {
             // Sauvegarder l'étape courante pour savoir si l'on passe du rapport au devis
             const prev = currentStep;
             // Passer à l'étape suivante si elle existe (jusqu'à la page devis incluse)
-            if (currentStep < 6) currentStep++;
+            if (currentStep < 5) currentStep++;
             showStep(currentStep);
             // Si l'on vient de quitter l'étape 5 (note) pour aller à l'étape 6, préparer le devis
             if (prev === 5 && currentStep === 6) {
@@ -3921,6 +4811,7 @@ try {
                 limited: (capacity === totalLoss && totalLoss > 0),
                 extra: extraInfo
             };
+            renderChiffrage();
         }
 
         function getAirEauCapacity(dataArr, ext, heatingKey) {
@@ -4167,6 +5058,7 @@ let chosenModel = null;
         }
 
         function buildFinalReport() {
+            const logoUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s";
             const reportDiv = document.getElementById('finalReport');
             reportDiv.innerHTML = '';
             const companyName = document.getElementById('companyName').value;
@@ -4186,7 +5078,6 @@ let chosenModel = null;
             if (pool) computePoolLoss();
             const pac = finalPac || {tech:'',model:'',capacity:0,ratio:0,backup:0,etas35:0,etas55:0,units:1};
 
-            const logoUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s';
             let html = '';
             html += `<div class="report-header" style="display:flex; align-items:center; justify-content:space-between;">
                         <img src="${logoUrl}" alt="logo" style="height:20px; max-width:80px; width:auto;">
@@ -4326,6 +5217,599 @@ let chosenModel = null;
             updatePreconisationButtons();
             logUsageIfNeeded();
         }
+
+
+
+        
+        /* ============================================================
+           Chiffrage estimatif (aérothermie uniquement)
+        ============================================================ */
+        const CHIFFRAGE_CATALOG = {"N064213":{"tarif":15019.0,"libelle":"NIBE S2125-20 3X400V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 20, 400V","eco":10.02},"N064214":{"tarif":15019.0,"libelle":"NIBE S2125-20 1X230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 20, 230V","eco":10.02},"N064215":{"tarif":13428.0,"libelle":"NIBE S2125-16 3x400V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 16, 400V","eco":10.02},"N064216":{"tarif":13428.0,"libelle":"NIBE S2125-16 1x230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 16, 230V","eco":10.02},"N064217":{"tarif":12244.0,"libelle":"NIBE S2125-12 3X400V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 12, 400V","eco":10.02},"N064218":{"tarif":11204.0,"libelle":"NIBE S2125-12 1X230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 12, 230V","eco":10.02},"N064219":{"tarif":11047.0,"libelle":"NIBE S2125-8 3X400V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 8, 400V","eco":10.02},"N064220":{"tarif":10080.0,"libelle":"NIBE S2125-8 1X230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R290 Inverter Hautes performances réversible, taille 8, 230V","eco":10.02},"N064235":{"tarif":2714.0,"libelle":"NIBE AMS 20-6","designation":"Unité extérieure pour système de pompe à chaleur air-eau split 6kW R32","eco":10.02},"N064318":{"tarif":6014.0,"libelle":"NIBE F2050-10 1x230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R32 Inverter Réversible 10kW, 230V","eco":10.02},"N064319":{"tarif":3552.0,"libelle":"NIBE AMS 20-10","designation":"Unité extérieure pour système de pompe à chaleur air-eau split 10kW R32","eco":10.02},"N064328":{"tarif":5326.0,"libelle":"NIBE F2050-6 1x230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R32 Inverter Réversible 6kW, 230V","eco":10.02},"N064361":{"tarif":6309.0,"libelle":"NIBE F2050-12 1x230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R32 Inverter Réversible 12kW, 230V","eco":10.02},"N064362":{"tarif":7739.0,"libelle":"NIBE F2050-16 1x230V","designation":"Pompe à chaleur Air / Eau Monobloc Extérieure R32 Inverter Réversible 16kW, 230V","eco":10.02},"N067062":{"tarif":665.0,"libelle":"NIBE POOL 40","designation":"Kit chauffage piscine (hors échangeur)","eco":0.0},"N067064":{"tarif":275.0,"libelle":"NIBE RMU 40","designation":"Module déporté en ambiance pour la commande de régulation de pompe à chaleur NIBE Série F","eco":0.0},"N067181":{"tarif":624.0,"libelle":"NIBE POOL 500","designation":"Kit de chauffage piscine pour unité intérieure double service NIBE VVM 500","eco":0.0},"N067247":{"tarif":912.0,"libelle":"NIBE POOL 310","designation":"Kit de chauffage piscine pour unité intérieure double service NIBE VVM 310","eco":0.0},"N067287":{"tarif":1204.0,"libelle":"NIBE ECS 40","designation":"Kit pour circuit mélangé supplémentaire <80m² composé d'une circulateur, une vanne 3 voies mélangeuse (Raccords cuivre 22 mm) et des éléments de régulation","eco":0.0},"N067288":{"tarif":1204.0,"libelle":"NIBE ECS 41","designation":"Kit pour circuit mélangé supplémentaire >80m² composé d'une circulateur, une vanne 3 voies mélangeuse (Raccords cuivre 22 mm) et des éléments de régulation","eco":0.0},"N067320":{"tarif":436.0,"libelle":"NIBE CPD11-25/75","designation":"Circulateur électronique de charge pour pompe à chaleur de 6 à 12 kW","eco":0.6},"N067321":{"tarif":398.0,"libelle":"NIBE CPD11-25/65","designation":"Circulateur électronique de charge","eco":0.6},"N067650":{"tarif":339.0,"libelle":"NIBE RMU S40","designation":"Module de commande déportée tactile pour Série S, thermostat, hygromètre et répéteur Wi‑Fi intégrés","eco":0.0},"N067654":{"tarif":1463.0,"libelle":"NIBE SMO S40","designation":"Système de régulation pour Pompe à chaleur Air-Eau, Série-S","eco":0.0},"N067724":{"tarif":100.0,"libelle":"ROT 10","designation":"Thermostat hygromètre d'ambiance sans fil avec commande digitale","eco":0.0},"N067726":{"tarif":62.0,"libelle":"RPP 10","designation":"Prise répéteur de signal wifi","eco":0.0},"N067761":{"tarif":96.0,"libelle":"RACCORDS 22MM-1P X7 ET SONDES","designation":"Lot de 7 raccords hydrauliques diamètre 22mm - 1'' et 2 sondes de température d'eau","eco":0.0},"N067944":{"tarif":4691.0,"libelle":"NIBE SHB 20-6 EM","designation":"Unité intérieure chaud seul 6kW pour Pompe à chaleur air-eau SPLIT NIBE AMS, appoint, circulateur et régulateur Série-F 230/400V","eco":1.75},"N067945":{"tarif":4840.0,"libelle":"NIBE SHB 20-12 EM","designation":"Unité intérieure chaud seul 8-12kW pour Pompe à chaleur air-eau SPLIT NIBE AMS, appoint, circulateur et régulateur Série-F 230/400V","eco":1.75},"N067953":{"tarif":5757.0,"libelle":"NIBE BA-SVM20-200/6E","designation":"Unité intérieure combinée 6kW pour Pompe à chaleur air-eau SPLIT NIBE AMS, Préparateur ECS 180L intégré, appoint, circulateur et régulateur Série-F 230/400V","eco":18.0},"N067954":{"tarif":5907.0,"libelle":"NIBE BA-SVM20-200/12E","designation":"Unité intérieure combinée 8-12kW pour Pompe à chaleur air-eau SPLIT NIBE AMS, Préparateur ECS 180L intégré, appoint, circulateur et régulateur Série-F 230/400V","eco":18.0},"N069196":{"tarif":6054.0,"libelle":"NIBE VVM S320 R 400V","designation":"Module hydraulique pour Pompe à chaleur Air / Eau Série-S, volume tampon 26L, ballon ECS inox 180L, appoint, 400V","eco":18.0},"N069198":{"tarif":5913.0,"libelle":"NIBE VVM S320 R 1x230V","designation":"Module hydraulique pour Pompe à chaleur Air / Eau Série-S, volume tampon 26L, ballon ECS inox 180L, appoint, 230V","eco":18.0},"N069229":{"tarif":5379.0,"libelle":"NIBE VVM 225, 400V","designation":"Module hydraulique pour Pompe à chaleur Air / Eau, Préparateur ECS 176L inox intégré, appoint, Série F, 400V","eco":18.0},"N069231":{"tarif":5149.0,"libelle":"NIBE VVM 225, 1X230V","designation":"Module hydraulique pour Pompe à chaleur Air / Eau, Préparateur ECS 176L inox intégré, appoint, Série F, 230V","eco":18.0},"N069252":{"tarif":725.0,"libelle":"ELK 9, 230/400V","designation":"Appoint électrique carrossé de 4,5 ou 9kW en 230V ou 9kW en 400V pour un montage en ligne sur le départ de la pompe à chaleur","eco":1.75},"N069276":{"tarif":8473.0,"libelle":"NIBE VVM S500 3x400V","designation":"Module hydraulique pour Pompe à chaleur Air / Eau, volume tampon 80L, ECS instantanée, Série S, 400V","eco":1.75},"N069277":{"tarif":8473.0,"libelle":"NIBE VVM S500 1x230V","designation":"Module hydraulique pour Pompe à chaleur Air / Eau, volume tampon 80L, ECS instantanée, Série S, 230V","eco":1.75},"N069430":{"tarif":7310.0,"libelle":"NIBE VVM 310","designation":"Module hydraulique pour Pompe à chaleur Air / Eau, volume tampon 80L, ECS instantanée, Série F, 400V","eco":1.75},"N080012":{"tarif":1098.0,"libelle":"NIBE UKV 20-220 CHAUD SEUL","designation":"Ballon tampon d'une capacité de 200L raccordement hydraulique possible sur 4 piquages, classe énergétique C","eco":0.0},"N081141":{"tarif":2328.0,"libelle":"NIBE VPB S200 R","designation":"Ballon d'eau chaude sanitaire 200L inox avec échangeur Pompe à chaleur, Série-S","eco":18.0},"N081143":{"tarif":3193.0,"libelle":"NIBE VPB S300 R","designation":"Ballon d'eau chaude sanitaire 300L inox avec échangeur Pompe à chaleur, Série-S","eco":22.0},"N082025":{"tarif":3059.0,"libelle":"NIBE VPA 300/200 E","designation":"Préparateur Eau Chaude Sanitaire bain marie 300L émail","eco":22.0},"N082032":{"tarif":4648.0,"libelle":"NIBE VPA 450/300 E","designation":"Préparateur Eau Chaude Sanitaire bain marie 450L émail","eco":22.0},"N088207":{"tarif":622.0,"libelle":"NIBE UKV 100","designation":"Ballon tampon d'une capacité de 100L raccordement hydraulique possible sur 4 piquages, chaud/froid, classe C","eco":0.0},"N089152":{"tarif":275.0,"libelle":"NIBE VST 11","designation":"Vanne 3 voies Eau Chaude Sanitaire DN25","eco":0.0},"N089388":{"tarif":563.0,"libelle":"NIBE VST 20","designation":"Vanne 3 voies directionnelle pour la production d'Eau Chaude Sanitaire, diamètre DN32","eco":0.0}};
+        const CHIFFRAGE_MATRIX = {"F2050-6":{"Mono":{"baseRef":"N064328","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N088207"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069198","N067761"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N069231","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"F2050-10":{"Mono":{"baseRef":"N064318","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N088207"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069198","N067761"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N069231","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"F2050-12":{"Mono":{"baseRef":"N064361","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N088207"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069198","N067761","N088207"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N069231","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"F2050-16":{"Mono":{"baseRef":"N064362","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067320","N069252","N088207"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS et découplage 200 litres (270 litres à 40°C) intégrés - Série F","refs":["N069430"],"family":"F"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067320","N069252","N088207","N089388","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067320","N069252","N088207","N089388","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"S2125-8":{"Mono":{"baseRef":"N064220","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N088207"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069198","N067761","N088207"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N069231","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"},"Tri":{"baseRef":"N064219","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N088207"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069196","N067761","N088207"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069276"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N069229","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"S2125-12":{"Mono":{"baseRef":"N064218","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067320","N069252","N088207"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069198","N067761","N088207"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N069231","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"},"Tri":{"baseRef":"N064217","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067320","N069252","N088207"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069196","N067761","N088207"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069276"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N069229","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N088207","N089152","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"S2125-16":{"Mono":{"baseRef":"N064216","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N080012"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069198","N067761","N080012"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"},"Tri":{"baseRef":"N064215","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N080012"],"family":"S"},"cfg_4":{"label":"Chauffage + ECS intégrée (180 litres) + tampon 26 litres - Série S","refs":["N069196","N067761","N080012"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069276"],"family":"S"},"cfg_6":{"label":"Chauffage + ECS et découplage 200 litres (270 litres à 40°C) intégrés - Série F (uniquement triphasé)","refs":["N069277"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N081141","N067761"],"family":"S"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N081143","N067761"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"S2125-20":{"Mono":{"baseRef":"N064214","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N080012"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069277"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"},"Tri":{"baseRef":"N064213","configs":{"heating":{"label":"Chauffage","refs":["N067654","N067321","N069252","N080012"],"family":"S"},"cfg_5":{"label":"Chauffage + ECS et découplage intégrés 400 litres (750 litres DT40°C) - Série S","refs":["N069276"],"family":"S"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082025"],"family":"S"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série S","refs":["N067654","N067321","N069252","N080012","N089388","N082032"],"family":"S"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"s_tactile","label":"Commande tactile RMU S40","family":"S","refs":["N067650"],"max":3},{"id":"s_wifi","label":"Thermostat Wi‑Fi","family":"S","refs":["N067724","N067726"],"max":3},{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":400.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"standard"}},"AMS 20-6":{"Mono":{"baseRef":"N064235","configs":{"heating":{"label":"Chauffage","refs":["N067944","N088207"],"family":"F"},"cfg_5":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N067953","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série F","refs":["N067944","N081141","N067761"],"family":"F"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série F","refs":["N067944","N081143","N067761"],"family":"F"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série F","refs":["N067944","N082025"],"family":"F"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série F","refs":["N067944","N082032"],"family":"F"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":500.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"default"}},"AMS 20-10":{"Mono":{"baseRef":"N064319","configs":{"heating":{"label":"Chauffage","refs":["N067945","N088207"],"family":"F"},"cfg_5":{"label":"Chauffage + ECS intégrée (180 litres) - Hauteur 1500mm - Série F","refs":["N067954","N088207","N067761"],"family":"F"},"cfg_7":{"label":"Chauffage + ECS séparée 200 litres - Série F","refs":["N067945","N081141","N067761"],"family":"F"},"cfg_8":{"label":"Chauffage + ECS séparée 300 litres - Série F","refs":["N067945","N081143","N067761"],"family":"F"},"cfg_9":{"label":"Chauffage + ECS séparée 500 litres - Série F","refs":["N067945","N082025"],"family":"F"},"cfg_10":{"label":"Chauffage + ECS séparée 750 litres - Série F","refs":["N067945","N082032"],"family":"F"}},"zoneOptions":[{"id":"zone_small","label":"0 à 80 m²","refs":["N067287"],"max":7},{"id":"zone_large","label":"80 à 240 m²","refs":["N067288"],"max":7}],"optionTypes":[{"id":"f_wired","label":"Commande couleur RMU 40","family":"F","refs":["N067064"],"max":4}],"fixedOptions":[{"id":"service","label":"Mise en service","price":500.0,"discountable":false},{"id":"warranty","label":"Extension de garantie 7 ans","price":800.0,"discountable":false}],"poolOption":{"id":"pool","label":"Option piscine"},"poolResolver":"default"}}};
+        const CHIFFRAGE_MEDIA = {"N064328": "https://atita.maps-system.com/media/1/350023.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064318": "https://atita.maps-system.com/media/1/350027.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064319": "https://atita.maps-system.com/media/1/350287.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067650": "https://atita.maps-system.com/media/1/350113.jpeg?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N089388": "https://atita.maps-system.com/media/1/350194.jpg?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069198": "https://atita.maps-system.com/media/1/350217.jpeg?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067181": "https://atita.maps-system.com/media/1/350127.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069196": "https://atita.maps-system.com/media/1/350219.jpeg?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067320": "https://atita.maps-system.com/media/1/350132.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067724": "https://atita.maps-system.com/media/1/350133.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067064": "https://atita.maps-system.com/media/1/350137.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N089152": "https://atita.maps-system.com/media/1/350139.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069252": "https://atita.maps-system.com/media/1/350177.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N080012": "https://atita.maps-system.com/media/1/350183.jpg?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N081141": "https://atita.maps-system.com/media/1/350207.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067287": "https://atita.maps-system.com/media/1/350148.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067288": "https://atita.maps-system.com/media/1/350149.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N081143": "https://atita.maps-system.com/media/1/350209.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067321": "https://atita.maps-system.com/media/1/350152.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067247": "https://atita.maps-system.com/media/1/350153.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N082032": "https://atita.maps-system.com/media/1/350229.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N082025": "https://atita.maps-system.com/media/1/351631.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064235": "https://atita.maps-system.com/media/1/350289.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064220": "https://atita.maps-system.com/media/1/350018.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064219": "https://atita.maps-system.com/media/1/350015.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069430": "https://atita.maps-system.com/media/1/350223.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064217": "https://atita.maps-system.com/media/1/350009.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064218": "https://atita.maps-system.com/media/1/350012.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067654": "https://atita.maps-system.com/media/1/350160.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N088207": "https://atita.maps-system.com/media/1/350189.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067062": "https://atita.maps-system.com/media/1/350174.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067726": "https://atita.maps-system.com/media/1/350198.jpg?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069231": "https://atita.maps-system.com/media/1/350225.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069229": "https://atita.maps-system.com/media/1/350227.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067953": "https://atita.maps-system.com/media/1/350301.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067954": "https://atita.maps-system.com/media/1/350303.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067944": "https://atita.maps-system.com/media/1/350311.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N067945": "https://atita.maps-system.com/media/1/350313.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064361": "https://atita.maps-system.com/media/1/350305.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064362": "https://atita.maps-system.com/media/1/350307.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064214": "https://atita.maps-system.com/media/1/351520.webp?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064213": "https://atita.maps-system.com/media/1/351520.webp?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064216": "https://atita.maps-system.com/media/1/351520.webp?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N064215": "https://atita.maps-system.com/media/1/351520.webp?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069277": "https://atita.maps-system.com/media/1/351621.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea", "N069276": "https://atita.maps-system.com/media/1/351621.png?token=da99d6f4593a6f2f411b7e5bc188cfe5210f90ea"};
+        const CHIFFRAGE_FICHES = {"N064328": "https://assetstore.nibe.se/hcms/v2.3/entity/document/875864/storage/ODc1ODY0LzAvbWFzdGVy", "N064318": "https://assetstore.nibe.se/hcms/v2.3/entity/document/875864/storage/ODc1ODY0LzAvbWFzdGVy", "N066134": "https://assetstore.nibe.se/hcms/v2.3/entity/document/881548/storage/ODgxNTQ4LzAvbWFzdGVy", "N067480": "https://www.nibe.eu/assets/documents/28986/NIBE%20FICHE%20SPLIT%20HBS05.pdf", "N067536": "https://www.nibe.eu/assets/documents/28986/NIBE%20FICHE%20SPLIT%20HBS05.pdf", "N069198": "https://assetstore.nibe.se/hcms/v2.3/entity/document/22604/storage/MDIyNjA0LzAvbWFzdGVy", "N069196": "https://assetstore.nibe.se/hcms/v2.3/entity/document/22604/storage/MDIyNjA0LzAvbWFzdGVy", "N064109": "https://www.nibe.eu/assets/documents/28980/NIBE%20FICHE%20F2040.pdf", "N064033": "https://www.nibe.eu/assets/documents/28985/NIBE%20FICHE%20SPLIT%20BA-SVM.pdf", "N064092": "https://www.nibe.eu/assets/documents/28980/NIBE%20FICHE%20F2040.pdf", "N064035": "https://www.nibe.eu/assets/documents/28986/NIBE%20FICHE%20SPLIT%20HBS05.pdf", "N064139": "https://www.nibe.eu/assets/documents/28981/NIBE%20FICHE%20F2120.pdf", "N066136": "https://assetstore.nibe.se/hcms/v2.3/entity/document/881548/storage/ODgxNTQ4LzAvbWFzdGVy", "N064220": "https://assetstore.nibe.se/hcms/v2.3/entity/document/121074/storage/MTIxMDc0LzAvbWFzdGVy", "N065498": "https://www.nibe.eu/assets/documents/28982/NIBE%20FICHE%20S1155.pdf", "N065297": "https://www.nibe.fr/nibedocuments/11855/M11236-1.pdf", "N065436": "https://www.nibe.eu/assets/documents/28979/NIBE%20FICHE%20F1355.pdf", "N065299": "https://www.nibe.fr/nibedocuments/11855/M11236-1.pdf", "N065298": "https://www.nibe.fr/nibedocuments/11855/M11236-1.pdf", "N065447": "https://www.nibe.eu/assets/documents/28982/NIBE%20FICHE%20S1155.pdf", "N065470": "https://assetstore.nibe.se/hcms/v2.3/entity/document/22599/storage/MDIyNTk5LzAvbWFzdGVy", "N064219": "https://assetstore.nibe.se/hcms/v2.3/entity/document/121074/storage/MTIxMDc0LzAvbWFzdGVy", "N065300": "https://www.nibe.fr/nibedocuments/11855/M11236-1.pdf", "N065496": "https://www.nibe.eu/assets/documents/28979/NIBE%20FICHE%20F1355.pdf", "N064108": "https://www.nibe.eu/assets/documents/28980/NIBE%20FICHE%20F2040.pdf", "N064141": "https://assetstore.nibe.se/hcms/v2.3/entity/document/121074/storage/MTIxMDc0LzAvbWFzdGVy", "N064217": "https://assetstore.nibe.se/hcms/v2.3/entity/document/121074/storage/MTIxMDc0LzAvbWFzdGVy", "N066158": "https://www.nibe.eu/assets/documents/28977/NIBE%20FICHE%20F730.pdf", "N064218": "https://assetstore.nibe.se/hcms/v2.3/entity/document/121074/storage/MTIxMDc0LzAvbWFzdGVy", "N065464": "https://assetstore.nibe.se/hcms/v2.3/entity/document/22599/storage/MDIyNTk5LzAvbWFzdGVy", "N064110": "https://www.nibe.eu/assets/documents/28985/NIBE%20FICHE%20SPLIT%20BA-SVM.pdf", "N065456": "https://assetstore.nibe.se/hcms/v2.3/entity/document/22599/storage/MDIyNTk5LzAvbWFzdGVy", "N067654": "https://www.nibe.eu/assets/documents/28984/NIBE%20FICHE%20SMO%20S40.pdf", "N069231": "https://assetstore.nibe.se/hcms/v2.3/entity/document/890897/storage/ODkwODk3LzAvbWFzdGVy", "N069229": "https://assetstore.nibe.se/hcms/v2.3/entity/document/890897/storage/ODkwODk3LzAvbWFzdGVy", "N066130": "https://assetstore.nibe.se/hcms/v2.3/entity/document/881548/storage/ODgxNTQ4LzAvbWFzdGVy", "N065694": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065692": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065696": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065695": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065708": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065706": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065717": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065701": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065699": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065704": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065703": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065714": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065712": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065720": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N064361": "https://assetstore.nibe.se/hcms/v2.3/entity/document/875864/storage/ODc1ODY0LzAvbWFzdGVy", "N064362": "https://assetstore.nibe.se/hcms/v2.3/entity/document/875864/storage/ODc1ODY0LzAvbWFzdGVy", "N064214": "https://assetstore.nibe.se/hcms/v2.3/entity/document/906101/storage/OTA2MTAxLzAvbWFzdGVy", "N064213": "https://assetstore.nibe.se/hcms/v2.3/entity/document/906101/storage/OTA2MTAxLzAvbWFzdGVy", "N064216": "https://assetstore.nibe.se/hcms/v2.3/entity/document/906101/storage/OTA2MTAxLzAvbWFzdGVy", "N064215": "https://assetstore.nibe.se/hcms/v2.3/entity/document/906101/storage/OTA2MTAxLzAvbWFzdGVy", "N065903": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065901": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065889": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065896": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883850/storage/ODgzODUwLzAvbWFzdGVy", "N065902": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065898": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065892": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy", "N065897": "https://assetstore.nibe.se/hcms/v2.3/entity/document/883848/storage/ODgzODQ4LzAvbWFzdGVy"};
+        let chiffrageListenersInstalled = false;
+
+        function formatChiffrageEuro(value) {
+            const amount = Number(value || 0);
+            return amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u00a0€';
+        }
+
+        function parseChiffrageDiscountPercent(rawValue) {
+            const raw = String(rawValue ?? '').trim();
+            const normalized = raw.replace(/\s+/g, '').replace(/,/g, '.');
+            const tokens = normalized.split('+').map(token => token.trim()).filter(Boolean);
+
+            const steps = [];
+            let coef = 1;
+            tokens.forEach(token => {
+                let pct = Number.parseFloat(token);
+                if (!Number.isFinite(pct)) return;
+                pct = Math.max(0, Math.min(80, pct));
+                steps.push(Math.round(pct * 100) / 100);
+                coef *= (100 - pct) / 100;
+            });
+
+            if (!steps.length) {
+                steps.push(0);
+                coef = 1;
+            }
+
+            const effectivePct = Math.round((1 - coef) * 10000) / 100;
+            const rawLabel = steps.map(step => String(step).replace('.', ',')).join(' + ');
+            const display = steps.length > 1
+                ? `${rawLabel} (${String(effectivePct).replace('.', ',')} %)`
+                : `${rawLabel} %`;
+
+            return { steps, raw: rawLabel, pct: effectivePct, coef, display };
+        }
+
+        function formatChiffragePhaseLabel(phase) {
+            if (phase === 'Mono') return 'Monophasé';
+            if (phase === 'Tri') return 'Triphasé';
+            return phase || '';
+        }
+
+        function getCurrentChiffrageModelAndUnits() {
+            let model = (finalPac && finalPac.model) ? finalPac.model : '';
+            let units = (finalPac && finalPac.units) ? Number(finalPac.units) : 1;
+            const tech = document.getElementById('technologySelect')?.value;
+            if (tech === 'aireau') {
+                model = document.getElementById('airEauModel')?.value || model;
+                units = Number(document.getElementById('airEauUnits')?.value || units) || 1;
+            }
+            return {
+                model: typeof normalizeChiffrageModel === 'function' ? normalizeChiffrageModel(model) : (model || ''),
+                units: units || 1
+            };
+        }
+
+        function getChiffrageModelData(modelKey) {
+            return CHIFFRAGE_MATRIX[modelKey] || null;
+        }
+
+        function getSelectedChiffragePhase(modelData) {
+            const phaseEl = document.getElementById('chiffragePhase');
+            const phases = Object.keys(modelData || {});
+            if (!phases.length) return null;
+            if (phaseEl && phases.includes(phaseEl.value)) return phaseEl.value;
+            return phases[0];
+        }
+
+        function getCurrentChiffragePhaseData() {
+            const { model } = getCurrentChiffrageModelAndUnits();
+            const modelData = getChiffrageModelData(model);
+            if (!modelData) return null;
+            const phase = getSelectedChiffragePhase(modelData);
+            return phase ? modelData[phase] : null;
+        }
+
+        function getSelectedConfigKey() {
+            return document.getElementById('chiffrageConfig')?.value || '';
+        }
+
+        function getSelectedConfig() {
+            const phaseData = getCurrentChiffragePhaseData();
+            const key = getSelectedConfigKey();
+            return phaseData && phaseData.configs ? phaseData.configs[key] : null;
+        }
+
+        function getZoneSelections() {
+            return Array.from(document.querySelectorAll('#chiffrageZoneRows .chiffrage-zone-select'))
+                .map(el => el.value)
+                .filter(Boolean);
+        }
+
+        function getOptionSelections() {
+            return Array.from(document.querySelectorAll('#chiffrageOptionRows .chiffrage-option-row')).map(row => {
+                return {
+                    id: row.querySelector('.chiffrage-option-select')?.value || '',
+                    qty: Number(row.querySelector('.chiffrage-option-qty')?.value || 1) || 1
+                };
+            }).filter(item => item.id);
+        }
+
+        function getThermostatCapacity() {
+            return Math.min(getZoneSelections().length + 1, 3);
+        }
+
+        function getWiredCapacity() {
+            return Math.min(getZoneSelections().length + 1, 4);
+        }
+
+
+        function getAllOptionDefinitions(phaseData) {
+            const config = getSelectedConfig();
+            const family = config?.family || 'S';
+            const defs = {};
+            (phaseData?.optionTypes || []).forEach(option => {
+                defs[option.id] = { ...option, kind: 'catalog', discountable: true };
+            });
+            defs.service = { id: 'service', label: 'Mise en service', kind: 'fixed', discountable: false };
+            defs.warranty = { id: 'warranty', label: 'Extension de garantie 7 ans', kind: 'fixed', discountable: false };
+
+            const allowed = [];
+            if (family === 'S') {
+                if (defs.s_tactile) allowed.push({ ...defs.s_tactile, label: 'Commande tactile RMU S40' });
+                if (defs.s_wifi) allowed.push({ ...defs.s_wifi, label: 'Thermostat Wi‑Fi' });
+                allowed.push(defs.service, defs.warranty);
+            } else if (family === 'F') {
+                if (defs.f_wired) allowed.push({ ...defs.f_wired, label: 'Commande couleur RMU 40' });
+                allowed.push(defs.service, defs.warranty);
+            } else {
+                allowed.push(defs.service, defs.warranty);
+            }
+            return allowed.filter(Boolean);
+        }
+
+        function normalizeOptionSelections(phaseData, rawSelections) {
+            const defs = Object.fromEntries(getAllOptionDefinitions(phaseData).map(def => [def.id, def]));
+            const seen = new Set();
+            const normalized = [];
+            let usedThermostats = 0;
+            let usedWired = 0;
+            const thermostatCap = getThermostatCapacity();
+            const wiredCap = getWiredCapacity();
+
+            (rawSelections || []).forEach(item => {
+                const id = item?.id || '';
+                if (!id || !defs[id] || seen.has(id)) return;
+                seen.add(id);
+                const def = defs[id];
+                let qty = Math.max(1, Number(item.qty || 1) || 1);
+
+                if (id === 's_tactile' || id === 's_wifi') {
+                    const remaining = thermostatCap - usedThermostats;
+                    if (remaining <= 0) return;
+                    qty = Math.min(qty, def.max || thermostatCap, remaining);
+                    usedThermostats += qty;
+                } else if (id === 'f_wired') {
+                    const remaining = wiredCap - usedWired;
+                    if (remaining <= 0) return;
+                    qty = Math.min(qty, def.max || wiredCap, remaining);
+                    usedWired += qty;
+                } else {
+                    qty = 1;
+                }
+
+                normalized.push({ id, qty });
+            });
+
+            return normalized;
+        }
+
+        function getAvailableOptionIdsForAdd(phaseData, currentSelections) {
+            const defs = getAllOptionDefinitions(phaseData);
+            const selectedIds = new Set((currentSelections || []).map(item => item.id));
+            const thermostatCap = getThermostatCapacity();
+            const usedThermostats = (currentSelections || [])
+                .filter(item => item.id === 's_tactile' || item.id === 's_wifi')
+                .reduce((sum, item) => sum + (Number(item.qty || 0) || 0), 0);
+            const wiredCap = getWiredCapacity();
+            const usedWired = (currentSelections || [])
+                .filter(item => item.id === 'f_wired')
+                .reduce((sum, item) => sum + (Number(item.qty || 0) || 0), 0);
+
+            return defs.filter(def => {
+                if (selectedIds.has(def.id)) return false;
+                if ((def.id === 's_tactile' || def.id === 's_wifi') && usedThermostats >= thermostatCap) return false;
+                if (def.id === 'f_wired' && usedWired >= wiredCap) return false;
+                return true;
+            }).map(def => def.id);
+        }
+
+        function getAvailableOptionDefsForRow(phaseData, currentSelections, currentId) {
+            const defs = getAllOptionDefinitions(phaseData);
+            const remainingSelections = (currentSelections || []).filter(item => item.id !== currentId);
+            const availableIds = new Set(getAvailableOptionIdsForAdd(phaseData, remainingSelections));
+            return defs.filter(def => def.id === currentId || availableIds.has(def.id));
+        }
+
+        function syncZoneControls(phaseData) {
+            const container = document.getElementById('chiffrageZoneRows');
+            const addBtn = document.getElementById('addChiffrageZoneBtn');
+            if (!container || !addBtn) return;
+
+            const zoneOptions = phaseData.zoneOptions || [];
+            const defaultZoneId = (zoneOptions.find(option => option.id === 'zone_large') || zoneOptions[0] || {}).id || '';
+            const saved = getZoneSelections().slice(0, 7);
+            container.innerHTML = '';
+
+            saved.forEach(zoneId => {
+                const row = document.createElement('div');
+                row.className = 'chiffrage-zone-row';
+
+                const selectWrap = document.createElement('div');
+                selectWrap.className = 'chiffrage-select-wrap';
+
+                const select = document.createElement('select');
+                select.className = 'chiffrage-zone-select';
+                select.innerHTML = zoneOptions.map(option => `<option value="${option.id}">${option.label}</option>`).join('');
+                select.value = zoneOptions.some(option => option.id === zoneId) ? zoneId : defaultZoneId;
+                select.addEventListener('change', () => updateChiffrageTable());
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'chiffrage-row-remove';
+                removeBtn.textContent = 'Supprimer';
+                removeBtn.addEventListener('click', () => {
+                    row.remove();
+                    updateChiffrageTable();
+                });
+
+                selectWrap.appendChild(select);
+                row.appendChild(selectWrap);
+                row.appendChild(removeBtn);
+                container.appendChild(row);
+            });
+
+            addBtn.disabled = saved.length >= 7;
+            addBtn.onclick = () => {
+                if (!zoneOptions.length || getZoneSelections().length >= 7) return;
+                const row = document.createElement('div');
+                row.className = 'chiffrage-zone-row';
+
+                const selectWrap = document.createElement('div');
+                selectWrap.className = 'chiffrage-select-wrap';
+
+                const select = document.createElement('select');
+                select.className = 'chiffrage-zone-select';
+                select.innerHTML = zoneOptions.map(option => `<option value="${option.id}">${option.label}</option>`).join('');
+                select.value = defaultZoneId;
+                select.addEventListener('change', () => updateChiffrageTable());
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'chiffrage-row-remove';
+                removeBtn.textContent = 'Supprimer';
+                removeBtn.addEventListener('click', () => {
+                    row.remove();
+                    updateChiffrageTable();
+                });
+
+                selectWrap.appendChild(select);
+                row.appendChild(selectWrap);
+                row.appendChild(removeBtn);
+                container.appendChild(row);
+                updateChiffrageTable();
+            };
+        }
+
+        function buildOptionRow(phaseData, defsMap, selection, currentSelections) {
+            const row = document.createElement('div');
+            row.className = 'chiffrage-option-row';
+
+            const selectWrap = document.createElement('div');
+            selectWrap.className = 'chiffrage-select-wrap';
+
+            const select = document.createElement('select');
+            select.className = 'chiffrage-option-select';
+
+            const availableDefs = getAvailableOptionDefsForRow(phaseData, currentSelections, selection.id);
+            select.innerHTML = availableDefs.map(def => `<option value="${def.id}">${def.label}</option>`).join('');
+            select.value = selection.id;
+
+            const qty = document.createElement('input');
+            qty.type = 'number';
+            qty.className = 'chiffrage-option-qty';
+            qty.min = '1';
+            qty.value = String(selection.qty || 1);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'chiffrage-row-remove';
+            removeBtn.textContent = 'Supprimer';
+
+            const syncQtyState = () => {
+                const fixed = ['service', 'warranty'].includes(select.value);
+                qty.disabled = fixed;
+                if (fixed) {
+                    qty.value = '1';
+                    qty.max = '1';
+                } else if (select.value === 's_tactile' || select.value === 's_wifi') {
+                    qty.max = String(getThermostatCapacity());
+                } else if (select.value === 'f_wired') {
+                    qty.max = String(getWiredCapacity());
+                } else {
+                    qty.max = '8';
+                }
+            };
+
+            select.addEventListener('change', () => updateChiffrageTable());
+            qty.addEventListener('input', () => updateChiffrageTable());
+            removeBtn.addEventListener('click', () => {
+                row.remove();
+                updateChiffrageTable();
+            });
+
+            selectWrap.appendChild(select);
+            row.appendChild(selectWrap);
+            row.appendChild(qty);
+            row.appendChild(removeBtn);
+            syncQtyState();
+            return row;
+        }
+
+        function syncOptionControls(phaseData) {
+            const container = document.getElementById('chiffrageOptionRows');
+            const addBtn = document.getElementById('addChiffrageOptionBtn');
+            if (!container || !addBtn) return;
+
+            const normalizedSelections = normalizeOptionSelections(phaseData, getOptionSelections());
+            const defsArray = getAllOptionDefinitions(phaseData);
+            const defsMap = Object.fromEntries(defsArray.map(def => [def.id, def]));
+            container.innerHTML = '';
+            normalizedSelections.forEach(selection => {
+                if (!defsMap[selection.id]) return;
+                container.appendChild(buildOptionRow(phaseData, defsMap, selection, normalizedSelections));
+            });
+
+            const availableIds = getAvailableOptionIdsForAdd(phaseData, normalizedSelections);
+            addBtn.disabled = availableIds.length === 0;
+            addBtn.style.display = availableIds.length === 0 ? 'none' : '';
+            addBtn.onclick = () => {
+                const current = normalizeOptionSelections(phaseData, getOptionSelections());
+                const available = getAvailableOptionIdsForAdd(phaseData, current);
+                if (!available.length) return;
+                const next = [...current, { id: available[0], qty: 1 }];
+                container.innerHTML = '';
+                const normalizedNext = normalizeOptionSelections(phaseData, next);
+                normalizedNext.forEach(selection => {
+                    container.appendChild(buildOptionRow(phaseData, defsMap, selection, normalizedNext));
+                });
+                updateChiffrageTable();
+            };
+        }
+
+        function installChiffrageListeners() {
+            if (chiffrageListenersInstalled) return;
+            chiffrageListenersInstalled = true;
+
+            const phaseEl = document.getElementById('chiffragePhase');
+            const configEl = document.getElementById('chiffrageConfig');
+            const discountEl = document.getElementById('chiffrageDiscountPct');
+            if (phaseEl) phaseEl.addEventListener('change', () => updateChiffrageTable());
+            if (configEl) configEl.addEventListener('change', () => updateChiffrageTable());
+            if (discountEl) discountEl.addEventListener('input', () => updateChiffrageTable());
+        }
+
+
+        function hasProjectPoolSelection() {
+            return typeof pool !== 'undefined' && !!pool;
+        }
+
+        function resolvePoolRefs(phaseData, selectedRefs) {
+            if (phaseData?.poolResolver === 'default') return ['N067062'];
+            if (selectedRefs.includes('N069277') || selectedRefs.includes('N069276')) return ['N067181'];
+            if (selectedRefs.includes('N069198') || selectedRefs.includes('N069196') || selectedRefs.includes('N069430') || selectedRefs.includes('N069231') || selectedRefs.includes('N069229')) return ['N067247'];
+            return ['N067062'];
+        }
+
+        function buildChiffrageLineItems(modelKey) {
+            const modelData = getChiffrageModelData(modelKey);
+            if (!modelData) return [];
+            const phase = getSelectedChiffragePhase(modelData);
+            const phaseData = phase ? modelData[phase] : null;
+            if (!phaseData) return [];
+
+            const configKey = getSelectedConfigKey();
+            const config = phaseData.configs?.[configKey];
+            if (!config) return [];
+
+            const linesByKey = {};
+            const order = [];
+
+            function addLine(line) {
+                if (!line || !line.qty) return;
+                const key = line.ref || `${line.label}|${line.unitPrice || 0}`;
+                if (!linesByKey[key]) {
+                    linesByKey[key] = { ...line, _sortOrder: Number(line.sortOrder || 0), _orderIndex: order.length };
+                    order.push(key);
+                } else {
+                    linesByKey[key].qty += line.qty;
+                    linesByKey[key]._sortOrder = Math.min(linesByKey[key]._sortOrder, Number(line.sortOrder || 0));
+                }
+            }
+
+            const selectedRefs = [phaseData.baseRef, ...(config.refs || [])];
+            addLine({ ref: phaseData.baseRef, qty: 1, discountable: true, sortOrder: 10 });
+            (config.refs || []).forEach(ref => addLine({ ref, qty: 1, discountable: true, sortOrder: 20 }));
+
+            getZoneSelections().forEach(zoneId => {
+                const zoneDef = (phaseData.zoneOptions || []).find(option => option.id === zoneId);
+                if (!zoneDef) return;
+                (zoneDef.refs || []).forEach(ref => addLine({ ref, qty: 1, discountable: true, sortOrder: 30 }));
+            });
+
+            if (hasProjectPoolSelection()) {
+                resolvePoolRefs(phaseData, selectedRefs).forEach(ref => addLine({ ref, qty: 1, discountable: true, sortOrder: 40 }));
+            }
+
+            const defsMap = Object.fromEntries(getAllOptionDefinitions(phaseData).map(def => [def.id, def]));
+            normalizeOptionSelections(phaseData, getOptionSelections()).forEach(selection => {
+                const def = defsMap[selection.id];
+                if (!def) return;
+                if (selection.id === 'service' || selection.id === 'warranty') {
+                    const fixed = (phaseData.fixedOptions || []).find(option => option.id === selection.id);
+                    if (!fixed) return;
+                    addLine({
+                        ref: '',
+                        qty: 1,
+                        label: fixed.label,
+                        designation: '',
+                        unitPrice: Number(fixed.price || 0),
+                        eco: 0,
+                        discountable: false,
+                        isCustom: true,
+                        sortOrder: selection.id === 'service' ? 99 : 98
+                    });
+                    return;
+                }
+                (def.refs || []).forEach(ref => addLine({ ref, qty: selection.qty, discountable: true, sortOrder: 50 }));
+            });
+
+            return order
+                .map(key => linesByKey[key])
+                .sort((a, b) => (a._sortOrder - b._sortOrder) || (a._orderIndex - b._orderIndex));
+        }
+
+        function updateChiffrageControls() {
+            const section = document.getElementById('chiffrageSection');
+            if (!section) return;
+            const { model } = getCurrentChiffrageModelAndUnits();
+            const modelData = getChiffrageModelData(model);
+            const phaseEl = document.getElementById('chiffragePhase');
+            const configEl = document.getElementById('chiffrageConfig');
+            if (!modelData || !phaseEl || !configEl) return;
+
+            const previousPhase = phaseEl.value;
+            const phases = Object.keys(modelData);
+            phaseEl.innerHTML = phases.map(phase => `<option value="${phase}">${formatChiffragePhaseLabel(phase)}</option>`).join('');
+            phaseEl.value = phases.includes(previousPhase) ? previousPhase : phases[0];
+            phaseEl.disabled = phases.length === 1;
+
+            const phaseData = modelData[phaseEl.value];
+            const previousConfig = configEl.value;
+            const configEntries = Object.entries(phaseData.configs || {});
+            configEl.innerHTML = configEntries.map(([key, conf]) => `<option value="${key}">${conf.label}</option>`).join('');
+            const validKeys = configEntries.map(([key]) => key);
+            configEl.value = validKeys.includes(previousConfig) ? previousConfig : (validKeys.includes('heating') ? 'heating' : validKeys[0]);
+
+            syncZoneControls(phaseData);
+            syncOptionControls(phaseData);
+        }
+
+
+        function updateChiffrageTable() {
+            const section = document.getElementById('chiffrageSection');
+            if (!section || section.style.display === 'none') return;
+            updateChiffrageControls();
+
+            const warningEl = document.getElementById('chiffrageWarning');
+            if (warningEl) {
+                warningEl.classList.add('hidden');
+                warningEl.textContent = '';
+            }
+
+            const { model } = getCurrentChiffrageModelAndUnits();
+            const modelData = getChiffrageModelData(model);
+            if (!modelData) return;
+            const phase = getSelectedChiffragePhase(modelData);
+            const lines = buildChiffrageLineItems(model);
+            const discount = parseChiffrageDiscountPercent(document.getElementById('chiffrageDiscountPct')?.value || '0');
+
+            let remisedSubtotal = 0;
+            let netOptionsTotal = 0;
+            let ecoTotal = 0;
+            let html = '<table class="chiffrage-table"><colgroup><col class="col-thumb"><col class="col-ref"><col class="col-designation"><col class="col-qty"><col class="col-unit"><col class="col-total"></colgroup><thead><tr><th></th><th>Référence</th><th>Désignation</th><th>Qté</th><th>PU HT</th><th>Total HT</th></tr></thead><tbody>';
+
+            lines.forEach(line => {
+                const info = line.isCustom ? null : CHIFFRAGE_CATALOG[line.ref];
+                const label = line.label || info?.libelle || line.ref || '';
+                const desc = line.designation || info?.designation || '';
+                const mediaUrl = line.ref ? CHIFFRAGE_MEDIA[line.ref] : '';
+                const ficheUrl = line.ref ? CHIFFRAGE_FICHES[line.ref] : '';
+                const thumbBox = mediaUrl
+                    ? `<div class="chiffrage-thumb"><img src="${mediaUrl}" alt="${label}" referrerpolicy="no-referrer"></div>`
+                    : '<div class="chiffrage-thumb chiffrage-thumb-empty"></div>';
+                const thumbHtml = ficheUrl ? `<a class="chiffrage-thumb-link" href="${ficheUrl}" target="_blank" rel="noopener noreferrer" title="Ouvrir la fiche technique">${thumbBox}</a>` : thumbBox;
+                const publicUnit = Number(line.unitPrice ?? info?.tarif ?? 0) || 0;
+                const ecoUnit = Number(line.eco ?? info?.eco ?? 0) || 0;
+                const discountable = line.discountable !== false;
+                const shownUnit = discountable ? Math.round(publicUnit * discount.coef * 100) / 100 : publicUnit;
+                const lineTotal = Math.round(shownUnit * line.qty * 100) / 100;
+                const ecoLine = Math.round(ecoUnit * line.qty * 100) / 100;
+
+                if (discountable) remisedSubtotal += lineTotal;
+                else netOptionsTotal += lineTotal;
+                ecoTotal += ecoLine;
+
+                html += `<tr>
+                    <td>${thumbHtml}</td>
+                    <td>${line.ref || ''}</td>
+                    <td><div class="chiffrage-item-label">${label}</div>${desc ? `<div class="chiffrage-item-desc">${desc}</div>` : ''}</td>
+                    <td>${line.qty}</td>
+                    <td>${formatChiffrageEuro(shownUnit)}</td>
+                    <td>${formatChiffrageEuro(lineTotal)}</td>
+                </tr>`;
+                if (ecoUnit > 0.0001) {
+                    html += `<tr class="chiffrage-eco-row">
+                        <td></td>
+                        <td></td>
+                        <td><div class="chiffrage-item-label">Éco-contribution D3E</div></td>
+                        <td>${line.qty}</td>
+                        <td>${formatChiffrageEuro(ecoUnit)}</td>
+                        <td>${formatChiffrageEuro(ecoLine)}</td>
+                    </tr>`;
+                }
+            });
+
+            html += '</tbody></table>';
+            const tableContainer = document.getElementById('chiffrageTableContainer');
+            if (tableContainer) tableContainer.innerHTML = html;
+
+            remisedSubtotal = Math.round(remisedSubtotal * 100) / 100;
+            netOptionsTotal = Math.round(netOptionsTotal * 100) / 100;
+            ecoTotal = Math.round(ecoTotal * 100) / 100;
+            const amountTotal = Math.round((remisedSubtotal + netOptionsTotal) * 100) / 100;
+            const grandTotal = Math.round((amountTotal + ecoTotal) * 100) / 100;
+
+            const amountEl = document.getElementById('chiffrageAmountHT');
+            const ecoEl = document.getElementById('chiffrageEcoTotal');
+            const grandEl = document.getElementById('chiffrageGrandTotal');
+            if (amountEl) amountEl.textContent = formatChiffrageEuro(amountTotal);
+            if (ecoEl) ecoEl.textContent = formatChiffrageEuro(ecoTotal);
+            if (grandEl) grandEl.textContent = formatChiffrageEuro(grandTotal);
+            document.getElementById('chiffrageModel').textContent = phase ? `${model} — ${formatChiffragePhaseLabel(phase)}` : model;
+        }
+
+        function renderChiffrage() {
+            const section = document.getElementById('chiffrageSection');
+            const unavailable = document.getElementById('chiffrageUnavailable');
+            if (!section || !unavailable) return;
+
+            const tech = document.getElementById('technologySelect')?.value || '';
+            const { model, units } = getCurrentChiffrageModelAndUnits();
+            const modelData = getChiffrageModelData(model);
+
+            section.style.display = 'none';
+            unavailable.style.display = 'none';
+            unavailable.textContent = '';
+
+            if (tech !== 'aireau') return;
+            if (!modelData) return;
+
+            if (Number(units || 1) > 1) {
+                unavailable.style.display = 'block';
+                unavailable.innerHTML = `Chiffrage indisponible pour une installation avec <strong>${units}</strong> unités.`;
+                return;
+            }
+
+            installChiffrageListeners();
+            section.style.display = 'block';
+            updateChiffrageTable();
+        }
+
 
         // === Guide VMC (débit réglementaire indicatif pour PAC air extrait) ===
         function titreLogementVmc(nb){
@@ -4700,120 +6184,738 @@ function updatePreconisationButtons(){
             airExtrFlowManuallySelected = true;
             computeTechnology();
         });
-    
-        // Impression: fonctionne même si l'utilisateur n'est pas sur l'étape finale
-                // Impression PDF (Chrome friendly) via iframe - ne change pas l'étape courante
+        
+
+        function getChiffrageMediaUrl(ref) {
+            return CHIFFRAGE_MEDIA[ref] || '';
+        }
+
+        function getChiffragePrintVisuals() {
+            const { model } = getCurrentChiffrageModelAndUnits();
+            const modelData = getChiffrageModelData(model);
+            if (!modelData) return [];
+            const phase = getSelectedChiffragePhase(modelData);
+            const phaseData = phase ? modelData[phase] : null;
+            if (!phaseData) return [];
+            const config = getSelectedConfig();
+            if (!config) return [];
+
+            const refs = [phaseData.baseRef, ...(config.refs || [])];
+            const visuals = [];
+            const used = new Set();
+
+            refs.forEach(ref => {
+                const url = getChiffrageMediaUrl(ref);
+                if (!url || used.has(url)) return;
+                const info = CHIFFRAGE_CATALOG[ref];
+                visuals.push({ ref, url, label: info?.libelle || ref });
+                used.add(url);
+            });
+
+            return visuals.slice(0, 2);
+        }
+
+
+
+        function formatPdfEuro(value) {
+            return formatChiffrageEuro(Number(value || 0) || 0).replace(/\u00a0/g, ' ');
+        }
+
+        
+
+function goToNoteDimensionnement() {
+    try {
+        buildFinalReport();
+    } catch (e) {
+        console.error('goToNoteDimensionnement build failed', e);
+    }
+
+    const targetStep = 5;
+    if (typeof currentStep === 'number') {
+        currentStep = targetStep;
+    }
+    showStep(targetStep);
+
+    const noteActions = document.getElementById('noteActions');
+    if (noteActions) {
+        noteActions.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
         function printFinalReport() {
             try {
-                // S'assurer que la note est à jour
-                if (typeof buildFinalReport === 'function') {
-                    buildFinalReport();
-                }
+                buildFinalReport();
             } catch (e) {
                 console.error('printFinalReport build failed', e);
             }
 
-            const reportEl = document.getElementById('final-report') || document.getElementById('finalReport') || document.querySelector('.final-report');
-            if (!reportEl) {
-                alert("Impossible de trouver le contenu à imprimer.");
+            const reportDiv = document.getElementById('finalReport');
+            if (!reportDiv || !reportDiv.innerHTML.trim()) {
+                alert("La note de dimensionnement est vide. Complétez les étapes précédentes avant l'export.");
                 return;
             }
 
-            // Récupérer styles inline existants (et feuilles si présentes)
-            const styleTags = Array.from(document.querySelectorAll('style')).map(s => `<style>${s.innerHTML}
-/* --- Responsive mobile: menu Modèle plein écran et lisible --- */
-@media (max-width: 520px){
-  .rich-model-panel{
-    position: fixed !important;
-    left: 12px !important;
-    right: 12px !important;
-    top: 86px !important; /* sous l'entête/stepper */
-    max-height: calc(100vh - 140px) !important;
-    overflow: auto !important;
-  }
-  /* Présentation en "cartes" 2 lignes pour éviter le scroll horizontal */
-  .rm-table{ width:100% !important; table-layout: fixed; }
-  .rm-table tbody tr{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: auto;
-    row-gap: 2px;
-    column-gap: 12px;
-    padding: 6px 2px;
-  }
-  .rm-table tbody td{ padding: 6px 8px !important; }
-  .rm-table tbody td:nth-child(1){
-    grid-column: 1 / 3;
-    font-weight: 700;
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .rm-table tbody td:nth-child(2){
-    grid-column: 1 / 2;
-    text-align: left !important;
-    white-space: nowrap;
-  }
-  .rm-table tbody td:nth-child(3){
-    grid-column: 2 / 3;
-    text-align: right !important;
-    white-space: nowrap;
-  }
-  .rm-table tbody td:nth-child(4){
-    grid-column: 1 / 3;
-    text-align: right !important;
-    white-space: nowrap;
-  }
-}
-</style>`).join('\n');
-            const linkTags = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.outerHTML).join('\n');
+            const exportWindow = window.open('', '_blank');
+            if (!exportWindow) {
+                alert("La fenêtre d'export a été bloquée par le navigateur. Autorisez les pop-up puis réessayez.");
+                return;
+            }
 
-            // Créer un iframe invisible
-            const iframe = document.createElement('iframe');
-            iframe.style.position = 'fixed';
-            iframe.style.right = '0';
-            iframe.style.bottom = '0';
-            iframe.style.width = '0';
-            iframe.style.height = '0';
-            iframe.style.border = '0';
-            iframe.style.opacity = '0';
-            iframe.setAttribute('aria-hidden', 'true');
-            document.body.appendChild(iframe);
+            const noteStyles = `
+<style>
+    :root {
+        color-scheme: light;
+        --border: #d5dce8;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #0b3d91;
+        --sheet: #ffffff;
+        --bg: #eef3f9;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+    .note-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid #d9e2ef;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(6px);
+    }
+    .note-toolbar-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--accent);
+    }
+    .note-toolbar-note {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+    .note-toolbar-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .note-btn {
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        color: white;
+        background: var(--accent);
+    }
+    .note-btn.secondary {
+        background: #6b7280;
+    }
+    .note-canvas {
+        padding: 26px;
+    }
+    .note-sheet {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        background: var(--sheet);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        border-radius: 10px;
+        padding: 14mm 14mm 12mm;
+    }
+    .note-sheet .report-header {
+        margin-bottom: 8mm !important;
+    }
+    .note-sheet table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 5mm;
+        table-layout: fixed;
+    }
+    .note-sheet th,
+    .note-sheet td {
+        border: 1px solid var(--border);
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 12px;
+        line-height: 1.35;
+        word-wrap: break-word;
+    }
+    .note-sheet th {
+        background: #f6f8fc;
+        color: var(--accent);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    .note-sheet h2,
+    .note-sheet h3 {
+        margin: 0 0 3mm;
+        color: var(--accent);
+    }
+    .note-sheet .print-spacer {
+        display: block !important;
+        height: 2mm;
+    }
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+    @media print {
+        html, body {
+            background: white;
+        }
+        .note-toolbar {
+            display: none !important;
+        }
+        .note-canvas {
+            padding: 0;
+        }
+        .note-sheet {
+            width: auto;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border-radius: 0;
+        }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+    }
+</style>`;
 
-            const doc = iframe.contentWindow.document;
-            doc.open();
-            doc.write(`<!doctype html>
+            const exportHtml = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Note de dimensionnement</title>
+${noteStyles}
+</head>
+<body>
+<div class="note-toolbar">
+    <div>
+        <div class="note-toolbar-title">Note de dimensionnement</div>
+        <div class="note-toolbar-note">Utilisez “Enregistrer en PDF” pour conserver un document net et imprimable.</div>
+    </div>
+    <div class="note-toolbar-actions">
+        <button type="button" class="note-btn secondary" onclick="window.close()">Fermer</button>
+        <button type="button" class="note-btn" onclick="window.print()">Enregistrer en PDF</button>
+    </div>
+</div>
+<div class="note-canvas">
+    <div class="note-sheet">${reportDiv.innerHTML}</div>
+</div>
+</body>
+</html>`;
+
+            exportWindow.document.open();
+            exportWindow.document.write(exportHtml);
+            exportWindow.document.close();
+            exportWindow.focus();
+        }
+
+
+function exportChiffragePdf() {
+    const tableContainer = document.getElementById('chiffrageTableContainer');
+    if (!tableContainer || !tableContainer.innerHTML.trim()) {
+        alert("Le chiffrage est vide. Configurez une sélection avant l'export.");
+        return;
+    }
+
+    const exportWindow = window.open('', '_blank');
+    if (!exportWindow) {
+        alert("La fenêtre d'export a été bloquée par le navigateur. Autorisez les pop-up puis réessayez.");
+        return;
+    }
+
+    const cleanTable = tableContainer.cloneNode(true);
+    cleanTable.querySelectorAll('.chiffrage-eco-row').forEach(row => row.remove());
+    cleanTable.querySelectorAll('img').forEach(img => {
+        img.setAttribute('loading', 'eager');
+        img.setAttribute('decoding', 'sync');
+        img.setAttribute('referrerpolicy', 'no-referrer');
+    });
+
+    const companyName = (document.getElementById('companyName')?.value || '').trim();
+    const companyAddress = (document.getElementById('companyAddress')?.value || '').trim();
+    const companySiret = (document.getElementById('companySiret')?.value || '').trim();
+    const beneficiaryName = `${(document.getElementById('beneficiaryFirstName')?.value || '').trim()} ${(document.getElementById('beneficiaryLastName')?.value || '').trim()}`.trim();
+    const beneficiaryAddress = [
+        (document.getElementById('beneficiaryAddress')?.value || '').trim(),
+        `${(document.getElementById('beneficiaryPostalCode')?.value || '').trim()} ${(document.getElementById('beneficiaryCity')?.value || '').trim()}`.trim()
+    ].filter(Boolean).join('<br>');
+
+    const phaseText = document.getElementById('chiffragePhase')?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const configText = document.getElementById('chiffrageConfig')?.selectedOptions?.[0]?.textContent?.trim() || '';
+    const modelText = document.getElementById('chiffrageModel')?.textContent?.trim() || '';
+    const discountData = parseChiffrageDiscountPercent(document.getElementById('chiffrageDiscountPct')?.value || '0');
+    const discountText = discountData.display;
+    const validityDate = new Date();
+    validityDate.setMonth(validityDate.getMonth() + 1);
+    const validityText = validityDate.toLocaleDateString('fr-FR');
+    const amountText = document.getElementById('chiffrageAmountHT')?.textContent?.trim() || '0,00 €';
+    const ecoText = document.getElementById('chiffrageEcoTotal')?.textContent?.trim() || '0,00 €';
+    const totalText = document.getElementById('chiffrageGrandTotal')?.textContent?.trim() || '0,00 €';
+
+    const zoneCount = document.querySelectorAll('#chiffrageZoneRows .chiffrage-zone-row').length;
+    const optionCount = document.querySelectorAll('#chiffrageOptionRows .chiffrage-option-row').length;
+    const detailParts = [];
+    if (zoneCount) detailParts.push(`${zoneCount} zone${zoneCount > 1 ? 's' : ''} mélangée${zoneCount > 1 ? 's' : ''}`);
+    if (typeof pool !== 'undefined' && pool) detailParts.push('Piscine');
+    if (optionCount) detailParts.push(`${optionCount} option${optionCount > 1 ? 's' : ''}`);
+    const details = detailParts.join(' • ');
+
+    const exportStyles = `
+<style>
+    @page { size: A4 portrait; margin: 10mm; }
+    * { box-sizing: border-box; }
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #eef3f9;
+        color: #1f2937;
+        font-family: Arial, Helvetica, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: geometricPrecision;
+    }
+    body {
+        font-size: 12px;
+        line-height: 1.35;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+    }
+    a { color: inherit; text-decoration: none; }
+    .export-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 18px;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid #d8e1ee;
+    }
+    .export-toolbar-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f3d91;
+    }
+    .export-toolbar-note {
+        margin-top: 2px;
+        font-size: 12px;
+        color: #607086;
+    }
+    .export-toolbar-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .export-btn {
+        appearance: none;
+        border: 1px solid #0f3d91;
+        background: #0f3d91;
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .export-btn.secondary {
+        background: #ffffff;
+        color: #0f3d91;
+    }
+    .export-btn[disabled] {
+        opacity: 0.55;
+        cursor: default;
+    }
+    .export-canvas { padding: 20px; }
+    .export-sheet {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        background: #ffffff;
+        box-shadow: 0 20px 50px rgba(15, 61, 145, 0.12);
+        padding: 15mm 14mm 12mm;
+    }
+    .doc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #0f3d91;
+    }
+    .doc-title {
+        font-size: 24px;
+        line-height: 1.05;
+        color: #111827;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .doc-subtitle {
+        margin-top: 5px;
+        font-size: 11px;
+        color: #607086;
+    }
+    .doc-meta {
+        min-width: 230px;
+        border: 1px solid #d9e3f0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: #f8fbff;
+    }
+    .meta-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 2px 0;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+    .meta-line span:first-child { color: #607086; }
+    .meta-line span:last-child {
+        color: #111827;
+        font-weight: 700;
+        text-align: right;
+        margin-left: auto;
+    }
+    .party-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 12px 0 10px;
+    }
+    .party-card, .summary-card, .totals-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 12px 13px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .party-title, .summary-card h2, .totals-card h2 {
+        margin: 0 0 8px;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #0f3d91;
+        font-weight: 700;
+    }
+    .party-main {
+        font-size: 12px;
+        color: #111827;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .party-secondary {
+        color: #4b5563;
+        font-size: 11px;
+        line-height: 1.35;
+    }
+    .summary-card { margin-bottom: 10px; }
+    .summary-list { display: grid; gap: 6px; }
+    .summary-row {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 10px;
+        align-items: start;
+        font-size: 11px;
+    }
+    .summary-row .label { color: #607086; }
+    .summary-row .value { color: #111827; font-weight: 700; }
+    .table-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+    .print-table col.col-thumb { width: 4%; }
+    .print-table col.col-ref { width: 10%; }
+    .print-table col.col-designation { width: 55%; }
+    .print-table col.col-qty { width: 5%; }
+    .print-table col.col-unit { width: 15%; }
+    .print-table col.col-total { width: 11%; }
+    .print-table thead th {
+        background: #edf4fb;
+        color: #0f3d91;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 6px 7px;
+        text-align: left;
+        border-bottom: 1px solid #dbe5f1;
+        vertical-align: middle;
+    }
+    .print-table tbody td {
+        padding: 6px 7px;
+        border-bottom: 1px solid #edf1f6;
+        vertical-align: middle;
+        font-size: 9.4px;
+        line-height: 1.2;
+    }
+    .print-table tbody tr:last-child td { border-bottom: 0; }
+    .print-table td:nth-child(1), .print-table th:nth-child(1) { text-align: center; }
+    .print-table td:nth-child(2), .print-table th:nth-child(2) {
+        white-space: nowrap;
+        font-weight: 700;
+        font-size: 8.8px;
+    }
+    .print-table td:nth-child(4), .print-table th:nth-child(4) { text-align: center; white-space: nowrap; }
+    .print-table td:nth-child(5), .print-table th:nth-child(5),
+    .print-table td:nth-child(6), .print-table th:nth-child(6) {
+        text-align: right;
+        white-space: nowrap;
+        font-size: 9.2px;
+    }
+    .print-table .chiffrage-item-label {
+        font-weight: 700;
+        color: #111827;
+        line-height: 1.15;
+    }
+    .print-table .chiffrage-item-desc {
+        margin-top: 2px;
+        color: #667085;
+        font-size: 8.1px;
+        line-height: 1.12;
+    }
+    .print-table .chiffrage-thumb-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .print-table .chiffrage-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1px solid #d7e2ef;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    .print-table .chiffrage-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        image-rendering: -webkit-optimize-contrast;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    .print-table .chiffrage-thumb-empty {
+        border-color: transparent;
+        background: transparent;
+    }
+    .totals-block {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 12px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .totals-card { width: 300px; }
+    .total-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 6px 0;
+        color: #111827;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+    .total-line span:first-child { color: #607086; }
+    .total-line strong {
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: auto;
+    }
+    .grand-total {
+        margin-top: 5px;
+        padding-top: 7px;
+        border-top: 2px solid #0f3d91;
+    }
+    .grand-total strong {
+        font-size: 16px;
+        color: #0f3d91;
+    }
+    .doc-footer {
+        margin-top: 12px;
+        color: #6b7280;
+        font-size: 9px;
+        line-height: 1.35;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .doc-footer a {
+        color: #0f172a;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+    @media print {
+        html, body {
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .export-toolbar { display: none !important; }
+        .export-canvas { padding: 0; }
+        .export-sheet {
+            width: auto;
+            min-height: auto;
+            margin: 0;
+            box-shadow: none;
+            padding: 0;
+        }
+    }
+</style>`;
+
+    const exportScript = `
+<script>
+(function() {
+    const status = document.getElementById('exportStatus');
+    const printBtn = document.getElementById('printPdfBtn');
+    const imgs = Array.from(document.images || []);
+    function setReady() {
+        if (status) status.textContent = 'Document prêt. Utilisez “Enregistrer en PDF”.';
+        if (printBtn) printBtn.disabled = false;
+    }
+    if (!imgs.length) {
+        setReady();
+        return;
+    }
+    let remaining = imgs.length;
+    const done = () => {
+        remaining -= 1;
+        if (remaining <= 0) setReady();
+    };
+    imgs.forEach(img => {
+        if (img.complete) {
+            done();
+        } else {
+            img.addEventListener('load', done, { once: true });
+            img.addEventListener('error', done, { once: true });
+        }
+    });
+})();
+<\/script>`;
+
+    const exportHtml = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Devis NIBE</title>
-${linkTags}
-${styleTags}
+<title>Export PDF - devis estimatif</title>
+${exportStyles}
 </head>
 <body>
-${reportEl.outerHTML}
+<div class="export-toolbar">
+    <div>
+        <div class="export-toolbar-title">Export PDF du chiffrage estimatif</div>
+        <div class="export-toolbar-note" id="exportStatus">Chargement des visuels et préparation du document…</div>
+    </div>
+    <div class="export-toolbar-actions">
+        <button type="button" class="export-btn secondary" onclick="window.close()">Fermer</button>
+        <button type="button" class="export-btn" id="printPdfBtn" onclick="window.print()" disabled>Enregistrer en PDF</button>
+    </div>
+</div>
+
+<div class="export-canvas">
+    <div class="export-sheet">
+        <div class="doc-header">
+            <div>
+                <div class="doc-title">Devis estimatif</div>
+                <div class="doc-subtitle">Sélection aérothermie – chiffrage indicatif</div>
+            </div>
+            <div class="doc-meta">
+                <div class="meta-line"><span>Date</span><span>${new Date().toLocaleDateString('fr-FR')}</span></div>
+                <div class="meta-line"><span>Validité</span><span>${validityText}</span></div>
+                <div class="meta-line"><span>Remise</span><span>${discountText}</span></div>
+            </div>
+        </div>
+
+        <div class="party-grid">
+            <div class="party-card">
+                <div class="party-title">Installateur</div>
+                <div class="party-main">${companyName || 'À compléter'}</div>
+                <div class="party-secondary">${companyAddress || ''}${companyAddress && companySiret ? '<br>' : ''}${companySiret ? `SIRET : ${companySiret}` : ''}</div>
+            </div>
+            <div class="party-card">
+                <div class="party-title">Bénéficiaire</div>
+                <div class="party-main">${beneficiaryName || 'À compléter'}</div>
+                <div class="party-secondary">${beneficiaryAddress || ''}</div>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <h2>Synthèse de la sélection</h2>
+            <div class="summary-list">
+                <div class="summary-row"><div class="label">Machine</div><div class="value">${modelText || '—'}</div></div>
+                <div class="summary-row"><div class="label">Alimentation</div><div class="value">${phaseText || '—'}</div></div>
+                <div class="summary-row"><div class="label">Configuration</div><div class="value">${configText || '—'}</div></div>
+                ${details ? `<div class="summary-row"><div class="label">Composition</div><div class="value">${details}</div></div>` : ''}
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            ${cleanTable.innerHTML.replace('class="chiffrage-table"', 'class="print-table"')}
+        </div>
+
+        <div class="totals-block">
+            <div class="totals-card">
+                <h2>Montants HT</h2>
+                <div class="total-line"><span>Montant HT</span><strong>${amountText}</strong></div>
+                <div class="total-line"><span>Éco-contribution D3E</span><strong>${ecoText}</strong></div>
+                <div class="total-line grand-total"><span>Total HT</span><strong>${totalText}</strong></div>
+            </div>
+        </div>
+
+        <div class="doc-footer">
+            <div>Chiffrage estimatif basé sur la configuration sélectionnée. Ce document ne remplace pas un devis contractuel définitif.</div>
+            ${GOOGLE_SHEET_WEBAPP_URL ? `<div style="margin-top:4px;">Lien Google Sheet : <a href="${GOOGLE_SHEET_WEBAPP_URL}" target="_blank" rel="noopener noreferrer">ouvrir le suivi</a></div>` : ''}
+        </div>
+    </div>
+</div>
+${exportScript}
 </body>
-</html>`);
-            doc.close();
+</html>`;
 
-            // Attendre un tick pour laisser le layout se stabiliser, puis imprimer
-            setTimeout(() => {
-                try {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
-                } catch (e) {
-                    console.error('iframe print failed', e);
-                    alert("L'impression a échoué. Essayez à nouveau.");
-                } finally {
-                    // Nettoyage après un court délai (Chrome a parfois besoin d'un peu de temps)
-                    setTimeout(() => {
-                        try { document.body.removeChild(iframe); } catch(e) {}
-                    }, 800);
-                }
-            }, 200);
-        }
-
+    exportWindow.document.open();
+    exportWindow.document.write(exportHtml);
+    exportWindow.document.close();
+    exportWindow.focus();
+}
 </script>
 </body>
 </html>
