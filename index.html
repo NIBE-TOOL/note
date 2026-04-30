@@ -1613,7 +1613,7 @@
                     </div>
                 </div>
                 <div class="vmc-actions">
-                    <button type="button" onclick="computeVmcReglementaire()">Calculer le débit réglementaire</button>
+                    <button type="button" onclick="computeVmcReglementaire()">Calculer et appliquer le débit réglementaire</button>
                 </div>
                 <div id="vmcResult" class="vmc-result hidden"></div>
                 <p class="vmc-note">
@@ -5941,6 +5941,29 @@ let chosenModel = null;
             const qMini = cuisine.mini + totalWet;
             const qGrand = cuisine.grand + totalWet;
 
+            let appliedFlow = qMini;
+            const flowSelect = document.getElementById('airExtrFlow');
+            if (flowSelect && flowSelect.options.length){
+                const flows = Array.from(flowSelect.options).map(opt => Number(opt.value)).filter(v => !Number.isNaN(v)).sort((a,b) => a - b);
+                const exact = flows.find(v => v === qMini);
+                if (typeof exact !== 'undefined') {
+                    appliedFlow = exact;
+                } else {
+                    const nextHigher = flows.find(v => v >= qMini);
+                    if (typeof nextHigher !== 'undefined') {
+                        appliedFlow = nextHigher;
+                    } else {
+                        appliedFlow = flows[flows.length - 1];
+                    }
+                }
+                flowSelect.value = String(qMini);
+                Array.from(flowSelect.options).forEach(opt => {
+                    opt.selected = (Number(opt.value) === Number(qMini));
+                });
+                airExtrFlowManuallySelected = true;
+                computeTechnology();
+            }
+
             const resDiv = document.getElementById('vmcResult');
             let html = '';
             html += `<div class="vmc-result-line"><strong>Type de logement :</strong> ${typeLogement} — OK</div>`;
@@ -6070,6 +6093,10 @@ function updatePreconisationButtons(){
                 makeBtn('Préconisation monophasé', conf.mono);
             } else if (conf.tri) {
                 makeBtn('Préconisation triphasé', conf.tri);
+            }
+
+            if (model.startsWith('S735')) {
+                makeBtn('DEVIS S735 / RESEAU DE VENTILATION', 'https://nibe-tool.github.io/reseau-nibe/');
             }
         }
 
