@@ -3917,32 +3917,16 @@ try {
             }
             let rawBase = baseTempMapping[dept] !== undefined ? baseTempMapping[dept] : 0;
             const bord = document.getElementById('bordDeMer').checked;
-
-            // Ajustement spécifique bord de mer (<25 km)
-            let adjustedBase = rawBase;
-            if (bord) {
-                const bordMap = {
-                    '-2': -2,
-                    '-4': -2,
-                    '-5': -4,
-                    '-6': -6,
-                    '-7': -7,
-                    '-8': -8,
-                    '-10': -10,
-                    '-12': -12,
-                    '-15': -15
-                };
-                const key = String(rawBase);
-                if (bordMap.hasOwnProperty(key)) {
-                    adjustedBase = bordMap[key];
-                }
-            }
-
             const alt = document.getElementById('altitudeRange').value;
-            const baseKey = adjustedBase.toString();
-            let finalBase = adjustedBase;
-            if (altitudeMap[baseKey] && altitudeMap[baseKey][alt] !== undefined) {
-                finalBase = altitudeMap[baseKey][alt];
+            let finalBase = rawBase;
+
+            if (bord) {
+                finalBase = -2;
+            } else {
+                const baseKey = rawBase.toString();
+                if (altitudeMap[baseKey] && altitudeMap[baseKey][alt] !== undefined) {
+                    finalBase = altitudeMap[baseKey][alt];
+                }
             }
             finalBaseTemp = finalBase;
             document.getElementById('baseTempValue').textContent = finalBase;
