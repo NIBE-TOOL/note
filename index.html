@@ -1512,7 +1512,7 @@
                     <span>Bord de mer (&lt;25 km)</span>
                 </div>
             </div>
-            <div id="baseTempResult">Température de base&nbsp;: <span id="baseTempValue">--</span> °C</div>
+            <div id="baseTempResult">Température de base&nbsp;: <input type="number" id="baseTempValue" step="1" value="" style="width:72px; display:inline-block; margin:0 4px;"> °C</div>
         </div>
 
         <!-- Step 3 -->
@@ -3917,19 +3917,20 @@ try {
             }
             let rawBase = baseTempMapping[dept] !== undefined ? baseTempMapping[dept] : 0;
             const bord = document.getElementById('bordDeMer').checked;
-            const alt = document.getElementById('altitudeRange').value;
-            let finalBase = rawBase;
 
+            let adjustedBase = rawBase;
+
+            const alt = document.getElementById('altitudeRange').value;
+            const baseKey = adjustedBase.toString();
+            let finalBase = adjustedBase;
+            if (altitudeMap[baseKey] && altitudeMap[baseKey][alt] !== undefined) {
+                finalBase = altitudeMap[baseKey][alt];
+            }
             if (bord) {
-                finalBase = -2;
-            } else {
-                const baseKey = rawBase.toString();
-                if (altitudeMap[baseKey] && altitudeMap[baseKey][alt] !== undefined) {
-                    finalBase = altitudeMap[baseKey][alt];
-                }
+                finalBase += 2;
             }
             finalBaseTemp = finalBase;
-            document.getElementById('baseTempValue').textContent = finalBase;
+            document.getElementById('baseTempValue').value = finalBase;
 
             const tech = document.getElementById('technologySelect').value;
             if (tech) {
@@ -3944,6 +3945,19 @@ try {
         document.getElementById('beneficiaryPostalCode').addEventListener('blur', computeBaseTemp);
         document.getElementById('altitudeRange').addEventListener('change', computeBaseTemp);
         document.getElementById('bordDeMer').addEventListener('change', computeBaseTemp);
+        document.getElementById('baseTempValue').addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            finalBaseTemp = Number.isNaN(value) ? null : value;
+
+            const tech = document.getElementById('technologySelect').value;
+            if (tech) {
+                computeTechnology();
+            }
+            if (pool) {
+                computePoolLoss();
+                updateProjectSummary();
+            }
+        });
 
         function addZone() {
             if (zones.length >= 20) return;
