@@ -3609,6 +3609,7 @@ function updateModelBadges(tech) {
         let pool = null; // piscine unique
         let airExtrFlowManuallySelected = false;
         let finalBaseTemp = null;
+        let manualBaseTempOverride = false;
         let finalPac = null; // stocke les infos PAC pour les liens doc
         let airExtrPoolWarned = false;
 
@@ -3910,6 +3911,14 @@ try {
         }
 
         function computeBaseTemp() {
+            if (manualBaseTempOverride) {
+                const manualValue = parseFloat(document.getElementById('baseTempValue').value);
+                if (!Number.isNaN(manualValue)) {
+                    finalBaseTemp = manualValue;
+                    return;
+                }
+                manualBaseTempOverride = false;
+            }
             const postal = document.getElementById('beneficiaryPostalCode').value.trim();
             let dept = postal.substring(0,2);
             if (dept === '97' || dept === '98') {
@@ -3929,6 +3938,7 @@ try {
             if (bord) {
                 finalBase += 2;
             }
+            manualBaseTempOverride = false;
             finalBaseTemp = finalBase;
             document.getElementById('baseTempValue').value = finalBase;
 
@@ -3942,11 +3952,21 @@ try {
             }
         }
 
-        document.getElementById('beneficiaryPostalCode').addEventListener('blur', computeBaseTemp);
-        document.getElementById('altitudeRange').addEventListener('change', computeBaseTemp);
-        document.getElementById('bordDeMer').addEventListener('change', computeBaseTemp);
+        document.getElementById('beneficiaryPostalCode').addEventListener('blur', function() {
+            manualBaseTempOverride = false;
+            computeBaseTemp();
+        });
+        document.getElementById('altitudeRange').addEventListener('change', function() {
+            manualBaseTempOverride = false;
+            computeBaseTemp();
+        });
+        document.getElementById('bordDeMer').addEventListener('change', function() {
+            manualBaseTempOverride = false;
+            computeBaseTemp();
+        });
         document.getElementById('baseTempValue').addEventListener('input', function() {
             const value = parseFloat(this.value);
+            manualBaseTempOverride = !Number.isNaN(value);
             finalBaseTemp = Number.isNaN(value) ? null : value;
 
             const tech = document.getElementById('technologySelect').value;
