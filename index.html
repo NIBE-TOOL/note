@@ -25,14 +25,21 @@
         .header {
             display: flex;
             align-items: center !important;
-            margin-bottom: 12px !important;
+            justify-content: center;
+            margin-bottom: 8px !important;
             gap: 8px;
         }
-        .header .logo {
-            max-height: 28px !important;
+        /* Logo tout en haut, aligné à gauche du contenu */
+        .logo-row {
+            max-width: none;
+            margin: 0 0 10px;
+            text-align: left;
+        }
+        .logo-row .logo {
+            max-height: 34px !important;
             height: auto !important;
             width: auto !important;
-            margin-top: 0 !important;
+            display: inline-block;
         }
         .header h1 {
             margin: 0;
@@ -92,9 +99,9 @@
         }
         .navigation {
             margin-top: 20px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            max-width: none;
+            margin-left: 0;
+            margin-right: 0;
             text-align: left;
         }
         .navigation button {
@@ -236,8 +243,8 @@
             width: 100%;
         }
         #step1, #step2 {
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: none;
+            margin: 0;
         }
         input[type="text"], input[type="number"], select, textarea {
             background-color: #f2f7ff;
@@ -304,6 +311,55 @@
         .altitude-field select {
             width: auto;
             min-width: 160px;
+        }
+        /* Ligne climat (étape 2) : Altitude | Bord de mer | Température de base */
+        .climate-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 6px;
+        }
+        .climate-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .climate-label {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+        .climate-field select,
+        .climate-field input[type="number"] {
+            height: 38px;
+            box-sizing: border-box;
+        }
+        .climate-check .bordmer-inline,
+        #step2 .climate-check .bordmer-inline {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            height: 38px;
+            margin: 0 !important;
+            margin-bottom: 0 !important;
+            width: auto !important;
+            background-color: #f2f7ff;
+            border: 1px solid #c2d6ec;
+            border-radius: 4px;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        .climate-check input[type="checkbox"] {
+            width: 18px !important;
+            height: 18px;
+            margin: 0;
+        }
+        @media (max-width: 600px) {
+            .climate-row {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
         }
         #step4 label {
             font-size: 16px;
@@ -541,6 +597,25 @@
         .c-green{ color:#0b5d1e; }   /* vert foncé */
         .c-blue{ color:#0b3d91; }    /* bleu foncé */
         .c-orange{ color:#b45309; }  /* orange foncé */
+        .c-red{ color:#b91c1c; }     /* rouge foncé */
+        .rm-type-tag{
+            display:inline-block;
+            margin-left:8px;
+            padding:1px 8px;
+            font-size:11px;
+            font-weight:600;
+            color:#41546b;
+            background:#eef4fb;
+            border:1px solid #d0dfe8;
+            border-radius:10px;
+            vertical-align:middle;
+        }
+        .variant-field{
+            margin: 6px 0;
+        }
+        .variant-field select{
+            min-width: 180px;
+        }
 
         @media (max-width: 520px){
             .rm-td-meta{ font-size:14px; }
@@ -607,7 +682,8 @@
     max-height: calc(100vh - 140px) !important;
     overflow: auto !important;
   }
-  /* Présentation en "cartes" 2 lignes pour éviter le scroll horizontal */
+  /* Présentation en "cartes" pour éviter le scroll horizontal
+     Colonnes : 1=Modèle, 2=Puissance, 3=Fluide, 4=ETAS, 5=dB(A) */
   .rm-table{ width:100% !important; table-layout: fixed; }
   .rm-table tbody tr{
     display: grid;
@@ -636,7 +712,12 @@
     white-space: nowrap;
   }
   .rm-table tbody td:nth-child(4){
-    grid-column: 1 / 3;
+    grid-column: 1 / 2;
+    text-align: left !important;
+    white-space: nowrap;
+  }
+  .rm-table tbody td:nth-child(5){
+    grid-column: 2 / 3;
     text-align: right !important;
     white-space: nowrap;
   }
@@ -1424,7 +1505,7 @@
             .header {
                 gap: 6px;
             }
-            .header .logo {
+            .logo-row .logo {
                 max-height: 24px !important;
             }
             .header h1 {
@@ -1464,14 +1545,155 @@
                 margin-bottom: 8px;
             }
         }
+        /* =============================
+           Chiffrage estimatif — finition (rangement / rendu pro)
+           Ce bloc harmonise les deux styles précédents.
+        ============================== */
+        .chiffrage-section {
+            background: #ffffff;
+            border: 1px solid #d7e3ef;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 8px 24px rgba(16, 54, 108, 0.06);
+        }
+        .chiffrage-header {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5edf6;
+        }
+        .chiffrage-selector-grid {
+            grid-template-columns: minmax(200px, 1.25fr) minmax(150px, 0.85fr) minmax(240px, 1.35fr) minmax(110px, 0.55fr);
+            gap: 10px;
+            margin-bottom: 14px;
+            align-items: stretch;
+        }
+        .chiffrage-context-item,
+        .chiffrage-control {
+            border-radius: 10px;
+            padding: 10px 12px;
+            gap: 6px;
+            box-shadow: none;
+            justify-content: flex-start;
+        }
+        .chiffrage-control input[type="text"],
+        .chiffrage-control input[type="number"],
+        .chiffrage-control select {
+            min-height: 40px;
+            border-radius: 8px;
+        }
+        #chiffrageDiscountPct {
+            text-align: right;
+            font-weight: 600;
+        }
+        .chiffrage-subcards {
+            gap: 10px;
+            margin-bottom: 14px;
+            align-items: start;
+        }
+        .chiffrage-subcard {
+            border-radius: 10px;
+            box-shadow: none;
+            padding: 12px 14px;
+        }
+        .chiffrage-subcard-head {
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eef3f9;
+            margin-bottom: 4px;
+        }
+        .chiffrage-subcard-head span {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #41546b;
+        }
+        .chiffrage-row-add {
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-weight: 600;
+        }
+        .chiffrage-row-remove {
+            background: #ffffff;
+            color: #8896a8;
+            border: 1px solid #d8e4f0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .chiffrage-row-remove:hover {
+            background: #fdf2f2;
+            color: #b91c1c;
+            border-color: #ecc8c8;
+        }
+        .chiffrage-zone-row select,
+        .chiffrage-option-row select,
+        .chiffrage-option-qty {
+            min-height: 40px;
+            border-radius: 8px;
+        }
+        /* Tableau des articles : encadré propre, lignes fines, montants alignés */
+        #chiffrageTableContainer {
+            margin-top: 4px;
+            border: 1px solid #dbe6f2;
+            border-radius: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #ffffff;
+        }
+        #chiffrageTableContainer .chiffrage-table {
+            margin-top: 0;
+            border: 0;
+        }
+        .chiffrage-table th {
+            background: #f2f7fc;
+            color: #41546b;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 0;
+            border-bottom: 2px solid #d7e3ef;
+            padding: 9px 10px;
+        }
+        .chiffrage-table td {
+            border: 0;
+            border-bottom: 1px solid #edf2f8;
+            padding: 9px 10px;
+            vertical-align: middle;
+        }
+        .chiffrage-table tbody tr:last-child td { border-bottom: 0; }
+        .chiffrage-table td:nth-child(2) { color: #64748b; font-size: 12px; }
+        .chiffrage-eco-row td { background: #fbfdff; font-size: 12px; }
+        /* Totaux : encadré aligné à droite, total mis en avant */
+        .chiffrage-totals {
+            background: #f7fafd;
+            border: 1px solid #dbe6f2;
+            border-radius: 10px;
+            padding: 12px 16px;
+            max-width: 380px;
+        }
+        .chiffrage-total-line { padding: 3px 0; }
+        .chiffrage-total-line span { color: #5b6b80; }
+        .chiffrage-grand-total { color: #0b3d91; margin-top: 4px; }
+        .chiffrage-grand-total span { color: #0b3d91; font-weight: 700; }
+        .chiffrage-actions { gap: 10px; margin-top: 16px; }
+        @media (max-width: 980px) {
+            .chiffrage-selector-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 640px) {
+            .chiffrage-section { padding: 14px; }
+            .chiffrage-selector-grid,
+            .chiffrage-subcards { grid-template-columns: 1fr; }
+            .chiffrage-totals { max-width: none; }
+        }
 
 </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header with logo and title -->
-        <div class="header">
+        <!-- Logo tout en haut à gauche, titre centré en dessous -->
+        <div class="logo-row" id="logoRow">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQRLnUEoNR2GdiXhoMIgRc6NZN_8JHSGA2DQ&s" alt="logo" class="logo" />
+        </div>
+        <div class="header">
             <h1 id="title">NOTE DE DIMENSIONNEMENT</h1>
         </div>
 
@@ -1479,7 +1701,7 @@
         <div id="step1" class="step active">
             <label>Nom de l'installateur&nbsp;:<input type="text" id="companyName" placeholder="Nom de l'installateur"></label>
             <label>Adresse de l'installateur&nbsp;:<input type="text" id="companyAddress" placeholder="Adresse"></label>
-            <label>Numéro de SIRET&nbsp;:<input type="text" id="companySiret" placeholder="Numéro de SIRET"></label>
+            <label>Numéro de SIRET (obligatoire — 14 chiffres)&nbsp;:<input type="text" id="companySiret" placeholder="14 chiffres" inputmode="numeric" maxlength="14" pattern="\d{14}"></label>
         </div>
 
         <!-- Step 2 -->
@@ -1490,9 +1712,9 @@
             <label>Code postal&nbsp;:<input type="text" id="beneficiaryPostalCode" maxlength="5" placeholder="Code postal"></label>
             <label>Ville&nbsp;:<input type="text" id="beneficiaryCity" placeholder="Ville"></label>
             <label>Année de construction&nbsp;:<input type="number" id="constructionYear" min="1800" max="2030" placeholder="Année"></label>
-            <div class="altitude-row">
-                <div class="altitude-field">
-                    <label>Altitude&nbsp;:</label>
+            <div class="climate-row">
+                <div class="climate-field">
+                    <span class="climate-label">Altitude</span>
                     <select id="altitudeRange">
                         <option value="0-200">0 à 200 m</option>
                         <option value="201-400">201 à 400 m</option>
@@ -1507,12 +1729,15 @@
                         <option value="2001-2200">2001 à 2200 m</option>
                     </select>
                 </div>
-                <div class="bordmer-container">
-                    <input type="checkbox" id="bordDeMer">
-                    <span>Bord de mer (&lt;25 km)</span>
+                <div class="climate-field climate-check">
+                    <span class="climate-label">Bord de mer (&lt;25&nbsp;km)</span>
+                    <label class="bordmer-inline"><input type="checkbox" id="bordDeMer"> Oui</label>
+                </div>
+                <div class="climate-field" id="baseTempResult">
+                    <span class="climate-label">Température de base (°C)</span>
+                    <input type="number" id="baseTempValue" step="1" value="">
                 </div>
             </div>
-            <div id="baseTempResult">Température de base&nbsp;: <input type="number" id="baseTempValue" step="1" value="" style="width:72px; display:inline-block; margin:0 4px;"> °C</div>
         </div>
 
         <!-- Step 3 -->
@@ -1562,6 +1787,24 @@
                     <span id="geoEtas" class="badge badge-muted"></span>
                     <span id="geoDb" class="badge badge-muted"></span>
                 </span><br>
+                <div id="geoVoltageField" class="variant-field hidden">
+                    <label>Alimentation électrique:
+                        <select id="geoVoltage">
+                            <option value="" selected disabled>-- À déterminer --</option>
+                            <option value="230">1x230V</option>
+                            <option value="400">3x400V</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="geoPcField" class="variant-field hidden">
+                    <label>Version PC (rafraîchissement passif intégré):
+                        <select id="geoPc">
+                            <option value="" selected disabled>-- À déterminer --</option>
+                            <option value="std">Sans PC</option>
+                            <option value="pc">Avec PC</option>
+                        </select>
+                    </label>
+                </div>
                 <label>Nombre d'unités:<input type="number" id="geoUnits" min="1" max="9" value="1"></label>
             </div>
 
@@ -1586,6 +1829,15 @@
                     <span id="airExtrEtas" class="badge badge-muted"></span>
                     <span id="airExtrDb" class="badge badge-muted"></span>
                 </span><br>
+                <div id="airExtrVoltageField" class="variant-field hidden">
+                    <label>Alimentation électrique:
+                        <select id="airExtrVoltage">
+                            <option value="" selected disabled>-- À déterminer --</option>
+                            <option value="230">1x230V</option>
+                            <option value="400">3x400V</option>
+                        </select>
+                    </label>
+                </div>
                 <label>Débit de ventilation (m³/h):
                     <select id="airExtrFlow"></select>
                 </label><br>
@@ -1637,7 +1889,7 @@
                 <div class="chiffrage-header">
                     <div class="chiffrage-title-wrap">
                         <div class="chiffrage-title">Chiffrage estimatif</div>
-                        <div class="chiffrage-subtitle">Choisis l’alimentation, la configuration et les options directement à partir de la machine sélectionnée.</div>
+                        <div class="chiffrage-subtitle">Sélectionnez l'alimentation, la configuration et les options à partir de la machine retenue.</div>
                     </div>
                 </div>
 
@@ -3185,11 +3437,11 @@ function getZoneCountCurrent() {
     return count;
 }
 
-// Règle ETAS: si 1 seule zone et uniquement 35°C -> ETAS 35°C, sinon ETAS 55°C
+// Règle ETAS: si TOUTES les zones (piscine toute saison incluse) sont à 35°C -> ETAS 35°C,
+// dès qu'une zone est à 45°C ou plus -> ETAS 55°C
 function getEtasSelectionKey() {
-    const zoneCount = getZoneCountCurrent();
     const maxHeating = getMaxHeating();
-    return (zoneCount === 1 && maxHeating === 35) ? '35' : '55';
+    return (maxHeating === 35) ? '35' : '55';
 }
 
 
@@ -3421,13 +3673,20 @@ function ensureRichModelDropdown(selectId) {
 function updateRichModelButtonLabel(ui) {
     if (!ui || !ui.select || !ui.btn) return;
     const value = ui.select.value || '—';
+    let displayLabel = value;
+    try {
+        if (ui.select.id === 'airEauModel' && value !== '—') {
+            const t = getAirEauTypeLabel(value);
+            if (t) displayLabel = value + ' — ' + t;
+        }
+    } catch(e) {}
     const labelEl = ui.btn.querySelector('.rich-model-btnlabel');
     if (labelEl) {
-        labelEl.textContent = value;
+        labelEl.textContent = displayLabel;
     } else {
-        ui.btn.textContent = value;
+        ui.btn.textContent = displayLabel;
     }
-    ui.btn.title = value;
+    ui.btn.title = displayLabel;
 }
 
 
@@ -3440,10 +3699,82 @@ function syncRichModelUI(selectId) {
         const val = select.value;
         panel.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
         panel.querySelectorAll('tr').forEach(r => {
+            const dm = r.dataset ? r.dataset.model : null;
+            if (dm !== undefined && dm !== null && dm !== '') {
+                if (dm === val) r.classList.add('selected');
+                return;
+            }
             const first = r.querySelector('td.rm-td-model');
             if (first && first.textContent === val) r.classList.add('selected');
         });
     } catch (e) {}
+}
+
+// Puissance PAC d'un modèle (pour 1 unité) dans les conditions actuelles du projet
+function getModelDisplayCapacity(tech, modelName) {
+    try {
+        const heatingMax = getMaxHeating();
+        const heatingKey = (heatingMax >= 55) ? '55' : (heatingMax >= 45 ? '45' : '35');
+        if (tech === 'geothermie') {
+            const typeVal = ((document.getElementById('geoType') || {}).value) || '0';
+            let key = modelName;
+            if (typeVal === '10' && !modelName.includes('-10') && modelName !== 'F1353-4') {
+                key += '-10';
+            }
+            const data = geoData[key];
+            if (!data) return null;
+            let tempKey = typeVal;
+            if (!data[tempKey]) tempKey = Object.keys(data)[0];
+            return (data[tempKey] && data[tempKey][heatingKey]) ? data[tempKey][heatingKey] : null;
+        }
+        if (tech === 'aireau') {
+            const dataArr = airEauData[modelName];
+            if (!dataArr || finalBaseTemp === null || finalBaseTemp === undefined) return null;
+            const ext = finalBaseTemp;
+            let entry = dataArr.find(e => e.ext === ext);
+            if (!entry) {
+                const sorted = [...dataArr].sort((a, b) => b.ext - a.ext);
+                entry = sorted.find(e => e.ext <= ext) || sorted[sorted.length - 1];
+            }
+            return (entry && entry[heatingKey]) ? entry[heatingKey] : null;
+        }
+        if (tech === 'airextr') {
+            const data = airExtractData[modelName];
+            const flow = ((document.getElementById('airExtrFlow') || {}).value) || '';
+            if (data && flow && data[flow]) {
+                return data[flow][heatingKey] || null;
+            }
+            return null;
+        }
+    } catch (e) {}
+    return null;
+}
+
+// Couleur de la puissance selon la règle Puissance/Déperditions :
+// rouge < 60 %, orange 60–70 %, vert 70–120 %, orange > 120 %
+function modelPowerColorClass(capacity) {
+    const totalLoss = parseFloat((document.getElementById('totalLoss') || {}).textContent) || 0;
+    if (!capacity || !(totalLoss > 0)) return 'rm-muted';
+    const ratio = capacity / totalLoss * 100;
+    if (ratio < 60) return 'c-red';
+    if (ratio < 70) return 'c-orange';
+    if (ratio <= 120) return 'c-green';
+    return 'c-orange';
+}
+
+function techFromModelSelectId(selectId) {
+    if (selectId === 'geoModel') return 'geothermie';
+    if (selectId === 'airEauModel') return 'aireau';
+    if (selectId === 'airExtrModel') return 'airextr';
+    return '';
+}
+
+// Type d'unité air/eau : F2050 et S2125 = Monobloc, AMS = Split
+function getAirEauTypeLabel(modelName) {
+    const m = (modelName || '').toUpperCase().replace(/\s+/g, '');
+    if (m.startsWith('F2050') || m.startsWith('S2125')) return 'Monobloc';
+    if (m.startsWith('AMS')) return 'Split';
+    return '';
 }
 
 function renderRichModelOptions(selectId, modelList, bestEtas, etasKey) {
@@ -3464,11 +3795,14 @@ function renderRichModelOptions(selectId, modelList, bestEtas, etasKey) {
     const colgroup = document.createElement('colgroup');
     colgroup.innerHTML = `
       <col style="width:auto">
+      <col style="width:100px">
       <col style="width:110px">
       <col style="width:170px">
       <col style="width:110px">
     `;
     table.appendChild(colgroup);
+
+    const techForList = techFromModelSelectId(selectId);
 
     function buildRow(modelName) {
         const etasModel = getEtasLookupModelName(modelName);
@@ -3478,11 +3812,28 @@ function renderRichModelOptions(selectId, modelList, bestEtas, etasKey) {
         try { db = (typeof getSoundDb === 'function') ? getSoundDb(modelName) : null; } catch(e) { db = null; }
 
         const tr = document.createElement('tr');
+        tr.dataset.model = modelName;
         if (modelName === selectedValue) tr.classList.add('selected');
 
         const tdModel = document.createElement('td');
         tdModel.className = 'rm-td-model';
         tdModel.textContent = modelName;
+        if (techForList === 'aireau') {
+            const typeLabel = getAirEauTypeLabel(modelName);
+            if (typeLabel) {
+                const tag = document.createElement('span');
+                tag.className = 'rm-type-tag';
+                tag.textContent = typeLabel;
+                tdModel.appendChild(tag);
+            }
+        }
+
+        const tdPower = document.createElement('td');
+        const capOneUnit = getModelDisplayCapacity(techForList, modelName);
+        tdPower.className = 'rm-td-meta ' + modelPowerColorClass(capOneUnit);
+        tdPower.textContent = (capOneUnit !== null && capOneUnit !== undefined)
+            ? (capOneUnit.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' kW')
+            : '—';
 
         const tdRefr = document.createElement('td');
         tdRefr.className = 'rm-td-meta ' + refrigerantColorClass(refr);
@@ -3497,6 +3848,7 @@ function renderRichModelOptions(selectId, modelList, bestEtas, etasKey) {
         tdDb.textContent = (db !== null && db !== undefined) ? (db + ' dB(A)') : '—';
 
         tr.appendChild(tdModel);
+        tr.appendChild(tdPower);
         tr.appendChild(tdRefr);
         tr.appendChild(tdEtas);
         tr.appendChild(tdDb);
@@ -3536,6 +3888,7 @@ function setBadge(el, text, cls) {
 }
 
 function updateModelBadges(tech) {
+    try { updateVariantSelectors(); } catch (e) {}
     const etasKey = getEtasSelectionKey();
     if (tech === 'geothermie') {
         const model = document.getElementById('geoModel').value;
@@ -3609,7 +3962,6 @@ function updateModelBadges(tech) {
         let pool = null; // piscine unique
         let airExtrFlowManuallySelected = false;
         let finalBaseTemp = null;
-        let manualBaseTempOverride = false;
         let finalPac = null; // stocke les infos PAC pour les liens doc
         let airExtrPoolWarned = false;
 
@@ -3723,6 +4075,10 @@ if (step === 4) {
             if (headerElem) {
                 headerElem.style.display = (step >= 5) ? 'none' : 'flex';
             }
+            const logoRowElem = document.getElementById('logoRow');
+            if (logoRowElem) {
+                logoRowElem.style.display = (step >= 5) ? 'none' : 'block';
+            }
             if (step === 4) {
                 const techSel = document.getElementById('technologySelect').value;
                 if (techSel === 'airextr') {
@@ -3740,6 +4096,22 @@ if (step === 4) {
                     alert("Veuillez saisir le nom de l'installateur.");
                     return;
                 }
+                const siret = document.getElementById('companySiret').value.replace(/\s/g, '');
+                if (!siret) {
+                    alert("Veuillez saisir le numéro de SIRET de l'installateur (obligatoire).");
+                    return;
+                }
+                if (!/^\d{14}$/.test(siret)) {
+                    alert("Le numéro de SIRET doit comporter exactement 14 chiffres.");
+                    return;
+                }
+                if (!isValidSiret(siret)) {
+                    alert("Ce numéro de SIRET n'est pas valide (échec du contrôle de la clé). Veuillez vérifier votre saisie.");
+                    return;
+                }
+                // Normaliser le champ (sans espaces) pour la note et la mémorisation
+                document.getElementById('companySiret').value = siret;
+                try { localStorage.setItem('nd_companySiret', siret); } catch(e) {}
             }
             if (currentStep === 2) {
                 const benefNom = document.getElementById('beneficiaryLastName').value.trim();
@@ -3768,12 +4140,33 @@ if (step === 4) {
                     alert("Veuillez ajouter une zone avec une surface renseignée (supérieure à zéro) ou saisir manuellement les déperditions.");
                     return;
                 }
+                // Chaque zone renseignée doit avoir une isolation déterminée (ou une saisie manuelle)
+                const missingInsulation = zones.some(z => (parseFloat(z.area) > 0) && !z.manual && !z.insulation);
+                if (missingInsulation) {
+                    alert("Veuillez déterminer l'isolation (Coeff. G) de chaque zone avant de continuer.");
+                    return;
+                }
             }
             if (currentStep === 4) {
                 const techSel = document.getElementById('technologySelect').value;
                 if (!techSel) {
                     alert("Veuillez sélectionner une technologie et un modèle de PAC.");
                     return;
+                }
+                // Tension d'alimentation / version PC obligatoires quand le sélecteur est affiché
+                try { updateVariantSelectors(); } catch (e) {}
+                const requiredVariants = [
+                    ['geoVoltageField', 'geoVoltage', "Veuillez indiquer l'alimentation électrique du modèle sélectionné (1x230V ou 3x400V)."],
+                    ['geoPcField', 'geoPc', "Veuillez indiquer si le modèle sélectionné est en version PC (rafraîchissement passif) ou non."],
+                    ['airExtrVoltageField', 'airExtrVoltage', "Veuillez indiquer l'alimentation électrique du modèle sélectionné (1x230V ou 3x400V)."]
+                ];
+                for (const [fieldId, selectId, message] of requiredVariants) {
+                    const field = document.getElementById(fieldId);
+                    const sel = document.getElementById(selectId);
+                    if (field && sel && !field.classList.contains('hidden') && !sel.value) {
+                        alert(message);
+                        return;
+                    }
                 }
                 computeTechnology();
                 buildFinalReport();
@@ -3911,14 +4304,6 @@ try {
         }
 
         function computeBaseTemp() {
-            if (manualBaseTempOverride) {
-                const manualValue = parseFloat(document.getElementById('baseTempValue').value);
-                if (!Number.isNaN(manualValue)) {
-                    finalBaseTemp = manualValue;
-                    return;
-                }
-                manualBaseTempOverride = false;
-            }
             const postal = document.getElementById('beneficiaryPostalCode').value.trim();
             let dept = postal.substring(0,2);
             if (dept === '97' || dept === '98') {
@@ -3938,7 +4323,6 @@ try {
             if (bord) {
                 finalBase += 2;
             }
-            manualBaseTempOverride = false;
             finalBaseTemp = finalBase;
             document.getElementById('baseTempValue').value = finalBase;
 
@@ -3952,21 +4336,11 @@ try {
             }
         }
 
-        document.getElementById('beneficiaryPostalCode').addEventListener('blur', function() {
-            manualBaseTempOverride = false;
-            computeBaseTemp();
-        });
-        document.getElementById('altitudeRange').addEventListener('change', function() {
-            manualBaseTempOverride = false;
-            computeBaseTemp();
-        });
-        document.getElementById('bordDeMer').addEventListener('change', function() {
-            manualBaseTempOverride = false;
-            computeBaseTemp();
-        });
+        document.getElementById('beneficiaryPostalCode').addEventListener('blur', computeBaseTemp);
+        document.getElementById('altitudeRange').addEventListener('change', computeBaseTemp);
+        document.getElementById('bordDeMer').addEventListener('change', computeBaseTemp);
         document.getElementById('baseTempValue').addEventListener('input', function() {
             const value = parseFloat(this.value);
-            manualBaseTempOverride = !Number.isNaN(value);
             finalBaseTemp = Number.isNaN(value) ? null : value;
 
             const tech = document.getElementById('technologySelect').value;
@@ -3984,7 +4358,7 @@ try {
             const zone = {
                 area: 0,
                 height: 2.5,
-                insulation: 'entre 1990-2000',
+                insulation: '',
                 manual: false,
                 manualValue: 0,
                 ambient: 20,
@@ -4007,10 +4381,11 @@ try {
             zones.forEach((zone, i) => {
                 const div = document.createElement('div');
                 div.className = 'zone';
-                const insulationOptions = gCoefficients.map(gc => {
+                const insulationOptions = '<option value="" ' + (!zone.insulation ? 'selected' : '') + ' disabled>-- À déterminer --</option>' + gCoefficients.map(gc => {
                     const display = gc.value !== null ? `${gc.value.toFixed(2)} – ${gc.label}` : gc.label;
                     return `<option value="${gc.label}" ${gc.label===zone.insulation?'selected':''}>${display}</option>`;
                 }).join('');
+                const lossText = (!zone.manual && !zone.insulation) ? '—' : zone.loss.toFixed(2);
                 div.innerHTML = `
                     <h4>Zone ${i+1}</h4>
                     <div class="zone-row">
@@ -4041,7 +4416,7 @@ try {
                             <span>Temp. ambiante (°C)</span>
                             <input type="number" min="5" max="30" step="0.5" value="${zone.ambient}" onchange="updateZoneValue(${i}, 'ambient', this.value)">
                         </div>
-                        <div class="loss-display"><span>Déperdition&nbsp;:&nbsp;<span id="zoneLoss${i}">${zone.loss.toFixed(2)}</span>&nbsp;kW</span></div>
+                        <div class="loss-display"><span>Déperdition&nbsp;:&nbsp;<span id="zoneLoss${i}">${lossText}</span>&nbsp;kW</span></div>
                         <div>
                             <button type="button" class="remove-zone-btn" onclick="removeZone(${i})" ${i===0 ? 'style="visibility:hidden"' : ''}>Supprimer</button>
                         </div>
@@ -4086,12 +4461,17 @@ try {
                 loss = parseFloat(zone.manualValue) || 0;
             } else {
                 const gObj = gCoefficients.find(gc => gc.label === zone.insulation);
-                const g = gObj ? gObj.value : 1;
-                const deltaT = zone.ambient - finalBaseTemp;
-                if (deltaT < 0) {
+                if (!gObj || gObj.value === null) {
+                    // Isolation non déterminée par l'utilisateur : pas de calcul
                     loss = 0;
                 } else {
-                    loss = (g * zone.area * zone.height * deltaT) / 1000;
+                    const g = gObj.value;
+                    const deltaT = zone.ambient - finalBaseTemp;
+                    if (deltaT < 0) {
+                        loss = 0;
+                    } else {
+                        loss = (g * zone.area * zone.height * deltaT) / 1000;
+                    }
                 }
             }
             zone.loss = loss;
@@ -4394,6 +4774,7 @@ try {
             if (tech) {
                 computeTechnology();
             }
+            try { updateVariantSelectors(); } catch (e) {}
         }
 
         function loadGeoModels() {
@@ -4448,6 +4829,7 @@ try {
             loadGeoModels();
             selectDefaultModel('geothermie', false);
             computeTechnology();
+            try { updateVariantSelectors(); } catch (e) {}
         });
 
         function loadAirEauModels() {
@@ -5256,6 +5638,73 @@ let chosenModel = null;
         const EPREL_AQUA_MAP = {"S1156-8": {"ref": "N065903", "number": "2105096"}, "S1256-8": {"ref": "N065902", "number": "2105115"}, "S1156-13": {"ref": "N065708", "number": "2105004"}, "S1256-13": {"ref": "N065714", "number": "2105213"}, "S1156-18": {"ref": "N065717", "number": "2104978"}, "S1256-18": {"ref": "N065720", "number": "2104990"}, "S1155-25": {"ref": "N065498", "number": "2624622"}, "F1153-4": {"ref": "N065874", "number": "2637849"}, "F1253-4": {"ref": "N065872", "number": "2637855"}, "F1153-6": {"ref": "N065873", "number": "2637870"}, "F1253-6": {"ref": "N065871", "number": "2637897"}, "F1345-24": {"ref": "N065297", "number": "2046042"}, "F1345-30": {"ref": "N065298", "number": "2049168"}, "F1345-40": {"ref": "N065299", "number": "2049905"}, "F1345-60": {"ref": "N065300", "number": "2052931"}, "F1355-28": {"ref": "N065436", "number": "2640498"}, "F1355-43": {"ref": "N065496", "number": "2640490"}};
         const EPREL_AIR_EXTRACT_MAP = {"S735-7": {"ref": "N066134", "number": "1843840"}, "S735-4": {"ref": "N066130", "number": "1845582"}, "S735C-7": {"ref": "N066247", "number": "2105371"}, "S735-7C": {"ref": "N066247", "number": "2105371"}};
 
+        // Variantes 230V / 400V (et PC) — source : Agréments PAC NIBE / fiches EPREL du 06-07-2026
+        // Géothermie (eau glycolée/eau)
+        const EPREL_GEO_VARIANTS = {
+            "S1156-8":  { "230": { std: {"ref":"N065903","number":"1817776"}, pc: {"ref":"N065889","number":"1817780"} },
+                          "400": { std: {"ref":"N065901","number":"1817038"}, pc: {"ref":"N065896","number":"1817778"} } },
+            "S1256-8":  { "230": { std: {"ref":"N065902","number":"1817791"}, pc: {"ref":"N065892","number":"1817797"} },
+                          "400": { std: {"ref":"N065898","number":"1817787"}, pc: {"ref":"N065897","number":"1817795"} } },
+            "S1156-13": { "230": { std: {"ref":"N065708","number":"1817811"} },
+                          "400": { std: {"ref":"N065706","number":"1817115"} } },
+            "S1256-13": { "230": { std: {"ref":"N065714","number":"1817824"} },
+                          "400": { std: {"ref":"N065712","number":"1817820"} } }
+        };
+        // Aquathermie (eau/eau)
+        const EPREL_AQUA_VARIANTS = {
+            "S1156-8":  { "230": { std: {"ref":"N065903","number":"2105096"}, pc: {"ref":"N065889","number":"2105100"} },
+                          "400": { std: {"ref":"N065901","number":"2105089"}, pc: {"ref":"N065896","number":"2105098"} } },
+            "S1256-8":  { "230": { std: {"ref":"N065902","number":"2105115"}, pc: {"ref":"N065892","number":"2105121"} },
+                          "400": { std: {"ref":"N065898","number":"2105109"}, pc: {"ref":"N065897","number":"2105119"} } },
+            "S1156-13": { "230": { std: {"ref":"N065708","number":"2105004"} },
+                          "400": { std: {"ref":"N065706","number":"2104996"} } },
+            "S1256-13": { "230": { std: {"ref":"N065714","number":"2105213"} },
+                          "400": { std: {"ref":"N065712","number":"2105187"} } }
+        };
+        // Air extrait
+        const EPREL_AIREXT_VARIANTS = {
+            "S735-4":  { "230": { std: {"ref":"N066130","number":"1845582"} },
+                         "400": { std: {"ref":"N066128","number":"1845580"} } },
+            "S735-7":  { "230": { std: {"ref":"N066136","number":"1843844"} },
+                         "400": { std: {"ref":"N066134","number":"1843840"} } },
+            "S735C-7": { "230": { std: {"ref":"N066247","number":"2105371"} },
+                         "400": { std: {"ref":"N066245","number":"2105359"} } }
+        };
+
+        function getGeoVariantEntry(model) {
+            const sourceType = document.getElementById('geoType')?.value || '';
+            const map = sourceType === '10' ? EPREL_AQUA_VARIANTS : EPREL_GEO_VARIANTS;
+            return map[model] || null;
+        }
+        function getAirExtrVariantEntry(model) {
+            const key = model === 'S735-7C' ? 'S735C-7' : model;
+            return EPREL_AIREXT_VARIANTS[key] || null;
+        }
+
+        // Affiche/masque les sélecteurs 230V/400V et PC selon le modèle sélectionné
+        function updateVariantSelectors() {
+            const tech = document.getElementById('technologySelect')?.value || '';
+            const geoVoltField = document.getElementById('geoVoltageField');
+            const geoPcField = document.getElementById('geoPcField');
+            if (geoVoltField && geoPcField) {
+                const model = document.getElementById('geoModel')?.value || '';
+                const variants = (tech === 'geothermie') ? getGeoVariantEntry(model) : null;
+                const hasVolt = !!variants;
+                const hasPc = !!(variants && ((variants['230'] && variants['230'].pc) || (variants['400'] && variants['400'].pc)));
+                geoVoltField.classList.toggle('hidden', !hasVolt);
+                geoPcField.classList.toggle('hidden', !hasPc);
+                if (!hasVolt) { const s = document.getElementById('geoVoltage'); if (s) s.value = ''; }
+                if (!hasPc) { const s = document.getElementById('geoPc'); if (s) s.value = ''; }
+            }
+            const aeVoltField = document.getElementById('airExtrVoltageField');
+            if (aeVoltField) {
+                const model = document.getElementById('airExtrModel')?.value || '';
+                const variants = (tech === 'airextr') ? getAirExtrVariantEntry(model) : null;
+                aeVoltField.classList.toggle('hidden', !variants);
+                if (!variants) { const s = document.getElementById('airExtrVoltage'); if (s) s.value = ''; }
+            }
+        }
+
         function getSelectedEprelInfo() {
             const tech = document.getElementById('technologySelect')?.value || '';
             if (tech === 'aireau') {
@@ -5281,12 +5730,31 @@ let chosenModel = null;
             if (tech === 'geothermie') {
                 const model = document.getElementById('geoModel')?.value || '';
                 const sourceType = document.getElementById('geoType')?.value || '';
+                const variants = getGeoVariantEntry(model);
+                if (variants) {
+                    const volt = document.getElementById('geoVoltage')?.value || '';
+                    if (!volt || !variants[volt]) return null; // tension non déterminée
+                    const set = variants[volt];
+                    const hasPc = !!((variants['230'] && variants['230'].pc) || (variants['400'] && variants['400'].pc));
+                    if (hasPc) {
+                        const pcSel = document.getElementById('geoPc')?.value || '';
+                        if (!pcSel) return null; // version PC non déterminée
+                        return (pcSel === 'pc' ? set.pc : set.std) || null;
+                    }
+                    return set.std || null;
+                }
                 const eprelMap = sourceType === '10' ? EPREL_AQUA_MAP : EPREL_GEO_MAP;
                 return model ? (eprelMap[model] || null) : null;
             }
 
             if (tech === 'airextr') {
                 const model = document.getElementById('airExtrModel')?.value || '';
+                const variants = getAirExtrVariantEntry(model);
+                if (variants) {
+                    const volt = document.getElementById('airExtrVoltage')?.value || '';
+                    if (!volt || !variants[volt]) return null; // tension non déterminée
+                    return variants[volt].std || null;
+                }
                 return model ? (EPREL_AIR_EXTRACT_MAP[model] || null) : null;
             }
 
@@ -6260,6 +6728,60 @@ function updatePreconisationButtons(){
         }
 
         // Initialisation
+        // Contrôle de validité d'un SIRET (14 chiffres) : algorithme de Luhn.
+        // Exception : les établissements de La Poste (SIREN 356000000) ne suivent pas Luhn,
+        // leur SIRET est valide si la somme des chiffres est un multiple de 5.
+        function isValidSiret(siret) {
+            if (!/^\d{14}$/.test(siret)) return false;
+            if (siret.startsWith('000000000')) return false; // SIREN inexistant
+            const luhnOk = (function(){
+                let sum = 0;
+                for (let i = 0; i < 14; i++) {
+                    let d = parseInt(siret.charAt(i), 10);
+                    // En partant de la droite, on double 1 chiffre sur 2 (positions paires ici car longueur paire)
+                    if (i % 2 === 0) {
+                        d *= 2;
+                        if (d > 9) d -= 9;
+                    }
+                    sum += d;
+                }
+                return sum % 10 === 0;
+            })();
+            if (siret.startsWith('356000000')) {
+                let s = 0;
+                for (const c of siret) s += parseInt(c, 10);
+                return luhnOk || (s % 5 === 0);
+            }
+            return luhnOk;
+        }
+        // SIRET : chiffres uniquement, 14 maximum (le filtre s'applique avant la mémorisation)
+        (function initSiretFilter(){
+            const el = document.getElementById('companySiret');
+            if (!el) return;
+            el.addEventListener('input', function(){
+                const cleaned = el.value.replace(/\D/g, '').slice(0, 14);
+                if (cleaned !== el.value) el.value = cleaned;
+            });
+        })();
+        // Mémorisation navigateur des informations installateur (pré-remplies à la prochaine utilisation)
+        (function initInstallerMemory(){
+            const fields = ['companyName', 'companyAddress', 'companySiret'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                try {
+                    const saved = localStorage.getItem('nd_' + id);
+                    if (saved && !el.value) el.value = saved;
+                } catch(e) {}
+                el.addEventListener('input', function(){
+                    try {
+                        const v = el.value.trim();
+                        if (v) localStorage.setItem('nd_' + id, v);
+                        else localStorage.removeItem('nd_' + id);
+                    } catch(e) {}
+                });
+            });
+        })();
         addZone();
         showStep(1);
         updateAirExtrAvailability();
