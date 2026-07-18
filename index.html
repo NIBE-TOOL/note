@@ -696,15 +696,32 @@
         }
 
 
-/* --- Responsive mobile: menu Modèle plein écran et lisible --- */
+/* --- Responsive mobile: menu Modèle en volet bas (bottom sheet) lisible --- */
 @media (max-width: 520px){
   .rich-model-panel{
     position: fixed !important;
-    left: 12px !important;
-    right: 12px !important;
-    top: 86px !important; /* sous l'entête/stepper */
-    max-height: calc(100vh - 140px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    max-height: 78vh !important;
     overflow: auto !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-bottom: none !important;
+    box-shadow: 0 -10px 32px rgba(0,0,0,0.28) !important;
+    padding: 18px 12px calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* Poignée visuelle du volet */
+  .rich-model-panel::before{
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 4px;
+    border-radius: 2px;
+    background: #c8d6e5;
   }
   /* Présentation en "cartes" pour éviter le scroll horizontal
      Colonnes : 1=Modèle, 2=Puissance, 3=Fluide, 4=ETAS, 5=dB(A) */
@@ -744,6 +761,51 @@
     grid-column: 2 / 3;
     text-align: right !important;
     white-space: nowrap;
+  }
+  /* Ligne sélectionnée bien identifiable dans le volet */
+  .rm-table tbody tr.selected{
+    border-radius: 10px;
+    outline: 2px solid #7fa8e0;
+    outline-offset: -2px;
+  }
+}
+
+/* --- Tablette (521-900px) : colonnes du menu Modèle adaptées à la largeur réelle --- */
+@media (min-width: 521px) and (max-width: 900px){
+  .rm-table{ table-layout: auto !important; }
+  .rm-table col{ width: auto !important; }
+  .rm-table td{ padding: 7px 8px; }
+  .rm-td-meta{ font-size: 13px; }
+  .rm-td-model{ white-space: normal; }
+  .rm-type-tag{ font-size: 10px; padding: 1px 6px; margin-left: 6px; }
+  .rich-model-panel{ max-height: 380px; }
+}
+
+/* --- Étape 4 sur smartphone : champs empilés pleine largeur --- */
+@media (max-width: 600px){
+  #step4 .tech-block label,
+  #step4 > label,
+  #step4 label{
+    display: block;
+    margin: 10px 0 2px;
+  }
+  #step4 label > select,
+  #step4 label > input[type="number"],
+  #step4 label > input[type="text"]{
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    box-sizing: border-box;
+  }
+  #step4 .rich-model-wrap{
+    margin-top: 4px;
+  }
+  #step4 .variant-field{
+    margin: 8px 0;
+  }
+  #step4 .variant-field select{
+    min-width: 0;
+    width: 100%;
   }
 }
 
@@ -4400,6 +4462,7 @@ try {
             const zone = {
                 area: 0,
                 ceeArea: 0,
+                ceeManual: false,
                 height: 2.5,
                 insulation: '',
                 manual: false,
@@ -4483,6 +4546,13 @@ try {
             const zone = zones[index];
             if (field === 'area' || field === 'ceeArea' || field === 'height' || field === 'ambient' || field === 'manualValue') {
                 zone[field] = parseFloat(value);
+                if (field === 'area' && !zone.ceeManual) {
+                    // Par défaut, la surface éligible CEE suit la surface tant que l'utilisateur ne l'a pas modifiée
+                    zone.ceeArea = zone.area;
+                }
+                if (field === 'ceeArea') {
+                    zone.ceeManual = true;
+                }
             } else if (field === 'heating') {
                 zone[field] = parseInt(value);
             } else if (field === 'insulation') {
@@ -5517,23 +5587,32 @@ let chosenModel = null;
             const benefPC = document.getElementById('beneficiaryPostalCode').value;
             const benefCity = document.getElementById('beneficiaryCity').value;
             const year = document.getElementById('constructionYear').value;
-            const surfacesLines = (() => {
-                // Note de dimensionnement : on affiche la surface éligible CEE (pièces équipées d'émetteurs)
+            const surfaceInfo = (() => {
+                // Comparaison surfaces globales vs surfaces éligibles CEE (zones uniquement)
+                let sumArea = 0, sumCee = 0;
                 const ceeByTemp = { '35': 0, '45': 0, '55': 0, '65': 0 };
                 zones.forEach(z => {
+                    const a = parseFloat(z.area) || 0;
                     const cee = parseFloat(z.ceeArea) || 0;
+                    sumArea += a;
+                    sumCee += cee;
                     if (cee > 0 && ceeByTemp[z.heating] !== undefined) ceeByTemp[z.heating] += cee;
                 });
+                const differs = Math.abs(sumArea - sumCee) > 0.01;
+                if (!differs || sumCee <= 0) {
+                    // Pas de différence : affichage classique (surfaces du résumé, local piscine inclus)
+                    return {
+                        label: 'Surface chauffée',
+                        lines: Array.from(document.getElementById('surfacesByTemp').children).map(li => li.textContent)
+                    };
+                }
                 const lines = [];
                 Object.keys(ceeByTemp).forEach(temp => {
                     if (ceeByTemp[temp] > 0) lines.push(`${ceeByTemp[temp].toFixed(2)} m² à ${temp}°C`);
                 });
-                if (lines.length === 0) {
-                    // Repli : liste des surfaces du résumé si aucune surface CEE saisie
-                    return Array.from(document.getElementById('surfacesByTemp').children).map(li => li.textContent);
-                }
-                return lines;
+                return { label: 'Surface éligible CEE', lines: lines };
             })();
+            const surfacesLines = surfaceInfo.lines;
             const avgHeight = document.getElementById('avgHeight').textContent;
             const maxAmbient = document.getElementById('maxAmbient').textContent;
             const maxHeating = document.getElementById('maxHeating').textContent;
@@ -5562,7 +5641,7 @@ let chosenModel = null;
             html += `<table>
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Données de base</th></tr>
                         <tr><td>Température extérieure de base</td><td>${finalBaseTemp} °C</td></tr>
-                        <tr><td>Surface éligible CEE</td><td>${surfacesLines.join('<br>')}</td></tr>
+                        <tr><td>${surfaceInfo.label}</td><td>${surfacesLines.join('<br>')}</td></tr>
                         <tr><td>Hauteur sous plafond moyenne</td><td>${avgHeight} m</td></tr>
                         <tr><td>Température ambiante</td><td>${maxAmbient} °C</td></tr>
                         <tr><td>Température de fonctionnement maximale</td><td>${maxHeating} °C${(parseInt(maxHeating)>=65?' (Haute température)':'')}</td></tr>
