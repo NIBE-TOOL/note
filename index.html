@@ -82,12 +82,14 @@
                 flex: 1 0 45%;
             }
             .zone-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px 10px;
             }
-            .zone-row .field,
-            .zone-row .loss-display,
-            .zone-row .remove-zone-btn {
-                margin-bottom: 8px;
+            .zone-row .field-wide {
+                grid-column: span 2;
+            }
+            .zone-row .field span {
+                white-space: normal;
             }
             .zone-row input,
             .zone-row select {
@@ -261,9 +263,24 @@
         }
         .zone-row {
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr 1.2fr 1.2fr 1fr 1.2fr auto;
-            gap: 8px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px 12px;
             align-items: flex-start !important;
+        }
+        .zone-row .field-wide {
+            grid-column: span 2;
+        }
+        .zone-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #e3ecf5;
+        }
+        .zone-footer .loss-display {
+            font-weight: 600;
         }
         .zone-row .field {
             display: flex;
@@ -285,6 +302,13 @@
         }
         .zone-row input, .zone-row select {
             height: 36px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 900px) {
+            .zone-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
         .bordmer-container {
             display: flex;
@@ -3460,6 +3484,12 @@ function getEtasLookupModelName(modelName) {
     return modelName;
 }
 
+// Modèles air/eau affichés en « ETAS Système » (valeur régulation incluse : ETAS PAC + 4 points)
+function isEtasSystemModel(modelName) {
+    const m = String(modelName || '').toUpperCase().replace(/\s+/g, '');
+    return m.startsWith('F2050') || m.startsWith('S2125') || m.startsWith('AMS') || m.startsWith('S2061');
+}
+
 function etasColorClass(etasValue, bestEtas) {
     if (!etasValue || !bestEtas) return 'badge-muted';
     const ratio = etasValue / bestEtas;
@@ -3571,7 +3601,7 @@ function formatModelOptionLine(modelName, bestEtas, etasKey) {
     // Colonnes alignées (NBSP pour conserver les espaces dans <option>)
     const colModel = padNbsp(modelName, 18);
         const colRefr  = padNbsp(`${refrLabel || '—'}`, 10);
-        const colEtas  = padNbsp(`ETAS:${etasVal ? (etasVal + '%') : '—'}`, 16);
+        const colEtas  = padNbsp(`${isEtasSystemModel(modelName) ? 'ETAS Sys.' : 'ETAS'}:${etasVal ? (etasVal + '%') : '—'}`, 16);
     const colDb    = `${(db !== null && db !== undefined) ? (db + ' dB(A)') : '—'}`;
 
     return `${colModel}${colRefr}${colEtas}${colDb}`;
@@ -3841,7 +3871,7 @@ function renderRichModelOptions(selectId, modelList, bestEtas, etasKey) {
 
         const tdEtas = document.createElement('td');
         tdEtas.className = 'rm-td-meta ' + etasTextColorClass(modelName, etasVal, bestEtas);
-        tdEtas.textContent = 'ETAS : ' + (etasVal ? (etasVal + '%') : '—');
+        tdEtas.textContent = (isEtasSystemModel(modelName) ? 'ETAS Système : ' : 'ETAS : ') + (etasVal ? (etasVal + '%') : '—');
 
         const tdDb = document.createElement('td');
         tdDb.className = 'rm-td-meta';
@@ -3914,7 +3944,8 @@ function updateModelBadges(tech) {
         setBadge(document.getElementById('airEauRefrig'), refr ? refr.label : '—', refr ? refr.colorClass : 'badge-muted');
 
         const eVal = etasMap[model] ? etasMap[model][etasKey] : null;
-        setBadge(document.getElementById('airEauEtas'), eVal ? `ETAS ${etasKey}°C : ${eVal}%` : `ETAS ${etasKey}°C : —`, etasColorClass(eVal, best));
+        const etasLbl = isEtasSystemModel(model) ? `ETAS Système ${etasKey}°C` : `ETAS ${etasKey}°C`;
+        setBadge(document.getElementById('airEauEtas'), eVal ? `${etasLbl} : ${eVal}%` : `${etasLbl} : —`, etasColorClass(eVal, best));
 
         const db = getSoundDb(model);
         setBadge(document.getElementById('airEauDb'), db !== null ? `dB(A) : ${db}` : 'dB(A) : —', 'badge-muted');
@@ -4146,6 +4177,17 @@ if (step === 4) {
                     alert("Veuillez déterminer l'isolation (Coeff. G) de chaque zone avant de continuer.");
                     return;
                 }
+                // Surface éligible CEE obligatoire (pièces équipées d'émetteurs) et cohérente
+                const missingCee = zones.some(z => ((parseFloat(z.area) > 0) || (z.manual && parseFloat(z.manualValue) > 0)) && !(parseFloat(z.ceeArea) > 0));
+                if (missingCee) {
+                    alert("Veuillez renseigner la surface éligible CEE (surface des pièces équipées d'émetteurs) pour chaque zone.");
+                    return;
+                }
+                const ceeTooLarge = zones.some(z => (parseFloat(z.area) > 0) && (parseFloat(z.ceeArea) > parseFloat(z.area)));
+                if (ceeTooLarge) {
+                    alert("La surface éligible CEE d'une zone ne peut pas dépasser sa surface totale.");
+                    return;
+                }
             }
             if (currentStep === 4) {
                 const techSel = document.getElementById('technologySelect').value;
@@ -4357,6 +4399,7 @@ try {
             if (zones.length >= 20) return;
             const zone = {
                 area: 0,
+                ceeArea: 0,
                 height: 2.5,
                 insulation: '',
                 manual: false,
@@ -4394,16 +4437,24 @@ try {
                             <input type="number" min="0" step="0.1" value="${zone.area}" onchange="updateZoneValue(${i}, 'area', this.value)">
                         </div>
                         <div class="field">
+                            <span title="Surface des pièces équipées d'émetteurs">Surface éligible CEE (m²)</span>
+                            <input type="number" min="0" step="0.1" value="${zone.ceeArea || 0}" title="Surface des pièces équipées d'émetteurs" onchange="updateZoneValue(${i}, 'ceeArea', this.value)">
+                        </div>
+                        <div class="field">
                             <span>Hauteur (m)</span>
                             <input type="number" min="0" step="0.1" value="${zone.height}" onchange="updateZoneValue(${i}, 'height', this.value)">
                         </div>
                         <div class="field">
+                            <span>Temp. ambiante (°C)</span>
+                            <input type="number" min="5" max="30" step="0.5" value="${zone.ambient}" onchange="updateZoneValue(${i}, 'ambient', this.value)">
+                        </div>
+                        <div class="field field-wide">
                             <span>Isolation (Coeff. G)</span>
                             <select onchange="updateZoneValue(${i}, 'insulation', this.value)">
                                 ${insulationOptions}
                             </select>
                         </div>
-                        <div class="field">
+                        <div class="field field-wide">
                             <span>Temp. fonctionnement (°C)</span>
                             <select onchange="updateZoneValue(${i}, 'heating', this.value)">
                                 <option value="35" ${zone.heating==35?'selected':''}>35°C</option>
@@ -4412,17 +4463,13 @@ try {
                                 <option value="65" ${zone.heating==65?'selected':''}>65°C</option>
                             </select>
                         </div>
-                        <div class="field">
-                            <span>Temp. ambiante (°C)</span>
-                            <input type="number" min="5" max="30" step="0.5" value="${zone.ambient}" onchange="updateZoneValue(${i}, 'ambient', this.value)">
-                        </div>
-                        <div class="loss-display"><span>Déperdition&nbsp;:&nbsp;<span id="zoneLoss${i}">${lossText}</span>&nbsp;kW</span></div>
-                        <div>
-                            <button type="button" class="remove-zone-btn" onclick="removeZone(${i})" ${i===0 ? 'style="visibility:hidden"' : ''}>Supprimer</button>
-                        </div>
                     </div>
                     <div id="manualInput${i}" class="${zone.insulation==='saisie manuelle'?'':'hidden'} manual-input">
                         <label>Déperdition saisie (kW)<br><input type="number" min="0" step="0.1" value="${zone.manualValue}" onchange="updateZoneValue(${i}, 'manualValue', this.value)"></label>
+                    </div>
+                    <div class="zone-footer">
+                        <div class="loss-display"><span>Déperdition&nbsp;:&nbsp;<span id="zoneLoss${i}">${lossText}</span>&nbsp;kW</span></div>
+                        <button type="button" class="remove-zone-btn" onclick="removeZone(${i})" ${i===0 ? 'style="visibility:hidden"' : ''}>Supprimer</button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -4434,7 +4481,7 @@ try {
 
         function updateZoneValue(index, field, value) {
             const zone = zones[index];
-            if (field === 'area' || field === 'height' || field === 'ambient' || field === 'manualValue') {
+            if (field === 'area' || field === 'ceeArea' || field === 'height' || field === 'ambient' || field === 'manualValue') {
                 zone[field] = parseFloat(value);
             } else if (field === 'heating') {
                 zone[field] = parseInt(value);
@@ -5470,7 +5517,23 @@ let chosenModel = null;
             const benefPC = document.getElementById('beneficiaryPostalCode').value;
             const benefCity = document.getElementById('beneficiaryCity').value;
             const year = document.getElementById('constructionYear').value;
-            const surfacesLines = Array.from(document.getElementById('surfacesByTemp').children).map(li => li.textContent);
+            const surfacesLines = (() => {
+                // Note de dimensionnement : on affiche la surface éligible CEE (pièces équipées d'émetteurs)
+                const ceeByTemp = { '35': 0, '45': 0, '55': 0, '65': 0 };
+                zones.forEach(z => {
+                    const cee = parseFloat(z.ceeArea) || 0;
+                    if (cee > 0 && ceeByTemp[z.heating] !== undefined) ceeByTemp[z.heating] += cee;
+                });
+                const lines = [];
+                Object.keys(ceeByTemp).forEach(temp => {
+                    if (ceeByTemp[temp] > 0) lines.push(`${ceeByTemp[temp].toFixed(2)} m² à ${temp}°C`);
+                });
+                if (lines.length === 0) {
+                    // Repli : liste des surfaces du résumé si aucune surface CEE saisie
+                    return Array.from(document.getElementById('surfacesByTemp').children).map(li => li.textContent);
+                }
+                return lines;
+            })();
             const avgHeight = document.getElementById('avgHeight').textContent;
             const maxAmbient = document.getElementById('maxAmbient').textContent;
             const maxHeating = document.getElementById('maxHeating').textContent;
@@ -5499,7 +5562,7 @@ let chosenModel = null;
             html += `<table>
                         <tr><th colspan="2" style="color:#0B3D91; font-weight:bold; text-transform:uppercase;">Données de base</th></tr>
                         <tr><td>Température extérieure de base</td><td>${finalBaseTemp} °C</td></tr>
-                        <tr><td>Surface chauffée</td><td>${surfacesLines.join('<br>')}</td></tr>
+                        <tr><td>Surface éligible CEE</td><td>${surfacesLines.join('<br>')}</td></tr>
                         <tr><td>Hauteur sous plafond moyenne</td><td>${avgHeight} m</td></tr>
                         <tr><td>Température ambiante</td><td>${maxAmbient} °C</td></tr>
                         <tr><td>Température de fonctionnement maximale</td><td>${maxHeating} °C${(parseInt(maxHeating)>=65?' (Haute température)':'')}</td></tr>
@@ -5576,27 +5639,27 @@ let chosenModel = null;
                         ${pac.extra && pac.extra.type === 'sonde' ? `<tr><td>Longueur de sondes géothermiques estimée</td><td>${pac.extra.value}</td></tr>` : ''}
                         ${pac.extra && pac.extra.type === 'flow' ? `<tr><td>${pac.extra.isTotal ? 'Débit total d\u2019eau de nappe' : 'Débit d\u2019eau de nappe'}</td><td>${pac.extra.isTotal ? pac.extra.total : pac.extra.base} m³/h</td></tr>` : ''}
                         <tr>
-                            <td style="font-weight:bold; color:#0B5D1E;"><strong>ETAS (PAC) 35°C</strong></td>
+                            <td style="font-weight:bold; color:#0B5D1E;"><strong>${isEtasSystemModel(pac.model) ? 'ETAS Système' : 'ETAS'} 35°C</strong></td>
                             <td style="font-weight:bold;">
                                 <strong>
                                     ${(() => {
                                         const v = pac.etas35 || 0;
                                         if (!v) return '—';
-                                        const col = getEtasColorHexForPrint(pac.tech, pac.model, '35', v);
-                                        return `<span style="color:#0B5D1E; font-weight:bold;">${(v - 4)} %</span>`;
+                                        const shown = isEtasSystemModel(pac.model) ? v : (v - 4);
+                                        return `<span style="color:#0B5D1E; font-weight:bold;">${shown} %</span>`;
                                     })()}
                                 </strong>
                             </td>
                         </tr>
                         <tr>
-                            <td style="font-weight:bold; color:#0B5D1E;"><strong>ETAS (PAC) 55°C</strong></td>
+                            <td style="font-weight:bold; color:#0B5D1E;"><strong>${isEtasSystemModel(pac.model) ? 'ETAS Système' : 'ETAS'} 55°C</strong></td>
                             <td style="font-weight:bold;">
                                 <strong>
                                     ${(() => {
                                         const v = pac.etas55 || 0;
                                         if (!v) return '—';
-                                        const col = getEtasColorHexForPrint(pac.tech, pac.model, '55', v);
-                                        return `<span style="color:#0B5D1E; font-weight:bold;">${(v - 4)} %</span>`;
+                                        const shown = isEtasSystemModel(pac.model) ? v : (v - 4);
+                                        return `<span style="color:#0B5D1E; font-weight:bold;">${shown} %</span>`;
                                     })()}
                                 </strong>
                             </td>
@@ -5612,6 +5675,16 @@ let chosenModel = null;
             }
             html += `${cutoff}</td></tr>`;
             html += `</table>`;
+
+            if (isEtasSystemModel(pac.model)) {
+                const etasSerie = (selectedFamily === 'F') ? 'F' : 'S';
+                const pac35 = pac.etas35 ? (pac.etas35 - 4) : null;
+                const pac55 = pac.etas55 ? (pac.etas55 - 4) : null;
+                const parts = [];
+                if (pac35) parts.push(`${pac35}% à 35°C`);
+                if (pac55) parts.push(`${pac55}% à 55°C`);
+                html += `<p style="font-size:8px;">ETAS Système : ETAS PAC ${parts.join(' / ')} + 4% régulation série ${etasSerie}.</p>`;
+            }
 
             html += `<p style="font-size:8px;">Les déperditions calculées concernent toutes les pièces du logement desservies par le réseau de chauffage et sans considération d’éventuels autres générateurs.</p>`;
             html += `<p style="font-size:8px;">Les informations et estimations fournies dans cette note de dimensionnement sont données à titre indicatif. Elles sont basées sur les renseignements communiqués et n’ont qu’une valeur approximative. Elles doivent être vérifiées et complétées en consultant les notices des fabricants, la réglementation en vigueur et les régimes de fonctionnement applicables. Un bureau d’étude ou un professionnel qualifié devra confirmer ces données, procéder aux ajustements nécessaires et émettre les réserves d’usage.</p>`;
@@ -7056,6 +7129,27 @@ ${noteStyles}
 <div class="note-canvas">
     <div class="note-sheet">${reportDiv.innerHTML}</div>
 </div>
+<script>
+// Ajustement automatique : le document tient toujours sur 1 page A4
+(function(){
+    function fitOnePage(){
+        try {
+            var sheet = document.querySelector('.note-sheet');
+            if (!sheet) return;
+            sheet.style.zoom = '';
+            // A4 : 297 mm - marges 2 x 10 mm = 277 mm utiles, convertis en px CSS (96 dpi)
+            var printableHeightPx = Math.floor((297 - 20) / 25.4 * 96);
+            var contentHeight = sheet.scrollHeight;
+            if (contentHeight > printableHeightPx) {
+                var z = Math.max(0.4, printableHeightPx / contentHeight);
+                sheet.style.zoom = z.toFixed(3);
+            }
+        } catch (e) {}
+    }
+    window.addEventListener('load', fitOnePage);
+    window.addEventListener('beforeprint', fitOnePage);
+})();
+<\/script>
 </body>
 </html>`;
 
@@ -7441,9 +7535,26 @@ function exportChiffragePdf() {
     const status = document.getElementById('exportStatus');
     const printBtn = document.getElementById('printPdfBtn');
     const imgs = Array.from(document.images || []);
+    // Ajustement automatique : le devis tient toujours sur 1 page A4
+    function fitOnePage() {
+        try {
+            const sheet = document.querySelector('.export-sheet');
+            if (!sheet) return;
+            sheet.style.zoom = '';
+            // A4 : 297 mm - marges 2 x 10 mm = 277 mm utiles, en px CSS (96 dpi)
+            const printableHeightPx = Math.floor((297 - 20) / 25.4 * 96);
+            const contentHeight = sheet.scrollHeight;
+            if (contentHeight > printableHeightPx) {
+                const z = Math.max(0.4, printableHeightPx / contentHeight);
+                sheet.style.zoom = z.toFixed(3);
+            }
+        } catch (e) {}
+    }
+    window.addEventListener('beforeprint', fitOnePage);
     function setReady() {
         if (status) status.textContent = 'Document prêt. Utilisez “Enregistrer en PDF”.';
         if (printBtn) printBtn.disabled = false;
+        fitOnePage();
     }
     if (!imgs.length) {
         setReady();
