@@ -5421,13 +5421,11 @@ try {
             }
             updateBaseTempHint();
 
+            // La température de base a pu changer : toutes les déperditions sont recalculées avant le dimensionnement
+            recomputeAllLosses();
             const tech = document.getElementById('technologySelect').value;
             if (tech) {
                 computeTechnology();
-            }
-            if (pool) {
-                computePoolLoss();
-                updateProjectSummary();
             }
         }
 
@@ -5440,13 +5438,11 @@ try {
             baseTempManual = !Number.isNaN(value) && (baseTempProposed === null || value !== baseTempProposed);
             updateBaseTempHint();
 
+            // La température de base a pu changer : toutes les déperditions sont recalculées avant le dimensionnement
+            recomputeAllLosses();
             const tech = document.getElementById('technologySelect').value;
             if (tech) {
                 computeTechnology();
-            }
-            if (pool) {
-                computePoolLoss();
-                updateProjectSummary();
             }
         });
 
@@ -5560,6 +5556,15 @@ try {
             if (document.getElementById('technologySelect').value) {
                 computeTechnology();
             }
+        }
+
+        // Recalcule les déperditions de toutes les zones et de la piscine (après un changement de température de base)
+        function recomputeAllLosses() {
+            if (finalBaseTemp === null || finalBaseTemp === undefined || Number.isNaN(finalBaseTemp)) return;
+            zones.forEach((z, i) => { try { computeZoneLoss(i); } catch (e) { console.error('computeZoneLoss', e); } });
+            try { renderZones(); } catch (e) { console.error('renderZones', e); }
+            if (pool) { try { computePoolLoss(); } catch (e) { console.error('computePoolLoss', e); } }
+            try { updateProjectSummary(); } catch (e) { console.error('updateProjectSummary', e); }
         }
 
         function computeZoneLoss(i) {
@@ -10044,9 +10049,8 @@ function historyOpenStudy(id) {
         if (poolBtn) poolBtn.style.display = pool ? 'none' : 'inline-flex';
         const poolContainer = document.getElementById('poolContainer');
         if (poolContainer && !pool) poolContainer.innerHTML = '';
-        try { renderZones(); } catch (e) {}
-        if (pool) { try { computePoolLoss(); } catch (e) {} }
-        try { updateProjectSummary(); updateAirExtrAvailability(); } catch (e) {}
+        try { recomputeAllLosses(); } catch (e) {}
+        try { updateAirExtrAvailability(); } catch (e) {}
 
         // 4) Sélection PAC : technologie puis modèle/variante mémorisés (sans ré-optimisation)
         const tech = f.technologySelect || '';
